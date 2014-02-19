@@ -56,10 +56,15 @@ class VariantVisitor : public PileupVisitor{
              for(auto it = begin(pileupData.PileupAlignments);
                       it != end(pileupData.PileupAlignments); 
                       ++it){
+                   
                  it->Alignment.GetTag("RG", tag_id);
                  string s = get_sample(tag_id);
                  char b = it->Alignment.AlignedBases[it->PositionInAlignment];
                  sample_counts[s].reads[bases.find(b)] += 1;        
+                 if(pileupData.Position == 98){
+                     cout << s  ;
+                     cout << b << " ";
+                 }
              }
              cout << endl;                
         }
