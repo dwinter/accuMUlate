@@ -138,7 +138,7 @@ double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
 	anc_genotypes *= pop_genotypes;
 	DiploidProbs num_genotypes = anc_genotypes;
 	for(++it; it != site_data.all_reads.end(); ++it) {
-		HaploidProbs p = HaploidSequencing(params, site_data.reference *it);
+		HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
 
 		anc_genotypes *= (m.matrix()*p.matrix()).array();
 		num_genotypes *= (mn.matrix()*p.matrix()).array();
@@ -149,7 +149,7 @@ double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
 	return 1.0 - num_genotypes.sum()/anc_genotypes.sum();
 }
 
-double TetMAProbPerLine(const ModelParams &params, const ModelInput site_data) {
+double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data) {
     MutationMatrix m = MutationAccumulation(params, false);
 	MutationMatrix mt = MutationAccumulation(params, true);
 	MutationMatrix mn = m-mt;	
@@ -158,24 +158,45 @@ double TetMAProbPerLine(const ModelParams &params, const ModelInput site_data) {
 	auto it = site_data.all_reads.begin();
 	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
 	anc_genotypes *= pop_genotypes;
-    vector<double> probs_per_line;
-	for(++it; it != site_data.all_reads.end(); ++it) {
-            HaploidProbs p = HaploidSequencing(params, site_data.reference, *it)
-    		agen = anc_genotypes * (m.matrix()*p.matrix()).array();
-            dgen = anc_genotypes * (mn.matrix()*p.matrix()).array();
-            probs_per_line.push_back( 1.0 - dgen.sum() / agen.sum() )
-    }
 
-    double result = 0.0;
-    for (size_t i = 0; i < probs_per_line.size();  ++i){
-        double pi = probs[i];
-        for size_t(j=0; j< probs_per_line.size(); ++j){
-            if(i!=j){
-                pi *= 1-probs[i]
-            }
-        }
-        result += pi
+  	DiploidProbs num_genotypes = anc_genotypes;   //product of p(Ri|A)
+    DiploidProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
+    DiploidProbs mut_genotypes;                   //Sum of p(Ri&Mutation|A=x)
+	for(++it; it != site_data.all_reads.end(); ++it) {
+        HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
+        DiploidProbs dgen =  (mn.matrix()*p.matrix()).array();
+        DiploidProbs agen = (m.matrix()*p.matrix()).array();
+        nomut_genotypes *= dgen;
+        mut_genotypes += (agen/dgen - 1); //(agen+dgen)/agen
+        num_genotypes *= agen;
     }
+    double result = (nomut_genotypes * mut_genotypes).sum() / num_genotypes.sum();
+    return(result);
+}
+
+int main(){
+    ModelParams p = { 
+        0.001, 
+        {0.25, 0.25, 0.25, 0.25}, 
+        1.0e-8,
+        0.01,
+        0.001,
+        0.001,
+    };
+    ReadDataVector messy = {
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0,  0,  0, 30},
+        { 0, 0,   0, 30}
+};
+    ModelInput d = {"scf00001", 87, 1, messy};
+   
+    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,d)<< endl;
+    cout << "P(any|data)= " << TetMAProbability(p,d) << endl;
+   
+    return(1);
 }
 
 

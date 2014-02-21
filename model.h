@@ -1,14 +1,7 @@
 #ifndef model_H
 #define model_H
 
-#include <cstdint>
-#include <cmath>
-#include <vector>
-#include <initializer_list>
-#include <iostream>
-#include <map>
-#include <fstream>
-#include <memory>
+
 #include "Eigen/Dense"
 
 using namespace std;
@@ -30,7 +23,6 @@ struct ModelParams{
 };
 
 struct ModelInput{
-    double prob;
     string chr;
     uint64_t position;
     uint16_t reference;
