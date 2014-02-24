@@ -66,8 +66,7 @@ class VariantVisitor : public PileupVisitor{
          void Visit(const PileupPosition& pileupData) {
              cout << m_references[pileupData.RefId].RefName << "\t";
              cout << pileupData.Position << "\t";
-             cout << m_references << '\t';
-             cout << *ali[RefId].QueryBaes[pileupData.Position] << '\t';
+             cout << m_ali.QueryBases[pileupData.Position] << '\t';
              ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
              string tag_id;
              for(auto it = begin(pileupData.PileupAlignments);
@@ -93,7 +92,7 @@ class VariantVisitor : public PileupVisitor{
         int m_q;
         int nsamp;
         ModelParams m_params;
-        BamAlignment& m_ali
+        BamAlignment& m_ali;
         
             
 };
@@ -116,11 +115,11 @@ int main(){
     };
     BamAlignment ali;
     PileupEngine pileup;
-    VariantVisitor *v = new VariantVisitor(references, all_samples,p, &ali);
+    VariantVisitor *v = new VariantVisitor(references, all_samples,p, ali);
     pileup.AddVisitor(v);
     while( myBam.GetNextAlignment(ali)){
         pileup.AddAlignment(ali);
-        ` 
+         
     };
     pileup.Flush();
     return 0;
