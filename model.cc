@@ -174,30 +174,30 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
     return(result);
 }
 
-int main(){
-    ModelParams p = { 
-        0.001, 
-        {0.25, 0.25, 0.25, 0.25}, 
-        1.0e-8,
-        0.01,
-        0.001,
-        0.001,
-    };
-    ReadDataVector messy = {
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0,  0,  0, 30},
-        { 0, 0,   0, 30}
-};
-    ModelInput d = {"scf00001", 87, 1, messy};
-   
-    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,d)<< endl;
-    cout << "P(any|data)= " << TetMAProbability(p,d) << endl;
-   
-    return(1);
-}
+//int main(){
+//    ModelParams p = { 
+//        0.001, 
+//        {0.25, 0.25, 0.25, 0.25}, 
+//        1.0e-8,
+//        0.01,
+//        0.001,
+//        0.001,
+//    };
+//    ReadDataVector messy = {
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//       { 0,  0,  0, 30},
+//        { 0, 0,   0, 30}
+//};
+//    ModelInput d = {"scf00001", 87, 1, messy};
+//   
+//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,d)<< endl;
+//    cout << "P(any|data)= " << TetMAProbability(p,d) << endl;
+//   
+//    return(1);
+//}
 
 
 
