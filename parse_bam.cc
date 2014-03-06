@@ -40,19 +40,23 @@ int find_sample_index(string s, SampleNames sv){
 uint16_t base_index(char b){
     switch(b){
         case 'A':
+        case 'a':    
             return 0;
          case 'T':
+         case 't':
              return 3;
          case 'C':
+         case 'c':
              return 1;
          case 'G':
+         case 'g':
              return 2;
          case '-':
          case 'N':
-             return string::npos;
+             return basic_string::npos;
          default:
-             cerr << "Don't know what to make of " << b <<endl;
-             return string::npos;
+             cerr << "Don't know what to make of base" << b <<endl;
+             return basic_string::npos;
     };
 }
 
@@ -79,7 +83,6 @@ class VariantVisitor : public PileupVisitor{
              seqan::getIdByName(m_idx_ref, chr, chr_index);
                 
              seqan::readRegion(current_base, m_idx_ref, chr_index, pos, pos+1);
-             cout << chr << '\t' << pos << '\t' << current_base << '\t';
          
              ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
              string tag_id;
@@ -91,14 +94,17 @@ class VariantVisitor : public PileupVisitor{
                      it->Alignment.GetTag("RG", tag_id);
                      int sindex = find_sample_index(get_sample(tag_id), m_samples);
                      size_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
-                     if (bindex < 3){
+                     if (bindex != basic_string::npos){
                          bcalls[sindex].reads[bindex] += 1;
                      }
                  }
             }
             ModelInput d = {"", 1, base_index(toCString(current_base)[0]), bcalls};
-            cout << TetMAProbOneMutation(m_params,d) << '\t'  
-                 << TetMAProbability(m_params,d) << endl;          
+            double prob = TetMAProbability(m_params,d);
+            if(1.0 > 0.1){
+             cout << chr << '\t' << pos << '\t' << current_base << '\t' << 
+                 prob << '\t' << TetMAProbOneMutation(m_params,d) << endl;          
+            }
         }
     private:
         seqan::FaiIndex m_idx_ref; 
@@ -121,7 +127,7 @@ int main(){
     BamReader myBam; 
     myBam.Open("scf_8254670.bam");
     RefVector references = myBam.GetReferenceData();
-    cout << "buliding fasta index..." << endl;
+    cerr << "buliding fasta index..." << endl;
     seqan::FaiIndex refIndex;
     build(refIndex, "tt-ref.fasta");
 
@@ -137,7 +143,6 @@ int main(){
     };
     BamAlignment ali;
     PileupEngine pileup;
-    cout << "creating visitor" << endl;
     VariantVisitor *v = new VariantVisitor(references, refIndex, all_samples,p, ali);
     pileup.AddVisitor(v);
     while( myBam.GetNextAlignment(ali)){
