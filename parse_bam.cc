@@ -53,10 +53,10 @@ uint16_t base_index(char b){
              return 2;
          case '-':
          case 'N':
-             return basic_string::npos;
+             return 4;
          default:
              cerr << "Don't know what to make of base" << b <<endl;
-             return basic_string::npos;
+             return 4;
     };
 }
 
@@ -94,7 +94,7 @@ class VariantVisitor : public PileupVisitor{
                      it->Alignment.GetTag("RG", tag_id);
                      int sindex = find_sample_index(get_sample(tag_id), m_samples);
                      size_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
-                     if (bindex != basic_string::npos){
+                     if (bindex > 3){
                          bcalls[sindex].reads[bindex] += 1;
                      }
                  }
@@ -125,11 +125,11 @@ class VariantVisitor : public PileupVisitor{
 
 int main(){
     BamReader myBam; 
-    myBam.Open("scf_8254670.bam");
+    myBam.Open("test/scf_8254670.bam");
     RefVector references = myBam.GetReferenceData();
     cerr << "buliding fasta index..." << endl;
     seqan::FaiIndex refIndex;
-    build(refIndex, "tt-ref.fasta");
+    build(refIndex, "test/tt-ref.fasta");
 
     SampleNames all_samples {"M0", "M19", "M20", "M28","M25", "M29", 
                              "M40", "M44","M47", "M50","M51", "M531"};
