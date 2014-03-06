@@ -94,7 +94,7 @@ class VariantVisitor : public PileupVisitor{
                      it->Alignment.GetTag("RG", tag_id);
                      int sindex = find_sample_index(get_sample(tag_id), m_samples);
                      size_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
-                     if (bindex > 3){
+                     if (bindex < 3){
                          bcalls[sindex].reads[bindex] += 1;
                      }
                  }
