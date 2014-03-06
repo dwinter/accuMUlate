@@ -175,80 +175,80 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
     return(result);
 }
 
-int main(){
-    ModelParams p = { 
-        0.0001, 
-        {0.38, 0.12, 0.12, 0.38}, 
-        1.0e-8,
-        0.01,
-        0.001,
-        0.001,
-    };
-    ModelInput two_vars = {"scf0", 87, 1, 
-        {
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0,  0,  0, 30},
-        { 0, 0,   0, 30},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-
-        }
-    };
-
-
-    ModelInput  one_vars = {"Scf0", 87, 1,
-        {
-        { 0, 30,  0,  0},
-        { 0,  0,  0, 30},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0, 0}}
-    };    
-
-   ModelInput no_vars = {"Scf0", 87, 1,
-
-      {{8,   0,  0, 0},       
-       {9,   0,  0, 4},       
-       {3,   0,  0, 0},
-       {7,   0,  0, 0},     
-       {18,  0,  0, 0},       
-       {17,  0,  0, 3},
-       {32,  0,  0, 1},  
-       {19,  0,  0, 3},       
-       {25,  0,  0, 1},
-       {37,  0,  0, 0},
-       {17,  0,  0, 0},
-       {3 ,  0,  0, 4}}
-   };
-    
-    cout << "___With the no-variant data___" << endl;
-    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,no_vars)<< endl;
-    cout << "P(any|data)= " << TetMAProbability(p,no_vars) << endl;
-
-    cout << "___With the one-variant data___" << endl;  
-    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,one_vars)<< endl;
-    cout << "P(any|data)= " << TetMAProbability(p,one_vars) << endl;
-    
-    cout << "___With the two-variant data___" << endl;
-    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,two_vars)<< endl;
-    cout << "P(any|data)= " << TetMAProbability(p,two_vars) << endl;   
-
-    
-    cout << "calculating the same number once: " << TetMAProbOneMutation(p,two_vars) << endl;
-    cout << "then another time: " << TetMAProbOneMutation(p,two_vars) << endl;
-    TetMAProbOneMutation(p,no_vars);
-    cout << "And once more after calling from the the no-vars data: " << TetMAProbOneMutation(p,two_vars) << endl;
-    return 0;
-}
-
+//int main(){
+//    ModelParams p = { 
+//        0.0001, 
+//        {0.38, 0.12, 0.12, 0.38}, 
+//        1.0e-8,
+//        0.01,
+//        0.001,
+//        0.001,
+//    };
+//    ModelInput two_vars = {"scf0", 87, 1, 
+//        {
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0,  0,  0, 30},
+//        { 0, 0,   0, 30},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//
+//        }
+//    };
+//
+//
+//    ModelInput  one_vars = {"Scf0", 87, 1,
+//        {
+//        { 0, 30,  0,  0},
+//        { 0,  0,  0, 30},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0, 0}}
+//    };    
+//
+//   ModelInput no_vars = {"Scf0", 87, 1,
+//
+//      {{8,   0,  0, 0},       
+//       {9,   0,  0, 4},       
+//       {3,   0,  0, 0},
+//       {7,   0,  0, 0},     
+//       {18,  0,  0, 0},       
+//       {17,  0,  0, 3},
+//       {32,  0,  0, 1},  
+//       {19,  0,  0, 3},       
+//       {25,  0,  0, 1},
+//       {37,  0,  0, 0},
+//       {17,  0,  0, 0},
+//       {3 ,  0,  0, 4}}
+//   };
+//    
+//    cout << "___With the no-variant data___" << endl;
+//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,no_vars)<< endl;
+//    cout << "P(any|data)= " << TetMAProbability(p,no_vars) << endl;
+//
+//    cout << "___With the one-variant data___" << endl;  
+//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,one_vars)<< endl;
+//    cout << "P(any|data)= " << TetMAProbability(p,one_vars) << endl;
+//    
+//    cout << "___With the two-variant data___" << endl;
+//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,two_vars)<< endl;
+//    cout << "P(any|data)= " << TetMAProbability(p,two_vars) << endl;   
+//
+//    
+//    cout << "calculating the same number once: " << TetMAProbOneMutation(p,two_vars) << endl;
+//    cout << "then another time: " << TetMAProbOneMutation(p,two_vars) << endl;
+//    TetMAProbOneMutation(p,no_vars);
+//    cout << "And once more after calling from the the no-vars data: " << TetMAProbOneMutation(p,two_vars) << endl;
+//    return 0;
+//}
+//
 
 
 

@@ -60,7 +60,7 @@ uint16_t base_index(char b){
 class VariantVisitor : public PileupVisitor{
     public://TODO
         VariantVisitor(const RefVector& bam_references, 
-                       const seqan::FaiIndex idx_ref,
+                       const seqan::FaiIndex& idx_ref,
                        SampleNames samples, 
                        const ModelParams& p,  
                        BamAlignment& ali, 
@@ -76,9 +76,10 @@ class VariantVisitor : public PileupVisitor{
          void Visit(const PileupPosition& pileupData) {
              string chr = m_bam_ref[pileupData.RefId].RefName;
              int pos  = pileupData.Position;
-             seqan::getIdByName(m_idx_ref, chr, chr_index);   
+             seqan::getIdByName(m_idx_ref, chr, chr_index);
+                
              seqan::readRegion(current_base, m_idx_ref, chr_index, pos, pos+1);
-             cout << chr << '\t' << pos << '\t' << current_base << endl;
+             cout << chr << '\t' << pos << '\t' << current_base << '\t';
          
              ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
              string tag_id;
@@ -90,7 +91,7 @@ class VariantVisitor : public PileupVisitor{
                      it->Alignment.GetTag("RG", tag_id);
                      int sindex = find_sample_index(get_sample(tag_id), m_samples);
                      size_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
-                     if (bindex != string::npos){
+                     if (bindex < 3){
                          bcalls[sindex].reads[bindex] += 1;
                      }
                  }
@@ -136,6 +137,7 @@ int main(){
     };
     BamAlignment ali;
     PileupEngine pileup;
+    cout << "creating visitor" << endl;
     VariantVisitor *v = new VariantVisitor(references, refIndex, all_samples,p, ali);
     pileup.AddVisitor(v);
     while( myBam.GetNextAlignment(ali)){
