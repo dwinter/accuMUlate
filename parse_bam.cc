@@ -6,6 +6,9 @@
 #include <vector>
 #include <string>
 
+#include "seqan/seq_io.h"
+#include "seqan/stream.h"
+
 #include "model.h"
 
 using namespace std;
@@ -34,7 +37,7 @@ int find_sample_index(string s, SampleNames sv){
     return(13); //TODO refactor this to  update sampe in place!
 }
 
-size_t base_index(char b){
+uint16_t base_index(char b){
     switch(b){
         case 'A':
             return 0;
@@ -55,18 +58,28 @@ size_t base_index(char b){
 
                              
 class VariantVisitor : public PileupVisitor{
-    public:
-        VariantVisitor(const RefVector& references, const SampleNames samples, ModelParams p,  BamAlignment& ali, int q =13): 
-            PileupVisitor(), m_references(references), m_samples(samples), m_q(q), m_params(p), m_ali(ali)
+    public://TODO
+        VariantVisitor(const RefVector& bam_references, 
+                       const seqan::FaiIndex idx_ref,
+                       SampleNames samples, 
+                       const ModelParams& p,  
+                       BamAlignment& ali, 
+                       int q =13):
+
+            PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
+                             m_samples(samples), m_q(q), m_params(p), m_ali(ali)
             {
                 nsamp = m_samples.size();
             }
         ~VariantVisitor(void) { }
     public:
          void Visit(const PileupPosition& pileupData) {
-             cout << m_references[pileupData.RefId].RefName << "\t";
-             cout << pileupData.Position << "\t";
-             cout << m_ali.QueryBases[pileupData.Position] << '\t';
+             string chr = m_bam_ref[pileupData.RefId].RefName;
+             int pos  = pileupData.Position;
+             seqan::getIdByName(m_idx_ref, chr, chr_index);   
+             seqan::readRegion(current_base, m_idx_ref, chr_index, pos, pos+1);
+             cout << chr << '\t' << pos << '\t' << current_base << endl;
+         
              ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
              string tag_id;
              for(auto it = begin(pileupData.PileupAlignments);
@@ -82,17 +95,21 @@ class VariantVisitor : public PileupVisitor{
                      }
                  }
             }
-            ModelInput d = {"", 1, 0, bcalls};
+            ModelInput d = {"", 1, base_index(toCString(current_base)[0]), bcalls};
             cout << TetMAProbOneMutation(m_params,d) << '\t'  
                  << TetMAProbability(m_params,d) << endl;          
         }
     private:
-        RefVector m_references;
+        seqan::FaiIndex m_idx_ref; 
+        RefVector m_bam_ref;
         SampleNames m_samples;
         int m_q;
         int nsamp;
         ModelParams m_params;
         BamAlignment& m_ali;
+        seqan::CharString current_base;
+        unsigned chr_index;
+
         
             
 };
@@ -103,9 +120,13 @@ int main(){
     BamReader myBam; 
     myBam.Open("scf_8254670.bam");
     RefVector references = myBam.GetReferenceData();
+    cout << "buliding fasta index..." << endl;
+    seqan::FaiIndex refIndex;
+    build(refIndex, "tt-ref.fasta");
+
     SampleNames all_samples {"M0", "M19", "M20", "M28","M25", "M29", 
                              "M40", "M44","M47", "M50","M51", "M531"};
-     ModelParams p = { 
+    ModelParams p = { 
        0.001, 
        {0.25, 0.25, 0.25, 0.25}, 
        1.0e-8,
@@ -115,7 +136,7 @@ int main(){
     };
     BamAlignment ali;
     PileupEngine pileup;
-    VariantVisitor *v = new VariantVisitor(references, all_samples,p, ali);
+    VariantVisitor *v = new VariantVisitor(references, refIndex, all_samples,p, ali);
     pileup.AddVisitor(v);
     while( myBam.GetNextAlignment(ali)){
         pileup.AddAlignment(ali);

@@ -150,54 +150,104 @@ double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
 }
 
 double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data) {
-    MutationMatrix m = MutationAccumulation(params, false);
-	MutationMatrix mt = MutationAccumulation(params, true);
-	MutationMatrix mn = m-mt;	
+    MutationMatrix m = MutationAccumulation(params, false);//TODO cache these
+	MutationMatrix mt = MutationAccumulation(params, true);//
+	MutationMatrix mn = m-mt;	                           //+ reference per site
 	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);
 		
 	auto it = site_data.all_reads.begin();
 	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
 	anc_genotypes *= pop_genotypes;
 
-  	DiploidProbs num_genotypes = anc_genotypes;   //product of p(Ri|A)
+  	DiploidProbs denom = anc_genotypes;   //product of p(Ri|A)
+    
     DiploidProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
-    DiploidProbs mut_genotypes;                   //Sum of p(Ri&Mutation|A=x)
+    DiploidProbs mut_genotypes = DiploidProbs::Zero();      //Sum of p(Ri&Mutation|A=x)
 	for(++it; it != site_data.all_reads.end(); ++it) {
         HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
         DiploidProbs dgen =  (mn.matrix()*p.matrix()).array();
         DiploidProbs agen = (m.matrix()*p.matrix()).array();
         nomut_genotypes *= dgen;
         mut_genotypes += (agen/dgen - 1); //(agen+dgen)/agen
-        num_genotypes *= agen;
+        denom *= agen;
     }
-    double result = (nomut_genotypes * mut_genotypes).sum() / num_genotypes.sum();
+    double result = (nomut_genotypes * mut_genotypes).sum() / denom.sum();
     return(result);
 }
 
-//int main(){
-//    ModelParams p = { 
-//        0.001, 
-//        {0.25, 0.25, 0.25, 0.25}, 
-//        1.0e-8,
-//        0.01,
-//        0.001,
-//        0.001,
-//    };
-//    ReadDataVector messy = {
-//        { 0, 30,  0,  0},
-//        { 0, 30,  0,  0},
-//        { 0, 30,  0,  0},
-//        { 0, 30,  0,  0},
-//       { 0,  0,  0, 30},
-//        { 0, 0,   0, 30}
-//};
-//    ModelInput d = {"scf00001", 87, 1, messy};
-//   
-//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,d)<< endl;
-//    cout << "P(any|data)= " << TetMAProbability(p,d) << endl;
-//   
-//    return(1);
-//}
+int main(){
+    ModelParams p = { 
+        0.0001, 
+        {0.38, 0.12, 0.12, 0.38}, 
+        1.0e-8,
+        0.01,
+        0.001,
+        0.001,
+    };
+    ModelInput two_vars = {"scf0", 87, 1, 
+        {
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0,  0,  0, 30},
+        { 0, 0,   0, 30},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+
+        }
+    };
+
+
+    ModelInput  one_vars = {"Scf0", 87, 1,
+        {
+        { 0, 30,  0,  0},
+        { 0,  0,  0, 30},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0,  0},
+        { 0, 30,  0, 0}}
+    };    
+
+   ModelInput no_vars = {"Scf0", 87, 1,
+
+      {{8,   0,  0, 0},       
+       {9,   0,  0, 4},       
+       {3,   0,  0, 0},
+       {7,   0,  0, 0},     
+       {18,  0,  0, 0},       
+       {17,  0,  0, 3},
+       {32,  0,  0, 1},  
+       {19,  0,  0, 3},       
+       {25,  0,  0, 1},
+       {37,  0,  0, 0},
+       {17,  0,  0, 0},
+       {3 ,  0,  0, 4}}
+   };
+    
+    cout << "___With the no-variant data___" << endl;
+    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,no_vars)<< endl;
+    cout << "P(any|data)= " << TetMAProbability(p,no_vars) << endl;
+
+    cout << "___With the one-variant data___" << endl;  
+    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,one_vars)<< endl;
+    cout << "P(any|data)= " << TetMAProbability(p,one_vars) << endl;
+    
+    cout << "___With the two-variant data___" << endl;
+    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,two_vars)<< endl;
+    cout << "P(any|data)= " << TetMAProbability(p,two_vars) << endl;   
+
+    
+    cout << "calculating the same number once: " << TetMAProbOneMutation(p,two_vars) << endl;
+    cout << "then another time: " << TetMAProbOneMutation(p,two_vars) << endl;
+    TetMAProbOneMutation(p,no_vars);
+    cout << "And once more after calling from the the no-vars data: " << TetMAProbOneMutation(p,two_vars) << endl;
+    return 0;
+}
 
 
 
