@@ -80,10 +80,8 @@ class VariantVisitor : public PileupVisitor{
          void Visit(const PileupPosition& pileupData) {
              string chr = m_bam_ref[pileupData.RefId].RefName;
              int pos  = pileupData.Position;
-             seqan::getIdByName(m_idx_ref, chr, chr_index);
-                
+             seqan::getIdByName(m_idx_ref, chr, chr_index);   
              seqan::readRegion(current_base, m_idx_ref, chr_index, pos, pos+1);
-         
              ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
              string tag_id;
              for(auto it = begin(pileupData.PileupAlignments);
@@ -125,7 +123,8 @@ class VariantVisitor : public PileupVisitor{
 
 int main(){
     BamReader myBam; 
-    myBam.Open("scf_8254670.bam");
+//    myBam.Open("scf_8254670.bam");
+    myBam.Open("reheaded.bam");
     RefVector references = myBam.GetReferenceData();
     cerr << "buliding fasta index..." << endl;
     seqan::FaiIndex refIndex;
