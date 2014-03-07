@@ -34,11 +34,11 @@ int find_sample_index(string s, SampleNames sv){
         }
     }
     cerr << "didn't find name " << s << endl;
-    return(13); //TODO refactor this to  update sampe in place!
+    return(13); //TODO refactor this to  update sample in place
 }
 
 uint16_t base_index(char b){
-    switch(b){
+    switch(b){//TODO best 'null/npos' result for a short int?
         case 'A':
         case 'a':    
             return 0;
@@ -62,13 +62,14 @@ uint16_t base_index(char b){
 
                              
 class VariantVisitor : public PileupVisitor{
-    public://TODO
+    public:
         VariantVisitor(const RefVector& bam_references, 
                        const seqan::FaiIndex& idx_ref,
                        SampleNames samples, 
                        const ModelParams& p,  
                        BamAlignment& ali, 
-                       int q =13):
+                       int q =13,
+                       double prob_cutoff=0.1):
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
                              m_samples(samples), m_q(q), m_params(p), m_ali(ali)
@@ -99,7 +100,7 @@ class VariantVisitor : public PileupVisitor{
             }
             ModelInput d = {"", 1, base_index(toCString(current_base)[0]), bcalls};
             double prob = TetMAProbability(m_params,d);
-            if(prob > 0.1){
+            if(prob > 0.1){//NOTE: Probablity cut off is hard-coded
              cout << chr << '\t' << pos << '\t' << current_base << '\t' << 
                  prob << '\t' << TetMAProbOneMutation(m_params,d) << endl;          
             }
