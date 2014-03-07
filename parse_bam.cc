@@ -80,8 +80,8 @@ class VariantVisitor : public PileupVisitor{
     public:
          void Visit(const PileupPosition& pileupData) {
              string chr = m_bam_ref[pileupData.RefId].RefName;
-             int pos  = pileupData.Position;
-             seqan::getIdByName(m_idx_ref, chr, chr_index);   
+             uint64_t pos  = pileupData.Position;
+             seqan::getIdByName(m_idx_ref, chr, chr_index);
              seqan::readRegion(current_base, m_idx_ref, chr_index, pos, pos+1);
              ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
              string tag_id;
@@ -100,7 +100,7 @@ class VariantVisitor : public PileupVisitor{
             }
             ModelInput d = {"", 1, base_index(toCString(current_base)[0]), bcalls};
             double prob = TetMAProbability(m_params,d);
-            if(prob > 0.1){//NOTE: Probablity cut off is hard-coded
+            if(prob >= 0.0){//NOTE: Probablity cut off is hard-coded atm
              cout << chr << '\t' << pos << '\t' << current_base << '\t' << 
                  prob << '\t' << TetMAProbOneMutation(m_params,d) << endl;          
             }
@@ -114,8 +114,7 @@ class VariantVisitor : public PileupVisitor{
         ModelParams m_params;
         BamAlignment& m_ali;
         seqan::CharString current_base;
-        unsigned chr_index;
-
+        uint64_t chr_index;
         
             
 };
@@ -124,12 +123,11 @@ class VariantVisitor : public PileupVisitor{
 
 int main(){
     BamReader myBam; 
-//    myBam.Open("scf_8254670.bam");
-    myBam.Open("reheaded.bam");
+    myBam.Open("test/test.bam");
     RefVector references = myBam.GetReferenceData();
     cerr << "buliding fasta index..." << endl;
     seqan::FaiIndex refIndex;
-    build(refIndex, "test/tt-ref.fasta");
+    build(refIndex, "test/test.fasta");
 
     SampleNames all_samples {"M0", "M19", "M20", "M28","M25", "M29", 
                              "M40", "M44","M47", "M50","M51", "M531"};
