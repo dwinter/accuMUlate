@@ -94,14 +94,14 @@ class VariantVisitor : public PileupVisitor{
                      it->Alignment.GetTag("RG", tag_id);
                      int sindex = find_sample_index(get_sample(tag_id), m_samples);
                      size_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
-                     if (bindex < 3){
+                     if (bindex < 4){
                          bcalls[sindex].reads[bindex] += 1;
                      }
                  }
             }
             ModelInput d = {"", 1, base_index(toCString(current_base)[0]), bcalls};
             double prob = TetMAProbability(m_params,d);
-            if(1.0 > 0.1){
+            if(prob > 0.1){
              cout << chr << '\t' << pos << '\t' << current_base << '\t' << 
                  prob << '\t' << TetMAProbOneMutation(m_params,d) << endl;          
             }
@@ -125,7 +125,7 @@ class VariantVisitor : public PileupVisitor{
 
 int main(){
     BamReader myBam; 
-    myBam.Open("test/scf_8254670.bam");
+    myBam.Open("scf_8254670.bam");
     RefVector references = myBam.GetReferenceData();
     cerr << "buliding fasta index..." << endl;
     seqan::FaiIndex refIndex;
@@ -145,6 +145,7 @@ int main(){
     PileupEngine pileup;
     VariantVisitor *v = new VariantVisitor(references, refIndex, all_samples,p, ali);
     pileup.AddVisitor(v);
+    cerr << "calling variants" << endl;
     while( myBam.GetNextAlignment(ali)){
         pileup.AddAlignment(ali);
          
