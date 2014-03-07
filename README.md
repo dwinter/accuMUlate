@@ -1,4 +1,4 @@
-#Code for calling mutations form MA lines
+#Calling mutations from MA lines
 
 
 ##Required libs
@@ -24,16 +24,16 @@ In the future: use CMake to handle build.
 
 ##TODO
 * have the main loop run the analysis from
-    ** BAM file
-    ** List of sample IDs (one ancestor, rest descendants)
-    ** Model Params:
+    * BAM file
+    * List of sample IDs (one ancestor, rest descendants)
+    * Model Params:
         theta
         mu
         nfreqs
         phi-haploid
         phi-diploid
-    ** [BED file of coords to include]
-    ** [probability threshold]
-    ** [quality cut-off]
+    * [BED file of coords to include]
+    * [probability threshold]
+    * [quality cut-off]
 * Boost PO/YAML/some other format to handle run variables
 * Manage build across platforms w/ CMake
