@@ -13,14 +13,16 @@ Provided in this repo
 
 ##Compilation
 
-At the moment somehting like this (presuming `eigen` and the compiled `bamtools`
-libs are on your path):
+At present `cmake` handles a basic build. Presuming bamtools and eigein are on
+your path you can do this
 
-`clang++ model.cc parse_bam.cc -lbamtools -std=c++11 -lbamtools-utils -Ithird-party/ -Ithird-party/bamtools/src -g -Wall -o run_tetma`
-
-This throws around 40 warnings on my system (mostly related to `SeqAn`).
-
-In the future: use CMake to handle build.
+```sh
+cmake .
+make
+./run_tetma
+```
+The buld process will throw a lot of warnigns (mainly form `seqan`). The last
+run the caller on a test dateste with ~2 000 bases.
 
 ##TODO
 * have the main loop run the analysis from
