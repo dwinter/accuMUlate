@@ -8,8 +8,7 @@ Needs to be compiled/on path:
 * [eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 
 Provided in this repo
-* bamtools headers        
-* [SeqAn](https://www.seqan.de/)
+* bamtools headers  (for bamtools-utils, not in the normal include headers) 
 
 ##Compilation
 
