@@ -1,23 +1,19 @@
-#include "api/BamReader.h"
-#include "utils/bamtools_pileup_engine.h"
 #include <iostream>
 #include <stdint.h>
 #include <map>
 #include <vector>
 #include <string>
 
-#include "seqan/seq_io.h"
-#include "seqan/stream.h"
+#include "api/BamReader.h"
+#include "utils/bamtools_pileup_engine.h"
+#include "utils/bamtools_fasta.h"
 
 #include "model.h"
 
 using namespace std;
 using namespace BamTools;
 
-string bases = "ACGT";
-
 typedef vector< string > SampleNames;
-
 
 string get_sample(string& tag){
     string res;
@@ -36,6 +32,14 @@ int find_sample_index(string s, SampleNames sv){
     cerr << "didn't find name " << s << endl;
     return(13); //TODO refactor this to  update sample in place
 }
+
+int get_id_by_name(string chr, const Fasta& refseq){
+    int result = find_if(begin(refseq.FastaPrivate.Index), 
+                         end(refseq.FastaPrivate.Index),
+                         [&](const FastaIndexData  &fid) {fid.Name == chr});
+   return result;
+}
+
 
 uint16_t base_index(char b){
     switch(b){//TODO best 'null/npos' result for a short int?
@@ -64,14 +68,14 @@ uint16_t base_index(char b){
 class VariantVisitor : public PileupVisitor{
     public:
         VariantVisitor(const RefVector& bam_references, 
-                       const seqan::FaiIndex& idx_ref,
+                       const Fasta fasta_references,
                        SampleNames samples, 
                        const ModelParams& p,  
                        BamAlignment& ali, 
                        int q =13,
                        double prob_cutoff=0.1):
 
-            PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
+            PileupVisitor(), m_idx_ref(fasta_references), m_bam_ref(bam_references), 
                              m_samples(samples), m_q(q), m_params(p), m_ali(ali)
             {
                 nsamp = m_samples.size();
@@ -81,8 +85,8 @@ class VariantVisitor : public PileupVisitor{
          void Visit(const PileupPosition& pileupData) {
              string chr = m_bam_ref[pileupData.RefId].RefName;
              uint64_t pos  = pileupData.Position;
-             seqan::getIdByName(m_idx_ref, chr, chr_index);
-             seqan::readRegion(current_base, m_idx_ref, chr_index, pos, pos+1);
+             int chr_idx = get_id_by_name(chr, m_idx_ref);
+             m_idx_ref.GetBase(chr_index, pos, current_base);
              ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
              string tag_id;
              for(auto it = begin(pileupData.PileupAlignments);
@@ -98,7 +102,7 @@ class VariantVisitor : public PileupVisitor{
                      }
                  }
             }
-            ModelInput d = {"", 1, base_index(toCString(current_base)[0]), bcalls};
+            ModelInput d = {"", 1, base_index(current_base), bcalls};
             double prob = TetMAProbability(m_params,d);
             if(prob >= 0.0){//NOTE: Probablity cut off is hard-coded atm
              cout << chr << '\t' << pos << '\t' << current_base << '\t' << 
@@ -106,14 +110,14 @@ class VariantVisitor : public PileupVisitor{
             }
         }
     private:
-        seqan::FaiIndex m_idx_ref; 
+        Fasta m_idx_ref; 
         RefVector m_bam_ref;
         SampleNames m_samples;
         int m_q;
         int nsamp;
         ModelParams m_params;
         BamAlignment& m_ali;
-        seqan::CharString current_base;
+        char current_base;
         uint64_t chr_index;
         
             
@@ -125,9 +129,14 @@ int main(){
     BamReader myBam; 
     myBam.Open("test/test.bam");
     RefVector references = myBam.GetReferenceData();
+    
+    
     cerr << "buliding fasta index..." << endl;
-    seqan::FaiIndex refIndex;
-    build(refIndex, "test/test.fasta");
+    Fasta reference_genome;
+    reference_genome.Open("test/test.fasta");
+    reference_genome.CreateIndex("test/test.fai");
+//    reference_genome.Close();
+//    reference_genome.Open("test/test.fasta", "test/test.fai");
 
     SampleNames all_samples {"M0", "M19", "M20", "M28","M25", "M29", 
                              "M40", "M44","M47", "M50","M51", "M531"};
@@ -141,7 +150,7 @@ int main(){
     };
     BamAlignment ali;
     PileupEngine pileup;
-    VariantVisitor *v = new VariantVisitor(references, refIndex, all_samples,p, ali);
+    VariantVisitor *v = new VariantVisitor(references, reference_genome, all_samples,p, ali);
     pileup.AddVisitor(v);
     cerr << "calling variants" << endl;
     while( myBam.GetNextAlignment(ali)){
