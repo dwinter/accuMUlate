@@ -69,7 +69,7 @@ uint16_t base_index(char b){
 class VariantVisitor : public PileupVisitor{
     public:
         VariantVisitor(const RefVector& bam_references, 
-                       const Fasta fasta_references,
+                       const Fasta& fasta_references,
                        SampleNames samples, 
                        const ModelParams& p,  
                        BamAlignment& ali, 
