@@ -14,6 +14,7 @@ using namespace std;
 using namespace BamTools;
 
 typedef vector< string > SampleNames;
+typedef map < string, int> ChrMap;
 
 string get_sample(string& tag){
     string res;
@@ -33,12 +34,12 @@ int find_sample_index(string s, SampleNames sv){
     return(13); //TODO refactor this to  update sample in place
 }
 
-int get_id_by_name(string chr, const Fasta& refseq){
-    int result = find_if(begin(refseq.FastaPrivate.Index), 
-                         end(refseq.FastaPrivate.Index),
-                         [&](const FastaIndexData  &fid) {fid.Name == chr});
-   return result;
-}
+//int get_id_by_name(string chr, const Fasta& refseq){
+//    int result = find_if(begin(refseq.FastaPrivate.Index), 
+//                         end(refseq.FastaPrivate.Index),
+//                         [&](const FastaIndexData  &fid) {fid.Name == chr});
+//   return result;
+//}
 
 
 uint16_t base_index(char b){
@@ -85,8 +86,8 @@ class VariantVisitor : public PileupVisitor{
          void Visit(const PileupPosition& pileupData) {
              string chr = m_bam_ref[pileupData.RefId].RefName;
              uint64_t pos  = pileupData.Position;
-             int chr_idx = get_id_by_name(chr, m_idx_ref);
-             m_idx_ref.GetBase(chr_index, pos, current_base);
+//             int chr_idx = get_id_by_name(pileupData.RefId, m_idx_ref);
+             m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
              ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
              string tag_id;
              for(auto it = begin(pileupData.PileupAlignments);
@@ -128,15 +129,35 @@ class VariantVisitor : public PileupVisitor{
 int main(){
     BamReader myBam; 
     myBam.Open("test/test.bam");
-    RefVector references = myBam.GetReferenceData();
-    
-    
+    RefVector references = myBam.GetReferenceData(); 
     cerr << "buliding fasta index..." << endl;
     Fasta reference_genome;
     reference_genome.Open("test/test.fasta");
     reference_genome.CreateIndex("test/test.fai");
-//    reference_genome.Close();
-//    reference_genome.Open("test/test.fasta", "test/test.fai");
+ //   ifstream idx ("test/test.fai");
+
+    //bamtools api makes the actual index private
+    //only public acess to a sequence is via it ID (index)
+    //so need to make a map of them
+//    string idx_line;
+//    ChrMap idx_map;
+//
+//    while(getline(idx, idx_line)){
+//        size_t i = 0;
+//        string name;
+//        int counter = 0;
+//        for(; L[i] != '\t', i++){
+//            name.push_back(L[i])
+//        }
+//        idx_map[name] = counter;
+//        counter += 1;
+//    }
+//
+
+
+            
+    reference_genome.Close();
+    reference_genome.Open("test/test.fasta", "test/test.fai");
 
     SampleNames all_samples {"M0", "M19", "M20", "M28","M25", "M29", 
                              "M40", "M44","M47", "M50","M51", "M531"};
