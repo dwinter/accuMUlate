@@ -20,8 +20,8 @@ cmake .
 make
 ./run_tetma --config params.ini -b test/test.bam -r test/test.fasta -o test/test.out
 ```
-The buld process will throw a lot of warnigns (mainly form `seqan`). The last
-run the caller on a test dateste with ~2 000 bases.
+
+The last run the caller on a test dateset with ~2 000 bases.
 
 ##TODO
 * have the main loop run the analysis from
