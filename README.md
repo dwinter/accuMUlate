@@ -7,6 +7,7 @@ Needs to be compiled/on path:
 * [bamtools](https://github.com/pezmaster31/bamtools)
 * [eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * [Boost::program_options](http://www.boost.org/doc/libs/1_55_0/doc/html/program_options.html)
+
 Provided in this repo
 * bamtools headers  (for bamtools-utils, not in the normal include headers) 
 
@@ -29,11 +30,11 @@ the probability for each base
     * ~~BAM file~~
     * ~~kist of sample IDs (one ancestor, rest descendants)~~
     * ~~Model Params:~~
-        ~~theta~~
-        ~~mu~~
-        ~~ nfreqs~~
-        ~~phi-haploid~~
-        ~~phi-diploid~~
+        *~~theta~~
+        *~~mu~~
+        *~~nfreqs~~
+        *~~phi-haploid~~
+        *~~phi-diploid~~
     * [BED file of coords to include]
     * ~~[probability threshold]~~
     * ~~[quality cut-off]~~
