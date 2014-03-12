@@ -121,19 +121,19 @@ class VariantVisitor : public PileupVisitor{
 int main(int argc, char** argv){
 
     namespace po = boost::program_options;
-    // defaults
+    string ref_file;
     po::options_description cmd("Command line options");
     cmd.add_options()
         ("help,h", "Print a help message")
-        ("bam,b", po::value<string>(&bam_path), "Path to BAM file")
-        ("reference,r", po::value<string>(&ref_path), "Path to reference genome")
+        ("bam,b", po::value<string>(), "Path to BAM file")
+        ("reference,r", po::value<string>(&ref_file), "Path to reference genome")
 //        ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
-        ("sample-name,s", po::value<vector <string> >(&all_samples), "Sample tags")
-        ("qual,q", po::value<int>(&qual_cut)->default_value(13), 
+        ("sample-name,s", po::value<vector <string> >(), "Sample tags")
+        ("qual,q", po::value<int>()->default_value(13), 
                    "Base quality cuttoff (default = 13)")
-        ("prob,p", po::value<double>(&prob_cut)->default_value(0.1),
+        ("prob,p", po::value<double>()->default_value(0.1),
                    "Mutaton probability cut-off (default = 0.1)")
-        ("out,o", po::value<string>(&out_name)->default_value("accuMUlate_"), 
+        ("out,o", po::value<string>()->default_value("accuMUlate_"), 
                    "Stem for output file names (default = 'accMUlate_'")
         ("config,c", po::value<string>(), "Path to config file")
         ("theta", po::value<double>(), "theta")            
@@ -153,14 +153,14 @@ int main(int argc, char** argv){
     }
 
     if (vm.count("config")){
-        ifstream config_stream (vm["config"].as<const char*>);
+        ifstream config_stream (vm["config"].as<string>());
         po::store(po::parse_config_file(config_stream, cmd, false), vm);
         vm.notify();
     }
 
     ModelParams params = {
         vm["theta"].as<double>(),
-        vm["nfreqs"].as<double>(),
+        vm["nfreqs"].as<vector< double> >(),
         vm["mu"].as<double>(),
         vm["seq-error"].as<double>(), 
         vm["phi-haploid"].as<double>(), 
@@ -173,16 +173,20 @@ int main(int argc, char** argv){
     experiment.Open(vm["bam"].as<string>());
     RefVector references = experiment.GetReferenceData(); 
     Fasta reference_genome; // BamTools::Fasta
-    reference_genome.Open(vm["reference"]);
-    reference_genome.CreateIndex(vm["reference"] + ".fai");
+    reference_genome.Open(ref_file);
+    reference_genome.CreateIndex(ref_file + ".fai");
 
     BamAlignment ali;
     PileupEngine pileup;
-    VariantVisitor *v = new VariantVisitor(references 
-                                           reference_genome, 
-                                           *result_stream ,
-                                           vm["sample-name"].as<vector< string> >(),
-                                           params, ali, vm["qual"].as<int>(), vm["prob"].as<int>() );
+    VariantVisitor *v = new VariantVisitor(
+            references,
+            reference_genome, 
+            &result_stream,
+            vm["sample-name"].as<vector< string> >(),
+            params, 
+            ali, 
+            vm["qual"].as<int>(), 
+            vm["prob"].as<int>() );
     pileup.AddVisitor(v);
     while( experiment.GetNextAlignment(ali)){
         pileup.AddAlignment(ali);
