@@ -86,7 +86,7 @@ class VariantVisitor : public PileupVisitor{
                       it != end(pileupData.PileupAlignments); 
                       ++it){
                  int const *pos = &it->PositionInAlignment;
-                 if (it->Alignment.Qualities[*pos] - 33 > m_q){
+                 if (it->Alignment.Qualities[*pos] - 33 >= m_q){
                      it->Alignment.GetTag("RG", tag_id);
                      int sindex = find_sample_index(get_sample(tag_id), m_samples);
                      uint16_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
@@ -97,7 +97,7 @@ class VariantVisitor : public PileupVisitor{
             }
             ModelInput d = {base_index(current_base), bcalls};
             double prob = TetMAProbability(m_params,d);
-            if(prob >= 0.0){//NOTE: Probablity cut off is hard-coded atm
+            if(prob >= prob_cut_off){//NOTE: Probablity cut off is hard-coded atm
              *m_ostream << chr << '\t' << pos << '\t' << current_base << '\t' << 
                  prob << '\t' << TetMAProbOneMutation(m_params,d) << endl;          
             }
@@ -122,20 +122,22 @@ int main(int argc, char** argv){
 
     namespace po = boost::program_options;
     string ref_file;
+    string config_path;
     po::options_description cmd("Command line options");
     cmd.add_options()
         ("help,h", "Print a help message")
         ("bam,b", po::value<string>(), "Path to BAM file")
-        ("reference,r", po::value<string>(&ref_file), "Path to reference genome")
+        ("reference,r", po::value<string>(&ref_file),
+                        "Path to reference genome")
 //        ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
         ("sample-name,s", po::value<vector <string> >(), "Sample tags")
         ("qual,q", po::value<int>()->default_value(13), 
-                   "Base quality cuttoff (default = 13)")
+                   "Base quality cuttoff")
         ("prob,p", po::value<double>()->default_value(0.1),
-                   "Mutaton probability cut-off (default = 0.1)")
-        ("out,o", po::value<string>()->default_value("accuMUlate_"), 
-                   "Stem for output file names (default = 'accMUlate_'")
-        ("config,c", po::value<string>(), "Path to config file")
+                   "Mutaton probability cut-off")
+        ("out,o", po::value<string>()->default_value("acuMUlate_result.tsv"),
+                    "Out file name")
+        ("config,c", po::value<string>(&config_path), "Path to config file")
         ("theta", po::value<double>(), "theta")            
         ("nfreqs", po::value<vector<double> >()->multitoken(), "")     
         ("mu", po::value<double>(), "")  
@@ -153,10 +155,16 @@ int main(int argc, char** argv){
     }
 
     if (vm.count("config")){
-        ifstream config_stream (vm["config"].as<string>());
+        cerr << config_path << endl;
+        ifstream config_stream (config_path);
         po::store(po::parse_config_file(config_stream, cmd, false), vm);
         vm.notify();
     }
+
+    cout << vm["theta"].as<double>() << endl;
+
+        
+
 
     ModelParams params = {
         vm["theta"].as<double>(),
@@ -167,7 +175,7 @@ int main(int argc, char** argv){
         vm["phi-diploid"].as<double>(),
     };
 
-    ofstream result_stream (vm["out_name"].as<string>());
+    ofstream result_stream (vm["out"].as<string>());
 
     BamReader experiment; 
     experiment.Open(vm["bam"].as<string>());
@@ -186,7 +194,7 @@ int main(int argc, char** argv){
             params, 
             ali, 
             vm["qual"].as<int>(), 
-            vm["prob"].as<int>() );
+            vm["prob"].as<double>() );
     pileup.AddVisitor(v);
     while( experiment.GetNextAlignment(ali)){
         pileup.AddAlignment(ali);
