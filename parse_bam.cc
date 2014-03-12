@@ -66,27 +66,26 @@ class VariantVisitor : public PileupVisitor{
                        SampleNames samples, 
                        const ModelParams& p,  
                        BamAlignment& ali, 
-                       int q,
-                       double prob_cutoff):
+                       int qual_cut,
+                       double prob_cut):
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
-                             m_samples(samples), m_q(q), m_params(p), m_ali(ali), m_ostream(out_stream)
-            {
-                nsamp = m_samples.size();
-            }
+                             m_samples(samples), m_qual_cut(qual_cut), m_params(p), 
+                             m_ali(ali), m_ostream(out_stream), m_prob_cut(prob_cut)
+                              { }
         ~VariantVisitor(void) { }
     public:
          void Visit(const PileupPosition& pileupData) {
              string chr = m_bam_ref[pileupData.RefId].RefName;
              uint64_t pos  = pileupData.Position;
              m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
-             ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
+             ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
              string tag_id;
              for(auto it = begin(pileupData.PileupAlignments);
                       it != end(pileupData.PileupAlignments); 
                       ++it){
                  int const *pos = &it->PositionInAlignment;
-                 if (it->Alignment.Qualities[*pos] - 33 >= m_q){
+                 if (it->Alignment.Qualities[*pos] - 33 >= m_qual_cut){
                      it->Alignment.GetTag("RG", tag_id);
                      int sindex = find_sample_index(get_sample(tag_id), m_samples);
                      uint16_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
@@ -97,22 +96,26 @@ class VariantVisitor : public PileupVisitor{
             }
             ModelInput d = {base_index(current_base), bcalls};
             double prob = TetMAProbability(m_params,d);
-            if(prob >= prob_cut_off){//NOTE: Probablity cut off is hard-coded atm
-             *m_ostream << chr << '\t' << pos << '\t' << current_base << '\t' << 
-                 prob << '\t' << TetMAProbOneMutation(m_params,d) << endl;          
+            if(prob >= m_prob_cut){
+                 *m_ostream << chr << '\t' 
+                            << pos << '\t' 
+                            << current_base << '\t' 
+                            << prob << '\t' 
+                            << TetMAProbOneMutation(m_params,d) 
+                            << endl;          
             }
         }
     private:
-        Fasta m_idx_ref; 
         RefVector m_bam_ref;
+        Fasta m_idx_ref; 
+        ostream* m_ostream;
         SampleNames m_samples;
-        int m_q;
-        int nsamp;
-        ModelParams m_params;
         BamAlignment& m_ali;
+        ModelParams m_params;
+        int m_qual_cut;
+        double m_prob_cut;
         char current_base;
         uint64_t chr_index;
-        ostream* m_ostream;
             
 };
 
@@ -155,16 +158,10 @@ int main(int argc, char** argv){
     }
 
     if (vm.count("config")){
-        cerr << config_path << endl;
         ifstream config_stream (config_path);
         po::store(po::parse_config_file(config_stream, cmd, false), vm);
         vm.notify();
     }
-
-    cout << vm["theta"].as<double>() << endl;
-
-        
-
 
     ModelParams params = {
         vm["theta"].as<double>(),

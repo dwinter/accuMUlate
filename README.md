@@ -18,10 +18,11 @@ your path you can do this
 ```sh
 cmake .
 make
-./run_tetma --config params.ini -b test/test.bam -r test/test.fasta -o test/test.out
+./run_tetma --config params.ini -b test/test.bam -r test/test.fasta -o test/test.out -p 0
 ```
 
-The last run the caller on a test dateset with ~2 000 bases.
+The last line will  run the caller on a test dateset with ~2 000 bases, printing
+the probability for each base
 
 ##TODO
 * have the main loop run the analysis from
