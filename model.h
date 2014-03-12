@@ -22,7 +22,7 @@ struct ModelParams{
     double phi_diploid;         // Overdispersion for diploid sequencing
 };
 
-struct ModelInput{
+struct ModelInput{// Can probably stand to lose this, started out more complex..
     uint16_t reference;
     ReadDataVector all_reads;
 };

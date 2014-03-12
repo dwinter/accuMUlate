@@ -152,7 +152,7 @@ double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
 double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data) {
     MutationMatrix m = MutationAccumulation(params, false);//TODO cache these
 	MutationMatrix mt = MutationAccumulation(params, true);//
-	MutationMatrix mn = m-mt;	                           //+ reference per site
+	MutationMatrix mn = m-mt;	                           //
 	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);
 		
 	auto it = site_data.all_reads.begin();

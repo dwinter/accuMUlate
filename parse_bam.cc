@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#include "boost/program_options.hpp"
 #include "api/BamReader.h"
 #include "utils/bamtools_pileup_engine.h"
 #include "utils/bamtools_fasta.h"
@@ -14,7 +15,6 @@ using namespace std;
 using namespace BamTools;
 
 typedef vector< string > SampleNames;
-typedef map < string, int> ChrMap;
 
 string get_sample(string& tag){
     string res;
@@ -61,15 +61,16 @@ uint16_t base_index(char b){
 class VariantVisitor : public PileupVisitor{
     public:
         VariantVisitor(const RefVector& bam_references, 
-                       const Fasta& fasta_references,
+                       const Fasta& idx_ref,
+                       ostream *out_stream,
                        SampleNames samples, 
                        const ModelParams& p,  
                        BamAlignment& ali, 
-                       int q =13,
-                       double prob_cutoff=0.1):
+                       int q,
+                       double prob_cutoff):
 
-            PileupVisitor(), m_idx_ref(fasta_references), m_bam_ref(bam_references), 
-                             m_samples(samples), m_q(q), m_params(p), m_ali(ali)
+            PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
+                             m_samples(samples), m_q(q), m_params(p), m_ali(ali), m_ostream(out_stream)
             {
                 nsamp = m_samples.size();
             }
@@ -78,7 +79,6 @@ class VariantVisitor : public PileupVisitor{
          void Visit(const PileupPosition& pileupData) {
              string chr = m_bam_ref[pileupData.RefId].RefName;
              uint64_t pos  = pileupData.Position;
-//             int chr_idx = get_id_by_name(pileupData.RefId, m_idx_ref);
              m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
              ReadDataVector bcalls (nsamp, ReadData{{ 0,0,0,0 }}); //fill constructor
              string tag_id;
@@ -89,7 +89,7 @@ class VariantVisitor : public PileupVisitor{
                  if (it->Alignment.Qualities[*pos] - 33 > m_q){
                      it->Alignment.GetTag("RG", tag_id);
                      int sindex = find_sample_index(get_sample(tag_id), m_samples);
-                     size_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
+                     uint16_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
                      if (bindex < 4){
                          bcalls[sindex].reads[bindex] += 1;
                      }
@@ -98,7 +98,7 @@ class VariantVisitor : public PileupVisitor{
             ModelInput d = {base_index(current_base), bcalls};
             double prob = TetMAProbability(m_params,d);
             if(prob >= 0.0){//NOTE: Probablity cut off is hard-coded atm
-             cout << chr << '\t' << pos << '\t' << current_base << '\t' << 
+             *m_ostream << chr << '\t' << pos << '\t' << current_base << '\t' << 
                  prob << '\t' << TetMAProbOneMutation(m_params,d) << endl;          
             }
         }
@@ -112,37 +112,79 @@ class VariantVisitor : public PileupVisitor{
         BamAlignment& m_ali;
         char current_base;
         uint64_t chr_index;
-        
+        ostream* m_ostream;
             
 };
 
 
 
-int main(){
-    BamReader myBam; 
-    myBam.Open("test/test.bam");
-    RefVector references = myBam.GetReferenceData(); 
-    cerr << "buliding fasta index..." << endl;
-    Fasta reference_genome;
-    reference_genome.Open("test/test.fasta");
-    reference_genome.CreateIndex("test/test.fai");
+int main(int argc, char** argv){
 
-    SampleNames all_samples {"M0", "M19", "M20", "M28","M25", "M29", 
-                             "M40", "M44","M47", "M50","M51", "M531"};
-    ModelParams p = { 
-       0.001, 
-       {0.25, 0.25, 0.25, 0.25}, 
-       1.0e-8,
-       0.01,
-       0.001,
-       0.001,
+    namespace po = boost::program_options;
+    // defaults
+    po::options_description cmd("Command line options");
+    cmd.add_options()
+        ("help,h", "Print a help message")
+        ("bam,b", po::value<string>(&bam_path), "Path to BAM file")
+        ("reference,r", po::value<string>(&ref_path), "Path to reference genome")
+//        ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
+        ("sample-name,s", po::value<vector <string> >(&all_samples), "Sample tags")
+        ("qual,q", po::value<int>(&qual_cut)->default_value(13), 
+                   "Base quality cuttoff (default = 13)")
+        ("prob,p", po::value<double>(&prob_cut)->default_value(0.1),
+                   "Mutaton probability cut-off (default = 0.1)")
+        ("out,o", po::value<string>(&out_name)->default_value("accuMUlate_"), 
+                   "Stem for output file names (default = 'accMUlate_'")
+        ("config,c", po::value<string>(), "Path to config file")
+        ("theta", po::value<double>(), "theta")            
+        ("nfreqs", po::value<vector<double> >()->multitoken(), "")     
+        ("mu", po::value<double>(), "")  
+        ("seq-error", po::value<double>(), "") 
+        ("phi-haploid",     po::value<double>(), "") 
+        ("phi-diploid",     po::value<double>(), ""); 
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, cmd), vm);
+    vm.notify();
+
+    if (vm.count("help")){
+        cout << cmd << endl;
+        return 0;
+    }
+
+    if (vm.count("config")){
+        ifstream config_stream (vm["config"].as<const char*>);
+        po::store(po::parse_config_file(config_stream, cmd, false), vm);
+        vm.notify();
+    }
+
+    ModelParams params = {
+        vm["theta"].as<double>(),
+        vm["nfreqs"].as<double>(),
+        vm["mu"].as<double>(),
+        vm["seq-error"].as<double>(), 
+        vm["phi-haploid"].as<double>(), 
+        vm["phi-diploid"].as<double>(),
     };
+
+    ofstream result_stream (vm["out_name"].as<string>());
+
+    BamReader experiment; 
+    experiment.Open(vm["bam"].as<string>());
+    RefVector references = experiment.GetReferenceData(); 
+    Fasta reference_genome; // BamTools::Fasta
+    reference_genome.Open(vm["reference"]);
+    reference_genome.CreateIndex(vm["reference"] + ".fai");
+
     BamAlignment ali;
     PileupEngine pileup;
-    VariantVisitor *v = new VariantVisitor(references, reference_genome, all_samples,p, ali);
+    VariantVisitor *v = new VariantVisitor(references 
+                                           reference_genome, 
+                                           *result_stream ,
+                                           vm["sample-name"].as<vector< string> >(),
+                                           params, ali, vm["qual"].as<int>(), vm["prob"].as<int>() );
     pileup.AddVisitor(v);
-    cerr << "calling variants" << endl;
-    while( myBam.GetNextAlignment(ali)){
+    while( experiment.GetNextAlignment(ali)){
         pileup.AddAlignment(ali);
          
     };
