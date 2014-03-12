@@ -29,11 +29,11 @@ the probability for each base
     * ~~BAM file~~
     * ~~kist of sample IDs (one ancestor, rest descendants)~~
     * ~~Model Params:~~
-       ~~ theta~~
-       ~~ mu~~
-       ~~ nfreqs~~
-       ~~phi-haploid~~
-       ~~phi-diploid~~
+        ~~theta~~
+        ~~mu~~
+        ~~ nfreqs~~
+        ~~phi-haploid~~
+        ~~phi-diploid~~
     * [BED file of coords to include]
     * ~~[probability threshold]~~
     * ~~[quality cut-off]~~
