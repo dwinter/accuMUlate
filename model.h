@@ -23,8 +23,6 @@ struct ModelParams{
 };
 
 struct ModelInput{
-    string chr;
-    uint64_t position;
     uint16_t reference;
     ReadDataVector all_reads;
 };

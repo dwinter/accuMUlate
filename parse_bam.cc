@@ -95,7 +95,7 @@ class VariantVisitor : public PileupVisitor{
                      }
                  }
             }
-            ModelInput d = {"", 1, base_index(current_base), bcalls};
+            ModelInput d = {base_index(current_base), bcalls};
             double prob = TetMAProbability(m_params,d);
             if(prob >= 0.0){//NOTE: Probablity cut off is hard-coded atm
              cout << chr << '\t' << pos << '\t' << current_base << '\t' << 
