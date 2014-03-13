@@ -129,28 +129,27 @@ int main(int argc, char** argv){
     po::options_description cmd("Command line options");
     cmd.add_options()
         ("help,h", "Print a help message")
-        ("bam,b", po::value<string>(), "Path to BAM file")
-        ("reference,r", po::value<string>(&ref_file),
+        ("bam,b", po::value<string>()->required(), "Path to BAM file")
+        ("reference,r", po::value<string>(&ref_file)->required(),
                         "Path to reference genome")
 //        ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
-        ("sample-name,s", po::value<vector <string> >(), "Sample tags")
+        ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
         ("qual,q", po::value<int>()->default_value(13), 
                    "Base quality cuttoff")
         ("prob,p", po::value<double>()->default_value(0.1),
                    "Mutaton probability cut-off")
         ("out,o", po::value<string>()->default_value("acuMUlate_result.tsv"),
                     "Out file name")
-        ("config,c", po::value<string>(&config_path), "Path to config file")
-        ("theta", po::value<double>(), "theta")            
+        ("config,c", po::value<string>(), "Path to config file")
+        ("theta", po::value<double>()->required(), "theta")            
         ("nfreqs", po::value<vector<double> >()->multitoken(), "")     
-        ("mu", po::value<double>(), "")  
-        ("seq-error", po::value<double>(), "") 
-        ("phi-haploid",     po::value<double>(), "") 
-        ("phi-diploid",     po::value<double>(), ""); 
+        ("mu", po::value<double>()->required(), "")  
+        ("seq-error", po::value<double>()->required(), "") 
+        ("phi-haploid",     po::value<double>()->required(), "") 
+        ("phi-diploid",     po::value<double>()->required(), ""); 
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, cmd), vm);
-    vm.notify();
 
     if (vm.count("help")){
         cout << cmd << endl;
@@ -158,11 +157,11 @@ int main(int argc, char** argv){
     }
 
     if (vm.count("config")){
-        ifstream config_stream (config_path);
+        ifstream config_stream (vm["config"].as<string>());
         po::store(po::parse_config_file(config_stream, cmd, false), vm);
-        vm.notify();
     }
 
+    vm.notify();
     ModelParams params = {
         vm["theta"].as<double>(),
         vm["nfreqs"].as<vector< double> >(),
