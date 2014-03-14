@@ -44,37 +44,42 @@ void FastaReference::get_ref_id(string search_name, int& chr_id){
 
 
 BedFile::BedFile(string bed_file_name){
-    ifstream bed_file (bed_file_name);
+     bed_file.open(bed_file_name);
 }
 
 int BedFile::get_interval(BedInterval& current_interval){
     string L;
     if(getline(bed_file, L)){
-       stringstream Lstream(L);
+        stringstream Lstream(L);
         string chrom;
         string start_s;
         string end_s;        
         getline(Lstream, chrom, '\t');
         getline(Lstream, start_s, '\t');
-        getline(Lstream, start_s, '\t');
+        getline(Lstream, end_s, '\t');
         current_interval = BedInterval{ chrom, 
                                          stoul(start_s), 
                                          stoul(end_s)};
         return 0;
     }
-    else {return 1;}
+   else {return 1;}
+    
 }
 
-
-
-int main() {
-    FastaReference("test/test.fai");
-    
-    
-    
-    return 0;
-}
-
+//int main() {
+//    FastaReference reference_g ("test/test.fai");
+//    int chr_idx;
+//    reference_g.get_ref_id("scf_8254727", chr_idx);
+//    cout << "chr index = " << chr_idx << " (should be 9)" << endl;
+//
+//    BedFile bed ("test/test.bed");
+//    BedInterval current_line;
+//    while(bed.get_interval(current_line) == 0){
+//         cout << current_line.chr << endl;
+//    }
+//    return 0;
+//}
+//
 
 
 

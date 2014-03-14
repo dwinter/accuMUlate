@@ -32,7 +32,6 @@ class BedFile{
     public:
         BedFile(string bed_file_name);
         int get_interval(BedInterval& current_interval);
-    private:
         ifstream bed_file;
         
 };
