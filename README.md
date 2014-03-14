@@ -35,8 +35,8 @@ the probability for each base
         *~~nfreqs~~
         *~~phi-haploid~~
         *~~phi-diploid~~
-    * [BED file of coords to include]
+    * ~~[BED file of coords to include]~~
     * ~~[probability threshold]~~
     * ~~[quality cut-off]~~
-* Boost PO/YAML/some other format to handle run variables
-* Manage build across platforms w/ CMake
+* ~~Boost PO/YAML/some other format to handle run variables~~
+* ~~Manage build across platforms w/ CMake~~
