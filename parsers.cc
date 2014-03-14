@@ -67,7 +67,13 @@ int BedFile::get_interval(BedInterval& current_interval){
 
 
 
-int main() {return 0;}
+int main() {
+    FastaReference("test/test.fai");
+    
+    
+    
+    return 0;
+}
 
 
 
