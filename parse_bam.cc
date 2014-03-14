@@ -10,6 +10,7 @@
 #include "utils/bamtools_fasta.h"
 
 #include "model.h"
+#include "parsers.h"
 
 using namespace std;
 using namespace BamTools;
@@ -140,6 +141,7 @@ int main(int argc, char** argv){
                    "Mutaton probability cut-off")
         ("out,o", po::value<string>()->default_value("acuMUlate_result.tsv"),
                     "Out file name")
+        ("intervals,i", po::value<string>(), "Path to bed file")
         ("config,c", po::value<string>(), "Path to config file")
         ("theta", po::value<double>()->required(), "theta")            
         ("nfreqs", po::value<vector<double> >()->multitoken(), "")     
@@ -179,9 +181,8 @@ int main(int argc, char** argv){
     Fasta reference_genome; // BamTools::Fasta
     reference_genome.Open(ref_file);
     reference_genome.CreateIndex(ref_file + ".fai");
-
-    BamAlignment ali;
     PileupEngine pileup;
+    BamAlignment ali;
     VariantVisitor *v = new VariantVisitor(
             references,
             reference_genome, 
@@ -192,12 +193,29 @@ int main(int argc, char** argv){
             vm["qual"].as<int>(), 
             vm["prob"].as<double>() );
     pileup.AddVisitor(v);
-    while( experiment.GetNextAlignment(ali)){
-        pileup.AddAlignment(ali);
-         
-    };
+   
+    if (vm.count("interval")){
+        BedFile bed (vm["interval"].as<string>());
+        FastaReference my_ref (ref_file + ".fai");
+        BedInterval region;
+        while(bed.get_interval(region) == 0){
+            int ref_id;
+            my_ref.get_ref_id(region.chr, ref_id);
+            experiment.SetRegion(ref_id, region.start, ref_id, region.end);
+            while( experiment.GetNextAlignment(ali) ){
+                pileup.AddAlignment(ali);
+            }
+        }
+    }
+    else{
+
+        BamAlignment ali;
+        while( experiment.GetNextAlignment(ali)){
+            pileup.AddAlignment(ali);
+        };
     pileup.Flush();
     return 0;
+    }
 }
         
         
