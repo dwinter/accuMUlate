@@ -26,7 +26,9 @@ The last line will  run the caller on a test dateset with ~2 000 bases, printing
 the probability for each base
 
 ##TODO
-* have the main loop run the analysis from
+
+
+* ~~have the main loop run the analysis from~~
     * ~~BAM file~~
     * ~~kist of sample IDs (one ancestor, rest descendants)~~
     * ~~Model Params:~~
@@ -40,3 +42,10 @@ the probability for each base
     * ~~[quality cut-off]~~
 * ~~Boost PO/YAML/some other format to handle run variables~~
 * ~~Manage build across platforms w/ CMake~~
+
+* Optimize model code
+* Clean up sample mapping/base calling
+* Post-processor for putative mutations
+* Create `.vcf` and annotations files from snps
+* Make real test suite
+
