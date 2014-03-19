@@ -23,7 +23,7 @@ class Chromosome(object):
 
     def make_bed_line(self, bed_start=1, bed_end=None):
         if not bed_end:
-            bed_end = self.end
+            bed_end = self.length
         return("{0}\t{1}\t{2}\n".format(self.name, bed_start, bed_end))
 
 
