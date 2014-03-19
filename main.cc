@@ -193,8 +193,8 @@ int main(int argc, char** argv){
             vm["prob"].as<double>() );
     pileup.AddVisitor(v);
    
-    if (vm.count("interval")){
-        BedFile bed (vm["interval"].as<string>());
+    if (vm.count("intervals")){
+        BedFile bed (vm["intervals"].as<string>());
         FastaReference my_ref (ref_file + ".fai");
         BedInterval region;
         while(bed.get_interval(region) == 0){
