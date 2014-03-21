@@ -58,7 +58,7 @@ def main():
 
     while bed_ends:
         fcounter += 1
-        with open("{0}/inteval_{1}.bed".format(out_dir, fcounter), "w") as out:
+        with open("{0}/interval_{1}.bed".format(out_dir, fcounter), "w") as out:
             while True:
                 if e > genome[chr_idx].end:
                     out.write(genome[chr_idx].make_bed_line(bed_start=start))
