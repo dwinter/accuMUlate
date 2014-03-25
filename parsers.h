@@ -36,6 +36,8 @@ class BedFile{
         
 };
 
+uint16_t base_index(char b);
+
 #endif
 
 

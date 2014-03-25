@@ -33,8 +33,7 @@ FastaReference::FastaReference(string ref_file_name){
 }
     
 void FastaReference::get_ref_id(string search_name, int& chr_id){
-    auto it = find_if(chromosomes.begin(), 
-                     chromosomes.end(),
+    auto it = find_if(chromosomes.begin(), chromosomes.end(),
                      [&search_name](const FastaReferenceData& chrom){
                         return chrom.name == search_name;
                       });
@@ -65,6 +64,29 @@ int BedFile::get_interval(BedInterval& current_interval){
    else {return 1;}
     
 }
+
+uint16_t base_index(char b){
+    switch(b){        
+        case 'A':
+        case 'a':    
+            return 0;
+         case 'T':
+         case 't':
+             return 3;
+         case 'C':
+         case 'c':
+             return 1;
+         case 'G':
+         case 'g':
+             return 2;
+         case '-':
+         case 'N':
+             return -1 ;
+         default: // Unknown base, alert in debug mode?
+             return -1;
+    }
+}
+
 
 //int main() {
 //    FastaReference reference_g ("test/test.fai");
