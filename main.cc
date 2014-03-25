@@ -35,28 +35,6 @@ int find_sample_index(string s, SampleNames sv){
     return(13); //TODO refactor this to  update sample in place
 }
 
-uint16_t base_index(char b){
-    switch(b){//TODO best 'null/npos' result for a short int?
-        case 'A':
-        case 'a':    
-            return 0;
-         case 'T':
-         case 't':
-             return 3;
-         case 'C':
-         case 'c':
-             return 1;
-         case 'G':
-         case 'g':
-             return 2;
-         case '-':
-         case 'N':
-             return 4;
-         default:
-             cerr << "Don't know what to make of base" << b <<endl;
-             return 4;
-    };
-}
 
                              
 class VariantVisitor : public PileupVisitor{
@@ -90,19 +68,22 @@ class VariantVisitor : public PileupVisitor{
                      it->Alignment.GetTag("RG", tag_id);
                      int sindex = find_sample_index(get_sample(tag_id), m_samples);
                      uint16_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
-                     if (bindex < 4){
+                     if (bindex < 4 ){
                          bcalls[sindex].reads[bindex] += 1;
                      }
                  }
             }
-            ModelInput d = {base_index(current_base), bcalls};
-            double prob = TetMAProbOneMutation(m_params,d);
-            if(prob >= m_prob_cut){
-                 *m_ostream << chr << '\t' 
-                            << pos << '\t' 
-                            << current_base << '\t' 
-                            << prob << '\t' 
-                            << endl;          
+            uint16_t ref_base_idx = base_index(current_base);
+            if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N'
+                ModelInput d = {ref_base_idx, bcalls};
+                double prob = TetMAProbOneMutation(m_params,d);
+                if(prob >= m_prob_cut){
+                     *m_ostream << chr << '\t' 
+                                << pos << '\t' 
+                                << current_base << '\t' 
+                                << prob << '\t' 
+                                << endl;          
+                }
             }
         }
     private:
