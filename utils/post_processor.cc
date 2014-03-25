@@ -2,13 +2,53 @@
 #include <stdint.h>
 #include <string>
 #include <algorithm>
+#include <vector>
 #include "api/BamReader.h"
 #include "utils/bamtools_pileup_engine.h"
 
 #include "model.h"
 
-using namespace BamTools;
 using namespace std;
+
+typedef vector<SiteData> SiteDataVector;
+
+class SiteData{
+
+    public:
+        string name
+        uint16_t genotype
+        vector<uint16_t> BQs;
+        vector<uint16_t> MQs;
+        uint32_t fwd_reads;
+        uint32_t rev_reads;
+        ReadData base_calls;
+
+        SiteData(string sname){
+          name = string;
+          base_calls.key = 0;
+        }
+                  
+        void call_genotype(){
+           //These have already been called for mutation-ness, and are haploid
+           //so, to make a start, we are just calling the most common base
+           genotype = distance(base_calls.reads, max_element(base_calls.reads, 4));
+        }
+        void add_alignment_data(const BamAlignment& al, const int& pos, const int& bindex){
+            uint16_t b_index = base_index(al.AlignedBases[*pos]);
+            base_calls.reads[bindex] += 1;
+            BQs.push_back(al.Qualities[*pos]);
+            MQs.push_back(al.MapQuality);
+            if(al.IsReverseStrand){ 
+                rev_reads += 1; 
+            } 
+            else{ 
+                fwd_reads += 1; 
+            }
+        }
+};
+
+
+
 
 //TODO this is copy-pasted from parse_bam.cc. If is used more 
 uint16_t base_index(char b){
@@ -34,7 +74,68 @@ uint16_t base_index(char b){
     };
 }
 
+string get_sample(string& tag){                                                           
+    string res;                                                                           
+    for(size_t i = 0; tag[i] != '_'; i++) {                                               
+        res.push_back(tag[i]);                                                            
+    }                                                                                     
+    return(res);                                                                          
+}
 
+int find_sample_index(string s, SampleNames sv){                                          
+    for (size_t i=0; i < sv.size(); i++){                                                 
+        if(s.compare(sv[i])==0){                                                          
+            return i;                                                                     
+        }                                                                                 
+    }                                                                                     
+    cerr << "didn't find name " << s << endl;                                             
+    return(13); //TODO refactor this to  update sample in place                           
+}
+
+class FilterVisitor: public PileupVisitor{
+    public: 
+        FilterVisitor: public PileupVisitor(BamAlignment ali, 
+                                            ostream *out_stream,
+                                            SampleNames samples,
+                                            int ref_pos)
+            PileupVisitor(), m_samples(samples), m_ostream(out_stream), 
+                             m_ref_pos(ref_pos){
+                nsamp = samples.size(); 
+            } 
+        ~FilterVisitor(void) { }
+    public:
+        void Visit(const PileupPosition pileupData){
+            SiteDataVector sample_data;
+            for (size_t i = 0; i < nsamp i++){
+                site.push_back(SiteData(SampleNames[i]))
+            }
+            for (auto it =  pileupData.PileupAlignments.begin();
+                      it != pileupData.PileupAlignments.end();
+                      it++){
+                if(pileupData.Position == m_ref_pos){
+                    int const *pos = &it->PositionInAlignment;
+                    if(it->Alignment.Qualities[*pos] > 46){//TODO deal with quality cut
+                        uint16_t b_index = base_index(it->Alignment.AlignedBases[*pos]);
+                        if (bindex < 4){
+                            int sindex = find_sample_index(get_sample(tag_id), m_samples);
+                            sample_data[sindex].add_alignment_data(it->Alignment, 
+                                                                    *pos, b_index)
+                                    
+                        }
+                    }
+                }
+            }
+            genotypes = vector<uint16_t>;
+            for(size_t i=0; i < nsamp; i++){
+                genotypes.push_back(sample_data[i].genotype());
+            }
+            // 
+                                        
+
+
+
+
+        
 
 class FreqVisitor: public PileupVisitor{
     public:
