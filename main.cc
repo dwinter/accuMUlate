@@ -15,27 +15,6 @@
 using namespace std;
 using namespace BamTools;
 
-typedef vector< string > SampleNames;
-
-string get_sample(string& tag){
-    string res;
-    for(size_t i = 0; tag[i] != '_'; i++) {
-        res.push_back(tag[i]);
-    }
-    return(res);            
-}
-
-int find_sample_index(string s, SampleNames sv){
-    for (size_t i=0; i < sv.size(); i++){
-        if(s.compare(sv[i])==0){
-            return i;
-        }
-    }
-    cerr << "didn't find name " << s << endl;
-    return(13); //TODO refactor this to  update sample in place
-}
-
-
                              
 class VariantVisitor : public PileupVisitor{
     public:
@@ -66,7 +45,7 @@ class VariantVisitor : public PileupVisitor{
                  int const *pos = &it->PositionInAlignment;
                  if (it->Alignment.Qualities[*pos] - 33 >= m_qual_cut){
                      it->Alignment.GetTag("RG", tag_id);
-                     int sindex = find_sample_index(get_sample(tag_id), m_samples);
+                     uint32_t sindex = find_sample_index(get_sample(tag_id), m_samples); //TODO check samples existed! 
                      uint16_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
                      if (bindex < 4 ){
                          bcalls[sindex].reads[bindex] += 1;

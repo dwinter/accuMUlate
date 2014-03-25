@@ -3,6 +3,8 @@
 
 using namespace std;
 
+typedef vector< string > SampleNames;
+
 struct FastaReferenceData{
     string name;
     uint32_t length; 
@@ -35,8 +37,10 @@ class BedFile{
         ifstream bed_file;
         
 };
-
+//Helper functions
 uint16_t base_index(char b);
+string get_sample(string& tag);
+uint32_t find_sample_index(string, SampleNames);
 
 #endif
 

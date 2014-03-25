@@ -65,6 +65,9 @@ int BedFile::get_interval(BedInterval& current_interval){
     
 }
 
+//
+//Helper functions for parsing data out of BAMs
+
 uint16_t base_index(char b){
     switch(b){        
         case 'A':
@@ -86,6 +89,24 @@ uint16_t base_index(char b){
              return -1;
     }
 }
+
+string get_sample(string& tag){
+    string res;
+    for(size_t i = 0; tag[i] != '_'; i++) {
+        res.push_back(tag[i]);
+    }
+    return(res);            
+}
+
+uint32_t find_sample_index(string s, SampleNames sv){
+    for (size_t i=0; i < sv.size(); i++){
+        if(s.compare(sv[i])==0){
+            return i;
+        }
+    }
+    return(-1); //TODO refactor this to  update sample in place
+}
+
 
 
 //int main() {
