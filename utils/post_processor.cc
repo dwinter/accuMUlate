@@ -49,31 +49,6 @@ class SiteData{
 
 
 
-
-//TODO this is copy-pasted from parse_bam.cc. If is used more 
-uint16_t base_index(char b){
-    switch(b){//TODO best 'null/npos' result for a short int?
-        case 'A':
-        case 'a':    
-            return 0;
-         case 'T':
-         case 't':
-             return 3;
-         case 'C':
-         case 'c':
-             return 1;
-         case 'G':
-         case 'g':
-             return 2;
-         case '-':
-         case 'N':
-             return 4;
-         default:
-             cerr << "Don't know what to make of base" << b <<endl;
-             return 4;
-    };
-}
-
 string get_sample(string& tag){                                                           
     string res;                                                                           
     for(size_t i = 0; tag[i] != '_'; i++) {                                               
