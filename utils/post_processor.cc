@@ -3,8 +3,10 @@
 #include <string>
 #include <algorithm>
 #include <vector>
+
 #include "api/BamReader.h"
 #include "utils/bamtools_pileup_engine.h"
+#include "boost/program_options.hpp"
 
 #include "model.h"
 #include "parsers.h"
@@ -48,21 +50,13 @@ class SiteData{
 };
 
 
-int sum(vector<int> input){
-    return(  accumulate(input.begin(), input.end(), 0) );
-}
-
-double mean(vector<int> input){
-    double s = sum(input);
-    return(s/input.size());
-}
-        
+ 
 
 typedef vector<SiteData> SiteDataVector;
 
 class FilterVisitor: public PileupVisitor{
     public: 
-        FilterVisitor(BamAlignment ali, ostream *out_stream,
+        FilterVisitor(BamAlignment& ali, ostream *out_stream,
                       SampleNames samples, int ref_pos):
 
             PileupVisitor(), m_samples(samples), m_ostream(out_stream), 
@@ -70,14 +64,10 @@ class FilterVisitor: public PileupVisitor{
                 nsamp = m_samples.size(); 
             } 
         ~FilterVisitor(void) { }
-    private:
-        SampleNames m_samples;
-        int m_ref_pos;
-        ostream* m_ostream;
-        int nsamp;
+
 
     public:
-        void Visit(const PileupPosition pileupData){
+        void Visit(const PileupPosition& pileupData){
             SiteDataVector sample_data;
             for (size_t i = 0; i < nsamp; i++){
                 sample_data.push_back(SiteData(m_samples[i]));
@@ -114,22 +104,117 @@ class FilterVisitor: public PileupVisitor{
                     uint16_t mutant_base = genotypes[mutant];
                     int mutant_alleles;
                     int mutant_allele_denom;
+                    int wt_MQs;
+                    int wt_MQ_denom;
+                    int mutant_MQs =  accumulate(sample_data[mutant].MQs.begin(), sample_data[mutant].MQs.end(), 0) /
+                                      sample_data[mutant].MQs.size();
                     for (size_t i=0; i < nsamp; i++){
                         if(i != mutant){
                             mutant_alleles += sample_data[i].base_calls.reads[mutant_base];
                             mutant_allele_denom += sample_data[i].fwd_reads + sample_data[i].rev_reads;
+                            wt_MQs += accumulate(sample_data[i].MQs.begin(), sample_data[i].MQs.end(), 0); 
+                            wt_MQ_denom += sample_data[i].MQs.size();     
                         }
+                        
                     }
+                    double xbar_MQs = double(wt_MQs/wt_MQ_denom);
                     double mutant_freq = (double)mutant_alleles/mutant_allele_denom;
-                    *m_ostream << mutant_freq << '\t' 
-                               << endl;
+                    *m_ostream << sample_data[mutant].name << '\t'
+                               << mutant_base << '\t'
+                               << mutant_freq << '\t' 
+                               << sample_data[mutant].fwd_reads << '\t'
+                               << sample_data[mutant].rev_reads << '\t'
+                               << mutant_MQs << '\t'
+                               << xbar_MQs  << endl;
 
             }
         }
+
+    private:
+        SampleNames m_samples;
+        int m_ref_pos;
+        ostream* m_ostream;
+        int nsamp;
     
 };
                                  
 
 int main(int argc, char* argv[]){
+    string bam_path;
+    string input_path;
+    string ref_path;
+    namespace po = boost::program_options;
+    po::options_description cmd("Command line args");
+    cmd.add_options()
+        ("help,h", "Print a help message")
+        ("bam,b", po::value<string>(&bam_path)->required(), "Path to BAM file")
+        ("reference,r", po::value<string>(&ref_path)->required(), "Path to reference genome")
+        ("input,i", po::value<string>(&input_path)->required(), "Path to results file")
+        ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
+        ("config,c", po::value<string>(), "Path to config file")
+        ("out,o", po::value<string>()->default_value("filtered_result.tsv"),
+                    "Out file name");
+
+ 
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, cmd), vm);
+
+    if (vm.count("help")){
+        cout << cmd <<endl;
+        return 0;
+    }
+
+    if (vm.count("config")){
+        ifstream config_stream(vm["config"].as<string>());
+        po::store(po::parse_config_file(config_stream, cmd, false), vm);
+    }
+
+    vm.notify();
+
+    ofstream outfile;
+    ifstream putations(input_path);
+    BamReader experiment;
+    experiment.Open(bam_path);
+    FastaReference ref_genome (ref_path + ".fai");
+    string L;
+    PileupEngine pileup;
+    BamAlignment ali;
+
+    while(getline(putations, L)){    
+
+        // chr \t pos \t ref \t prob
+        size_t i = 0;
+        string chr;
+        for(; L[i] != '\t'; ++i){
+            chr.push_back(L[i]);
+        }
+        string pos_s;
+        i += 1;
+        for(; L[i] !='\t'; i++){
+            pos_s.push_back(L[i]);
+        }
+        int pos = stoul(pos_s);
+        int ref_id;
+        ref_genome.get_ref_id(chr, ref_id);
+        experiment.SetRegion(ref_id, pos, ref_id, pos+1);
+        FilterVisitor *f = new FilterVisitor(ali, &outfile,
+            vm["sample-name"].as<vector< string> >(), pos);
+        pileup.AddVisitor(f);
+        while( experiment.GetNextAlignment(ali) ) {
+            pileup.AddAlignment(ali);
+        }
+    }
+    pileup.Flush();
     return 0;
 }
+
+        
+
+
+            
+
+
+
+
+
+
