@@ -177,7 +177,7 @@ int main(int argc, char* argv[]){
 
     vm.notify();
 
-    ofstream outfile;
+    ofstream outfile (vm["out"].as<string>());
     ifstream putations(input_path);
     BamReader experiment;
     experiment.Open(bam_path);
