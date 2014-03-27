@@ -72,14 +72,14 @@ class FilterVisitor: public PileupVisitor{
 
     public:
         void Visit(const PileupPosition& pileupData){
-            SiteDataVector sample_data;
-            for (size_t i = 0; i < nsamp; i++){
-                sample_data.push_back(SiteData(m_samples[i]));
-            }
             for (auto it =  pileupData.PileupAlignments.begin();
                       it != pileupData.PileupAlignments.end();
                       it++){
                 if(pileupData.Position == m_ref_pos){
+                    SiteDataVector sample_data;
+                    for (size_t i = 0; i < nsamp; i++){
+                        sample_data.push_back(SiteData(m_samples[i]));
+                    }
                     int const *pos = &it->PositionInAlignment;
                     if(it->Alignment.Qualities[*pos] > 46){//TODO user-defined qual cut to match first call?
                         uint16_t b_index = base_index(it->Alignment.AlignedBases[*pos]);
@@ -90,48 +90,47 @@ class FilterVisitor: public PileupVisitor{
                             sample_data[sindex].import_alignment(it->Alignment, *pos, b_index);                        
                         }
                     }
-                }
-            }
 
-            vector<uint16_t> genotypes;
-            int gfreqs[4];
-            for(size_t i=0; i < nsamp; i++){
-                uint16_t g = sample_data[i].get_genotype();
-                gfreqs[g] += 1;
-                genotypes.push_back(g);                        
-            }
-            if(count(gfreqs, gfreqs+4, 1) == 1){//should only be one mutant
-                    // OK let's collect all that data....
-                    auto it = find_if(genotypes.begin(), genotypes.end(),
-                        [](int v) {return v==1;});
-                    unsigned mutant = *it;
-                    uint16_t mutant_base = genotypes[mutant];
-                    int mutant_alleles;
-                    int mutant_allele_denom;
-                    int wt_MQs;
-                    int wt_MQ_denom;
-                    int mutant_MQs =  accumulate(sample_data[mutant].MQs.begin(), sample_data[mutant].MQs.end(), 0) /
-                                      sample_data[mutant].MQs.size();
-                    for (size_t i=0; i < nsamp; i++){
-                        if(i != mutant){
-                            mutant_alleles += sample_data[i].base_calls.reads[mutant_base];
-                            mutant_allele_denom += sample_data[i].fwd_reads + sample_data[i].rev_reads;
-                            wt_MQs += accumulate(sample_data[i].MQs.begin(), sample_data[i].MQs.end(), 0); 
-                            wt_MQ_denom += sample_data[i].MQs.size();     
-                        }
-                        
+                    vector<uint16_t> genotypes;
+                    int gfreqs[4];
+                    for(size_t i=0; i < nsamp; i++){
+                        uint16_t g = sample_data[i].get_genotype();
+                        gfreqs[g] += 1;
+                        genotypes.push_back(g);                        
                     }
-                    double xbar_MQs = double(wt_MQs/wt_MQ_denom);
-                    double mutant_freq = (double)mutant_alleles/mutant_allele_denom;
-                    *m_ostream << m_initial_data << '\t'
-                               << mutant_base << '\t'
-                               << sample_data[mutant].name << '\t'
-                               << mutant_freq << '\t' 
-                               << sample_data[mutant].fwd_reads << '\t'
-                               << sample_data[mutant].rev_reads << '\t'
-                               << mutant_MQs << '\t'
-                               << xbar_MQs  << endl;
-
+                    if(count(gfreqs, gfreqs+4, 1) == 1){//should only be one mutant
+                            // OK let's collect all that data....
+                            auto it = find_if(genotypes.begin(), genotypes.end(),
+                                [](int v) {return v==1;});
+                            unsigned mutant = *it;
+                            uint16_t mutant_base = genotypes[mutant];
+                            int mutant_alleles;
+                            int mutant_allele_denom;
+                            int wt_MQs;
+                            int wt_MQ_denom;
+                            int mutant_MQs =  accumulate(sample_data[mutant].MQs.begin(), sample_data[mutant].MQs.end(), 0) /
+                                              sample_data[mutant].MQs.size();
+                            for (size_t i=0; i < nsamp; i++){
+                                if(i != mutant){
+                                    mutant_alleles += sample_data[i].base_calls.reads[mutant_base];
+                                    mutant_allele_denom += sample_data[i].fwd_reads + sample_data[i].rev_reads;
+                                    wt_MQs += accumulate(sample_data[i].MQs.begin(), sample_data[i].MQs.end(), 0); 
+                                    wt_MQ_denom += sample_data[i].MQs.size();     
+                                }
+                                
+                            }
+                            double xbar_MQs = double(wt_MQs/wt_MQ_denom);
+                            double mutant_freq = (double)mutant_alleles/mutant_allele_denom;
+                            *m_ostream << m_initial_data << '\t'
+                                       << mutant_base << '\t'
+                                       << sample_data[mutant].name << '\t'
+                                       << mutant_freq << '\t' 
+                                       << sample_data[mutant].fwd_reads << '\t'
+                                       << sample_data[mutant].rev_reads << '\t'
+                                       << mutant_MQs << '\t'
+                                       << xbar_MQs  << endl;
+                    }
+                }
             }
         }
 
