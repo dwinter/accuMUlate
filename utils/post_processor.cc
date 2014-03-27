@@ -56,11 +56,14 @@ typedef vector<SiteData> SiteDataVector;
 
 class FilterVisitor: public PileupVisitor{
     public: 
-        FilterVisitor(BamAlignment& ali, ostream *out_stream,
-                      SampleNames samples, int ref_pos):
+        FilterVisitor(BamAlignment& ali, 
+                      ostream *out_stream,
+                      SampleNames samples, 
+                      int ref_pos,
+                      string initial_data):
 
             PileupVisitor(), m_samples(samples), m_ostream(out_stream), 
-                             m_ref_pos(ref_pos){
+                             m_ref_pos(ref_pos), m_initial_data(initial_data){
                 nsamp = m_samples.size(); 
             } 
         ~FilterVisitor(void) { }
@@ -119,8 +122,9 @@ class FilterVisitor: public PileupVisitor{
                     }
                     double xbar_MQs = double(wt_MQs/wt_MQ_denom);
                     double mutant_freq = (double)mutant_alleles/mutant_allele_denom;
-                    *m_ostream << sample_data[mutant].name << '\t'
+                    *m_ostream << m_initial_data << '\t'
                                << mutant_base << '\t'
+                               << sample_data[mutant].name << '\t'
                                << mutant_freq << '\t' 
                                << sample_data[mutant].fwd_reads << '\t'
                                << sample_data[mutant].rev_reads << '\t'
@@ -135,6 +139,7 @@ class FilterVisitor: public PileupVisitor{
         int m_ref_pos;
         ostream* m_ostream;
         int nsamp;
+        string m_initial_data;
     
 };
                                  
@@ -175,7 +180,7 @@ int main(int argc, char* argv[]){
     ifstream putations(input_path);
     BamReader experiment;
     experiment.Open(bam_path);
-    FastaReference ref_genome (ref_path + ".fai");
+    //FastaReference ref_genome (ref_path + ".fai");
     string L;
     PileupEngine pileup;
     BamAlignment ali;
@@ -194,11 +199,12 @@ int main(int argc, char* argv[]){
             pos_s.push_back(L[i]);
         }
         int pos = stoul(pos_s);
-        int ref_id;
-        ref_genome.get_ref_id(chr, ref_id);
+        int ref_id = experiment.GetReferenceID(chr);
         experiment.SetRegion(ref_id, pos, ref_id, pos+1);
-        FilterVisitor *f = new FilterVisitor(ali, &outfile,
-            vm["sample-name"].as<vector< string> >(), pos);
+        FilterVisitor *f = new FilterVisitor(ali, 
+                                             &outfile,
+                                             vm["sample-name"].as<vector< string> >(), 
+                                             pos, L);
         pileup.AddVisitor(f);
         while( experiment.GetNextAlignment(ali) ) {
             pileup.AddAlignment(ali);
