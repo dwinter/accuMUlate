@@ -3,6 +3,7 @@
 #include <string>
 #include <algorithm>
 #include <vector>
+#include <numeric> 
 
 #include "api/BamReader.h"
 #include "utils/bamtools_pileup_engine.h"
