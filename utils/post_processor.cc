@@ -27,19 +27,19 @@ class SampleSiteData{
 
         SampleSiteData(){
           base_calls.key = 0;
+          fwd_reads = 0;
+          rev_reads = 0;
         }
                   
         int get_genotype(){
            //These have already been called for mutation-ness, and are haploid
-           //so, to make a start, we are just calling the most common base          
-           uint16_t most_common = *max_element(base_calls.reads, base_calls.reads + 4 );
-           if (most_common==0){
-               return -1;
-           }
-           else{
-               return(distance(base_calls.reads, &most_common));
-           }
+           //so, to make a start, we are just calling the most common base         
+           if (base_calls.key == 0){
+              return -1;
+           } 
+           return(distance(base_calls.reads, max_element(base_calls.reads, base_calls.reads + 4)));
         }
+
         void import_alignment(const BamAlignment& al, const int& pos, const int& bindex){
             uint16_t b_index = base_index(al.AlignedBases[pos]);
             base_calls.reads[bindex] += 1;
@@ -72,24 +72,26 @@ class ExperimentSiteData{
             // call genotypes, keep track of each sample and number of each 
             // possible allele
             vector<uint16_t> genotypes;
-            int gfreqs[4];
+            ReadData gfreqs;
+            gfreqs.key = 0;
             for(size_t i=0; i < sample_data.size(); i++){
                 uint16_t g = sample_data[i].get_genotype();
                 if(g < 4){//no data == npos
-                    gfreqs[g] += 1;
+                    gfreqs.reads[g] += 1;
                 }
                 genotypes.push_back(g);                        
             }
             //Now find the mutant (should be the only one with it's allele)
             uint16_t mutant_base;
-            uint16_t n_mutant;
+            uint16_t n_mutant = 0;
             for(size_t i = 0; i<4; i++){
-                if (gfreqs[i] == 1){
+                if (gfreqs.reads[i] == 1){
                     n_mutant += 1;
                     mutant_base = i;
                 }
             }
             if (n_mutant != 1){
+                cout << endl;
                 return; // warn?
             }
             auto it = find_if(genotypes.begin(), genotypes.end(), 
@@ -97,10 +99,10 @@ class ExperimentSiteData{
             uint32_t mutant = *it;
             //summarise the data
 
-            int mutant_alleles;
-            int mutant_alleles_denom;
-            int wt_MQs;
-            int wt_MQs_denom;
+            int mutant_alleles = 0;
+            int mutant_alleles_denom = 0;
+            int wt_MQs = 0;
+            int wt_MQs_denom = 0;
             auto s_mutant_MQs = accumulate (sample_data[mutant].MQs.begin(),
                                             sample_data[mutant].MQs.end(), 0);
             double mutant_MQs = s_mutant_MQs/(double)sample_data[mutant].MQs.size();
@@ -111,9 +113,10 @@ class ExperimentSiteData{
                     wt_MQs += accumulate(sample_data[i].MQs.begin(), sample_data[i].MQs.end(), 0); 
                     wt_MQs_denom += sample_data[i].MQs.size();     
                 }
+            }
             double xbar_MQs = (double)wt_MQs/wt_MQs_denom;
             double mutant_freq = (double)mutant_alleles/mutant_alleles_denom;
-            *out_stream  << mutant_base << '\t'
+            cout  << mutant_base << '\t'
                           << snames[mutant] << '\t'
                           << mutant_freq << '\t' 
                           << sample_data[mutant].fwd_reads << '\t'
@@ -121,7 +124,8 @@ class ExperimentSiteData{
                           << mutant_MQs << '\t'
                           << xbar_MQs  << endl;
             }
-        }
+            
+        
 };
 
 
@@ -138,30 +142,28 @@ class FilterVisitor: public PileupVisitor{
 
     public:
         void Visit(const PileupPosition& pileupData){
+            if (pileupData.Position != m_ref_pos){
+                return;
+            }
+
             auto target_site = ExperimentSiteData(m_samples);
             for (auto it =  pileupData.PileupAlignments.begin();
                       it != pileupData.PileupAlignments.end();
                       it++){
-                if(pileupData.Position > m_ref_pos){
-                //PileupEngine takes all alignments that _overlap_ our target
-                //once we've gone past the target we are done so:
-                    break;
-                }
-                if(pileupData.Position == m_ref_pos){
-                    int const *pos = &it->PositionInAlignment;
-                    if(it->Alignment.Qualities[*pos] > 46){//TODO user-defined qual cut to match first call?
-                        uint16_t b_index = base_index(it->Alignment.AlignedBases[*pos]);
-                        if (b_index < 4){
-                            string tag_id;
-                            it->Alignment.GetTag("RG", tag_id);
-                            uint32_t sindex = find_sample_index(get_sample(tag_id),m_samples);
-                            target_site.sample_data[sindex].import_alignment(it->Alignment, *pos, b_index);               
-                        }
+                int const *pos = &it->PositionInAlignment;
+                if(it->Alignment.Qualities[*pos] > 46){//TODO user-defined qual cut 
+                    uint16_t b_index = base_index(it->Alignment.AlignedBases[*pos]);
+                    if (b_index < 4){
+                        string tag_id;
+                        it->Alignment.GetTag("RG", tag_id);
+                        uint32_t sindex = find_sample_index(get_sample(tag_id),m_samples);
+                        target_site.sample_data[sindex].import_alignment(it->Alignment, *pos, b_index);               
                     }
                 }
             }
-            target_site.summarize(m_out_stream);
-        }
+        
+        target_site.summarize(m_out_stream);
+    }
 
     private:
         SampleNames m_samples;
@@ -226,6 +228,7 @@ int main(int argc, char* argv[]){
         }
         int pos = stoul(pos_s);
         int ref_id = experiment.GetReferenceID(chr);
+        cout <<  chr  << '\t'<< pos << '\t' ;
         experiment.SetRegion(ref_id, pos-1, ref_id, pos);
         FilterVisitor *f = new FilterVisitor(ali, 
                                              sample_names,
@@ -240,7 +243,7 @@ int main(int argc, char* argv[]){
     return 0;
 }
 
-        
+
 
 
             
