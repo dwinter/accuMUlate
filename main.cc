@@ -55,12 +55,14 @@ class VariantVisitor : public PileupVisitor{
             uint16_t ref_base_idx = base_index(current_base);
             if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N'
                 ModelInput d = {ref_base_idx, bcalls};
-                double prob = TetMAProbOneMutation(m_params,d);
+                double prob_one = TetMAProbOneMutation(m_params,d);
+                double prob = TetMAProbability(m_params, d);
                 if(prob >= m_prob_cut){
                      *m_ostream << chr << '\t' 
                                 << pos << '\t' 
                                 << current_base << '\t' 
                                 << prob << '\t' 
+                                << prob_one << '\t' 
                                 << endl;          
                 }
             }
@@ -158,8 +160,7 @@ int main(int argc, char** argv){
         FastaReference my_ref (ref_file + ".fai");
         BedInterval region;
         while(bed.get_interval(region) == 0){
-            int ref_id;
-            my_ref.get_ref_id(region.chr, ref_id);
+            int ref_id = experiment.GetReferenceID(region.chr);
             experiment.SetRegion(ref_id, region.start, ref_id, region.end);
             while( experiment.GetNextAlignment(ali) ){
                 pileup.AddAlignment(ali);
