@@ -32,6 +32,7 @@ class SampleSiteData{
         }
                   
         int get_genotype(){
+           //TODO: call genotypes from the model
            //These have already been called for mutation-ness, and are haploid
            //so, to make a start, we are just calling the most common base         
            if (base_calls.key == 0){
@@ -116,8 +117,10 @@ class ExperimentSiteData{
             }
             double xbar_MQs = (double)wt_MQs/wt_MQs_denom;
             double mutant_freq = (double)mutant_alleles/mutant_alleles_denom;
+            double mutant_strain_freq = doule(sample_data[mutant].base_calls.reads[mutant_base]) / (sample_data[mutant].fwd_reads + sample_data[mutant].rev_reads);
             cout  << mutant_base << '\t'
                           << snames[mutant] << '\t'
+                          << mutant_strain_freq<< '\t'
                           << mutant_freq << '\t' 
                           << sample_data[mutant].fwd_reads << '\t'
                           << sample_data[mutant].rev_reads << '\t'
