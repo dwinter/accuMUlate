@@ -80,7 +80,7 @@ class ExperimentSiteData{
                 if(g < 4){//no data == npos
                     gfreqs.reads[g] += 1;
                 }
-                genotypes.push_back(g);                        
+                genotypes.push_back(g);             
             }
             //Now find the mutant (should be the only one with it's allele)
             uint16_t mutant_base;
@@ -92,12 +92,12 @@ class ExperimentSiteData{
                 }
             }
             if (n_mutant != 1){
-                cout << endl;
+                *out_stream  << endl;
                 return; // warn?
             }
             auto it = find_if(genotypes.begin(), genotypes.end(), 
                     [&](int v) {return v==mutant_base;});
-            uint32_t mutant = *it;
+            uint32_t mutant = distance(genotypes.begin(), it);
             //summarise the data
 
             int mutant_alleles = 0;
@@ -117,8 +117,8 @@ class ExperimentSiteData{
             }
             double xbar_MQs = (double)wt_MQs/wt_MQs_denom;
             double mutant_freq = (double)mutant_alleles/mutant_alleles_denom;
-            double mutant_strain_freq = doule(sample_data[mutant].base_calls.reads[mutant_base]) / (sample_data[mutant].fwd_reads + sample_data[mutant].rev_reads);
-            cout  << mutant_base << '\t'
+            double mutant_strain_freq = double(sample_data[mutant].base_calls.reads[mutant_base]) / (sample_data[mutant].fwd_reads + sample_data[mutant].rev_reads);
+            *out_stream  << mutant_base << '\t'
                           << snames[mutant] << '\t'
                           << mutant_strain_freq<< '\t'
                           << mutant_freq << '\t' 
@@ -175,6 +175,50 @@ class FilterVisitor: public PileupVisitor{
        // ExperimentSiteData target_site;
     
 };
+
+
+void test(){
+
+    //setup
+    auto all_t = SampleSiteData();
+    all_t.base_calls.key = 0;
+    all_t.base_calls.reads[3] =  10 ;
+    all_t.fwd_reads = 5;
+    all_t.rev_reads = 5;
+
+    auto mix = SampleSiteData();
+    mix.base_calls.key = 0;
+    mix.base_calls.reads[1] = 5;
+    mix.base_calls.reads[2] = 5;
+    mix.fwd_reads = 5;
+    mix.rev_reads = 5;
+
+    auto empty_site = SampleSiteData();
+    empty_site.base_calls.key = 0;
+
+    //test
+    cerr << "calling genotypes " <<  endl;
+    cerr << (all_t.get_genotype() == 3) << endl;
+    cerr << (mix.get_genotype() == 1) << endl;
+    cerr << (empty_site.get_genotype() == -1) << endl;
+
+    //setup
+//    auto out = &cerr;
+    SampleNames sn = {"test1", "test2", "test3", "test4"};
+    ExperimentSiteData test_site = ExperimentSiteData(sn);
+    test_site.sample_data[0].base_calls.reads[1] = 10;
+    test_site.sample_data[0].fwd_reads = 2;
+    test_site.sample_data[0].rev_reads = 8;
+    test_site.sample_data[1].base_calls.reads[1] = 10;
+    test_site.sample_data[1].fwd_reads = 5;
+    test_site.sample_data[1].rev_reads = 5;
+    test_site.sample_data[2].base_calls.reads[0] = 10;
+    test_site.sample_data[2].fwd_reads = 10;
+    test_site.sample_data[2].rev_reads = 0;
+
+    cerr << "summarising sites... " << endl;
+    test_site.summarize(&cerr);
+}
 
 
 int main(int argc, char* argv[]){
