@@ -58,11 +58,13 @@ class SampleSiteData{
  
 class ExperimentSiteData{
     public:
+        string m_initial_data;
         vector<SampleSiteData> sample_data;
         SampleNames snames;
 
-        ExperimentSiteData(SampleNames sn){
-            snames = sn;           
+        ExperimentSiteData(SampleNames sn, string initial_data ){
+            snames = sn;
+            m_initial_data = initial_data;
             //fill constructor doesn't work here?
             for(size_t i= 0; i < sn.size(); i++){
                 sample_data.push_back(SampleSiteData());
@@ -72,6 +74,7 @@ class ExperimentSiteData{
         void summarize(ostream* out_stream){
             // call genotypes, keep track of each sample and number of each 
             // possible allele
+            *out_stream << m_initial_data;
             vector<uint16_t> genotypes;
             ReadData gfreqs;
             gfreqs.key = 0;
@@ -92,7 +95,15 @@ class ExperimentSiteData{
                 }
             }
             if (n_mutant != 1){
-                *out_stream  << endl;
+                *out_stream  << "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" << endl;
+                cerr << "skipping " << m_initial_data << ". Read Matrix:" << endl;
+                for (size_t i=0; i < sample_data.size(); i++){
+                    cerr << snames[i] << '\t';
+                    for (size_t j=0; j<4; j++){
+                        cerr << sample_data.base_call.reads[j] << '\t';
+                    }
+                }
+                cerr << endl;
                 return; // warn?
             }
             auto it = find_if(genotypes.begin(), genotypes.end(), 
@@ -137,8 +148,10 @@ class FilterVisitor: public PileupVisitor{
         FilterVisitor(BamAlignment& ali, 
                       const SampleNames& samples, 
                       ostream* out_stream,
-                      int ref_pos):
-            PileupVisitor(), m_samples(samples), m_ref_pos(ref_pos), m_out_stream(out_stream)
+                      int ref_pos,
+                      string input_data):
+            PileupVisitor(), m_samples(samples), m_ref_pos(ref_pos), 
+                             m_out_stream(out_stream), m_initial_data(initial_data)
             {  } 
         ~FilterVisitor(void) { }
 
@@ -280,7 +293,7 @@ int main(int argc, char* argv[]){
         FilterVisitor *f = new FilterVisitor(ali, 
                                              sample_names,
                                              &outfile,
-                                             pos);
+                                             pos, L);
         pileup.AddVisitor(f);
         while( experiment.GetNextAlignment(ali) ) {
             pileup.AddAlignment(ali);
