@@ -16,41 +16,55 @@ using namespace std;
 using namespace BamTools;
 
 
+
+
 class SampleSiteData{
 
     public:
-        vector<uint16_t> BQs;
-        vector<uint16_t> MQs;
-        uint32_t fwd_reads;
-        uint32_t rev_reads;
-        ReadData base_calls;
+        //These are 16bit unsigned ints - can handle 2^16/41 ~ 1600 quality
+        //scores without overflowing
+        ReadData fwd_reads;
+        ReadData rev_reads;
+        ReadData all_reads;
+        ReadData MQ;
+        ReadData BQ;
+        uint16_t depth;
+
 
         SampleSiteData(){
-          base_calls.key = 0;
-          fwd_reads = 0;
-          rev_reads = 0;
+          MQ.key = 0;
+          BQ.key = 0;
+          fwd_reads.key = 0;
+          rev_reads.key = 0;
+          all_reads.key= 0;
+          depth = 0;
         }
                   
-        int get_genotype(){
+        uint16_t get_genotype(){
            //TODO: call genotypes from the model
            //These have already been called for mutation-ness, and are haploid
-           //so, to make a start, we are just calling the most common base         
-           if (base_calls.key == 0){
-              return -1;
-           } 
-           return(distance(base_calls.reads, max_element(base_calls.reads, base_calls.reads + 4)));
+           //so, to make a start, we are just calling the most common base 
+           if (fwd_reads.key == 0 && rev_reads.key == 0){
+               return =  -1;
+           }
+           for(size_t i=0; i<4; i++){
+               n = fwd_reads.reads[i] + rev_reads.reads[i];
+               all_reads.reads[i] += n;
+               depth += n;
+
+           }
+           return distance(base_calls.reads, max_element(all_reads.reads, all_reads.reads + 4));
         }
 
         void import_alignment(const BamAlignment& al, const int& pos, const int& bindex){
             uint16_t b_index = base_index(al.AlignedBases[pos]);
-            base_calls.reads[bindex] += 1;
-            BQs.push_back(al.Qualities[pos]);
-            MQs.push_back(al.MapQuality);
+            BQs.reads[bindex] += (al.Qualities[pos] - 33);
+            MQs.reads[bindex] += (al.MapQuality - 33 );
             if(al.IsReverseStrand()){ 
-                rev_reads += 1; 
+                rev_reads.reads[bindex] += 1; 
             } 
             else{ 
-                fwd_reads += 1; 
+                fwd_reads.reads[bindex] += 1; 
             }
         }
 };
@@ -62,9 +76,11 @@ class ExperimentSiteData{
         vector<SampleSiteData> sample_data;
         SampleNames snames;
 
-        ExperimentSiteData(SampleNames sn, string initial_data ){
+        ExperimentSiteData(SampleNames sn, string initial_data, string ref_pos ){
             snames = sn;
+            //TODO get reference base form inital data? Or pass it to args?
             m_initial_data = initial_data;
+            m_ref_pos = ref_pos;
             //fill constructor doesn't work here?
             for(size_t i= 0; i < sn.size(); i++){
                 sample_data.push_back(SampleSiteData());
@@ -72,14 +88,14 @@ class ExperimentSiteData{
         }
 
         void summarize(ostream* out_stream){
+
             // call genotypes, keep track of each sample and number of each 
             // possible allele
-            *out_stream << m_initial_data;
             vector<uint16_t> genotypes;
             ReadData gfreqs;
             gfreqs.key = 0;
             for(size_t i=0; i < sample_data.size(); i++){
-                uint16_t g = sample_data[i].get_genotype();
+                uint16_t g = s->get_genotype();
                 if(g < 4){//no data == npos
                     gfreqs.reads[g] += 1;
                 }
@@ -95,48 +111,83 @@ class ExperimentSiteData{
                 }
             }
             if (n_mutant != 1){
+                //Looks like messy data. Print out the read matrix so we can
+                //unerstand what going on, add an empty line to the output
                 *out_stream  << "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" << endl;
                 cerr << "skipping " << m_initial_data << ". Read Matrix:" << endl;
                 for (size_t i=0; i < sample_data.size(); i++){
                     cerr << snames[i] << '\t';
                     for (size_t j=0; j<4; j++){
-                        cerr << sample_data.base_call.reads[j] << '\t';
+                        cerr << sample_data[i].base_call.reads[j] << '\t';
                     }
                 }
                 cerr << endl;
-                return; // warn?
+                return; // 
             }
             auto it = find_if(genotypes.begin(), genotypes.end(), 
                     [&](int v) {return v==mutant_base;});
             uint32_t mutant = distance(genotypes.begin(), it);
-            //summarise the data
+            int ref 
+            //summarise the data from the mutant strain
+            SampleSiteData * ms = &sample_data[mutant];
+            int f_mutant_m = sample_data[mutant]->all_reads[mutant]/(double)ms->depth;
+            int* F_m = &ms->fwd_reads[mutant_base];
+            int* R_m = &ms->rev_reads[mutant_base];
+            int m_MQs = ms->MQ.reads[mutant_base]/(double)ms->all_reads.reads[mutant_base];
+            int m_BQs = ms->BQ.reads[mutant_base]/(double)ms->all_reads.reads[mutant_base];
 
-            int mutant_alleles = 0;
-            int mutant_alleles_denom = 0;
-            int wt_MQs = 0;
-            int wt_MQs_denom = 0;
-            auto s_mutant_MQs = accumulate (sample_data[mutant].MQs.begin(),
-                                            sample_data[mutant].MQs.end(), 0);
-            double mutant_MQs = s_mutant_MQs/(double)sample_data[mutant].MQs.size();
-            for (size_t i=0; i < sample_data.size(); i++){
-                if (i != mutant){
-                    mutant_alleles += sample_data[i].base_calls.reads[mutant_base];
-                    mutant_alleles_denom += sample_data[i].fwd_reads + sample_data[i].rev_reads;
-                    wt_MQs += accumulate(sample_data[i].MQs.begin(), sample_data[i].MQs.end(), 0); 
-                    wt_MQs_denom += sample_data[i].MQs.size();     
+            int other_MQs_sum = 0;
+            int other_BQs_sum = 0;
+            int Q_denom = 0;
+            for(size_t i = 0; i < 4; ++i){
+                if(i != mutant_base){
+                    other_MQs_sum += ms->MQ[i];
+                    other_BQs_sum += ms->BQ[i];
+                    Q_denom += ms->all_reads.reads[i];
                 }
             }
-            double xbar_MQs = (double)wt_MQs/wt_MQs_denom;
-            double mutant_freq = (double)mutant_alleles/mutant_alleles_denom;
-            double mutant_strain_freq = double(sample_data[mutant].base_calls.reads[mutant_base]) / (sample_data[mutant].fwd_reads + sample_data[mutant].rev_reads);
-            *out_stream  << mutant_base << '\t'
-                          << snames[mutant] << '\t'
-                          << mutant_strain_freq<< '\t'
-                          << mutant_freq << '\t' 
-                          << sample_data[mutant].fwd_reads << '\t'
-                          << sample_data[mutant].rev_reads << '\t'
-                          << mutant_MQs << '\t'
-                          << xbar_MQs  << endl;
+            int other_MQs = other_MQs_sum/(double)Q_denom;
+            int other_BQs = other_BQs_sum/(double)Q_denom;
+
+
+            //and now the WT strains
+
+            int N_mutant_wt = 0; //mutant allele freq in strains with WT allel
+            int F_wt = 0;// n forward and reverse reads for rference base
+            int R_wt = 0;// in wildtype strains
+            int wt_MQs_sum = 0;
+            int wt_BQs_sum = 0;
+            int wt_depth;
+
+            uint16_t ref_bindex  = base_index(ref_base);
+            for (size_t i=0; i < sample_data.size(); i++){
+                if (i != mutant){
+                    SampleSite* s = &sample_data[i]
+                    wt_denom += s->depth;
+                    N_mutant_wt += s->reads[mutant];
+
+                    F_wt += s->reads[ref_bindex];
+                    R_wt += s->reads[ref_binedx];
+    
+                    wt_MQs_sum += accumulate(s->MQ.begin(), s->MQ.end(), 0);
+                    wt_BQs_sum += accumulate(s->BQ.begin(), s->BQ.end(), 0);
+
+                    wt_depth += s->depth;
+
+                }
+            }
+            wt_MQs = wt_MQs_sum/(double)wt_denom;
+            wt_BQs = wt_BQs_sum/(double)wt_denom;
+            
+            *out_stream  << m_initial_data << '\t'
+                         << mutant_base << '\t'
+                         << snames[mutant] << '\t'
+                         << f_mutant_m << '\t'  //freq. of mutant base in mutant strain
+                         << f_mutant_wt << '\t' //freq. mutant base in WTs
+                         << F_m << '\t' << R_m << '\t' << F_wt << '\t' << R_wt << '\t'
+                         << m_BQs << '\t' << other_BQs << '\t' << wt_BQs << '\t'
+                         << m_MQs << '\t' << other_MQs << '\t' << wt_MQs << '\t'             
+
             }
             
         
@@ -149,9 +200,11 @@ class FilterVisitor: public PileupVisitor{
                       const SampleNames& samples, 
                       ostream* out_stream,
                       int ref_pos,
-                      string input_data):
+                      string ref_base,
+                      string input_data, ):
             PileupVisitor(), m_samples(samples), m_ref_pos(ref_pos), 
-                             m_out_stream(out_stream), m_initial_data(initial_data)
+                             m_out_stream(out_stream), m_initial_data(input_data),
+                             m_ref_base(ref_base)
             {  } 
         ~FilterVisitor(void) { }
 
@@ -162,7 +215,7 @@ class FilterVisitor: public PileupVisitor{
                 return;
             }
 
-            auto target_site = ExperimentSiteData(m_samples);
+            auto target_site = ExperimentSiteData(m_samples, m_initial_data, m_ref_base);
             for (auto it =  pileupData.PileupAlignments.begin();
                       it != pileupData.PileupAlignments.end();
                       it++){
@@ -185,6 +238,7 @@ class FilterVisitor: public PileupVisitor{
         SampleNames m_samples;
         ostream* m_out_stream;
         int m_ref_pos;
+        string m_ref_base;
        // ExperimentSiteData target_site;
     
 };
@@ -286,14 +340,16 @@ int main(int argc, char* argv[]){
         for(; L[i] !='\t'; i++){
             pos_s.push_back(L[i]);
         }
+        string ref_base = L[i+1];
         int pos = stoul(pos_s);
         int ref_id = experiment.GetReferenceID(chr);
-        cout <<  chr  << '\t'<< pos << '\t' ;
+        
+        
         experiment.SetRegion(ref_id, pos-1, ref_id, pos);
         FilterVisitor *f = new FilterVisitor(ali, 
                                              sample_names,
                                              &outfile,
-                                             pos, L);
+                                             pos, L, ref_base);
         pileup.AddVisitor(f);
         while( experiment.GetNextAlignment(ali) ) {
             pileup.AddAlignment(ali);
