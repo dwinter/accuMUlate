@@ -78,7 +78,6 @@ class ExperimentSiteData{
 
         ExperimentSiteData(SampleNames sn, string initial_data, string ref_pos ){
             snames = sn;
-            //TODO get reference base form inital data? Or pass it to args?
             m_initial_data = initial_data;
             m_ref_pos = ref_pos;
             //fill constructor doesn't work here?
@@ -113,21 +112,22 @@ class ExperimentSiteData{
             if (n_mutant != 1){
                 //Looks like messy data. Print out the read matrix so we can
                 //unerstand what going on, add an empty line to the output
-                *out_stream  << "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" << endl;
+                *out_stream  << m_initial_data
+                   << "\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t" << endl;
                 cerr << "skipping " << m_initial_data << ". Read Matrix:" << endl;
                 for (size_t i=0; i < sample_data.size(); i++){
-                    cerr << snames[i] << '\t';
+                    cerr << snames[i] << "\tA\tC\tG\tT" << endl;
                     for (size_t j=0; j<4; j++){
                         cerr << sample_data[i].base_call.reads[j] << '\t';
                     }
+                    cerr << endl;
                 }
-                cerr << endl;
                 return; // 
             }
             auto it = find_if(genotypes.begin(), genotypes.end(), 
                     [&](int v) {return v==mutant_base;});
             uint32_t mutant = distance(genotypes.begin(), it);
-            int ref 
+            
             //summarise the data from the mutant strain
             SampleSiteData * ms = &sample_data[mutant];
             int f_mutant_m = sample_data[mutant]->all_reads[mutant]/(double)ms->depth;
@@ -149,15 +149,13 @@ class ExperimentSiteData{
             int other_MQs = other_MQs_sum/(double)Q_denom;
             int other_BQs = other_BQs_sum/(double)Q_denom;
 
-
             //and now the WT strains
-
             int N_mutant_wt = 0; //mutant allele freq in strains with WT allel
             int F_wt = 0;// n forward and reverse reads for rference base
             int R_wt = 0;// in wildtype strains
             int wt_MQs_sum = 0;
             int wt_BQs_sum = 0;
-            int wt_depth;
+            int wt_depth = 0;
 
             uint16_t ref_bindex  = base_index(ref_base);
             for (size_t i=0; i < sample_data.size(); i++){
