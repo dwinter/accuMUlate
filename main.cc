@@ -19,6 +19,7 @@ using namespace BamTools;
 class VariantVisitor : public PileupVisitor{
     public:
         VariantVisitor(const RefVector& bam_references, 
+                       const SamHeader& header,
                        const Fasta& idx_ref,
                        ostream *out_stream,
                        SampleNames samples, 
@@ -28,8 +29,9 @@ class VariantVisitor : public PileupVisitor{
                        double prob_cut):
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
-                             m_samples(samples), m_qual_cut(qual_cut), m_params(p), 
-                             m_ali(ali), m_ostream(out_stream), m_prob_cut(prob_cut)
+                             m_header(header), m_samples(samples), 
+                             m_qual_cut(qual_cut), m_params(p), m_ali(ali), 
+                             m_ostream(out_stream), m_prob_cut(prob_cut)
                               { }
         ~VariantVisitor(void) { }
     public:
@@ -45,7 +47,8 @@ class VariantVisitor : public PileupVisitor{
                  int const *pos = &it->PositionInAlignment;
                  if (it->Alignment.Qualities[*pos] - 33 >= m_qual_cut){
                      it->Alignment.GetTag("RG", tag_id);
-                     uint32_t sindex = find_sample_index(get_sample(tag_id), m_samples); //TODO check samples existed! 
+                     string sm =  m_header.ReadGroups[tag_id].Sample;
+                     uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed! 
                      uint16_t bindex  = base_index(it->Alignment.AlignedBases[*pos]);
                      if (bindex < 4 ){
                          bcalls[sindex].reads[bindex] += 1;
@@ -69,6 +72,7 @@ class VariantVisitor : public PileupVisitor{
         }
     private:
         RefVector m_bam_ref;
+        SamHeader m_header;
         Fasta m_idx_ref; 
         ostream* m_ostream;
         SampleNames m_samples;
@@ -139,6 +143,7 @@ int main(int argc, char** argv){
     BamReader experiment; 
     experiment.Open(vm["bam"].as<string>());
     RefVector references = experiment.GetReferenceData(); 
+    SamHeader header = experiment.GetHeader();
     Fasta reference_genome; // BamTools::Fasta
     reference_genome.Open(ref_file);
     reference_genome.CreateIndex(ref_file + ".fai");
@@ -146,6 +151,7 @@ int main(int argc, char** argv){
     BamAlignment ali;
     VariantVisitor *v = new VariantVisitor(
             references,
+            header,
             reference_genome, 
             &result_stream,
             vm["sample-name"].as<vector< string> >(),
@@ -172,7 +178,7 @@ int main(int argc, char** argv){
         BamAlignment ali;
         while( experiment.GetNextAlignment(ali)){
             pileup.AddAlignment(ali);
-        };
+        };  
     pileup.Flush();
     return 0;
     }
