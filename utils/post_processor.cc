@@ -115,12 +115,12 @@ class ExperimentSiteData{
                 //unerstand what going on, add an empty line to the output
                 *out_stream  << m_initial_data
                    << "\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t" << endl;
-                cerr << "skipping " << m_initial_data << ". Read Matrix:" << endl;
+                cerr << "Skipping " << m_initial_data <<  endl;
+                cerr << "Read Matrix:" << endl;
                 for (size_t i=0; i < sample_data.size(); i++){
-                    cerr << snames[i] << "\tA\tC\tG\tT" << endl;
+                    cerr << snames[i] << '\t';
                     for (size_t j=0; j<4; j++){
                         cerr << sample_data[i].all_reads.reads[j] << '\t';
-
                     }
                     cerr << endl;
                 }
@@ -132,7 +132,7 @@ class ExperimentSiteData{
             
             //summarise the data from the mutant strain
             SampleSiteData * ms = &sample_data[mutant];
-            double f_mutant_m = ms->all_reads.reads[mutant]/(double)ms->depth;
+            double f_mutant_m = ms->all_reads.reads[mutant_base]/(double)ms->depth;
             uint16_t* F_m = &ms->fwd_reads.reads[mutant_base];
             uint16_t* R_m = &ms->rev_reads.reads[mutant_base];
             double m_MQs = ms->MQ.reads[mutant_base]/(double)ms->all_reads.reads[mutant_base];
@@ -163,7 +163,7 @@ class ExperimentSiteData{
             for (size_t i=0; i < sample_data.size(); i++){
                 if (i != mutant){
                     SampleSiteData* s = &sample_data[i];
-                    N_mutant_wt += s->all_reads.reads[mutant];
+                    N_mutant_wt += s->all_reads.reads[mutant_base];
 
                     F_wt += s->fwd_reads.reads[ref_bindex];
                     R_wt += s->rev_reads.reads[ref_bindex];
@@ -175,17 +175,17 @@ class ExperimentSiteData{
 
                 }
             }
-            int wt_MQs = wt_MQs_sum/(double)wt_depth;
-            int wt_BQs = wt_BQs_sum/(double)wt_depth;
-            int f_mutant_wt = N_mutant_wt/(double)wt_depth;
+            double wt_MQs = wt_MQs_sum/(double)wt_depth;
+            double wt_BQs = wt_BQs_sum/(double)wt_depth;
+            double f_mutant_wt = N_mutant_wt/(double)wt_depth;
+ 
             
-
             *out_stream  << m_initial_data << '\t'
                          << mutant_base << '\t'
                          << snames[mutant] << '\t'
                          << f_mutant_m << '\t'  //freq. of mutant base in mutant strain
                          << f_mutant_wt << '\t' //freq. mutant base in WTs
-                         << F_m << '\t' << R_m << '\t' << F_wt << '\t' << R_wt << '\t'
+                         << *F_m << '\t' << *R_m << '\t' << F_wt << '\t' << R_wt << '\t'
                          << m_BQs << '\t' << other_BQs << '\t' << wt_BQs << '\t'
                          << m_MQs << '\t' << other_MQs << '\t' << wt_MQs << '\t'    
                          << endl;
@@ -199,12 +199,13 @@ class ExperimentSiteData{
 class FilterVisitor: public PileupVisitor{
     public: 
         FilterVisitor(BamAlignment& ali, 
+                      const SamHeader& header,
                       const SampleNames& samples, 
                       ostream* out_stream,
                       int ref_pos,
                       string input_data,
                       char ref_base):
-            PileupVisitor(), m_samples(samples), m_ref_pos(ref_pos), 
+            PileupVisitor(), m_header(header), m_samples(samples), m_ref_pos(ref_pos), 
                              m_out_stream(out_stream), m_initial_data(input_data),
                              m_ref_base(ref_base)
             {  } 
@@ -227,7 +228,8 @@ class FilterVisitor: public PileupVisitor{
                     if (b_index < 4){
                         string tag_id;
                         it->Alignment.GetTag("RG", tag_id);
-                        uint32_t sindex = find_sample_index(get_sample(tag_id),m_samples);
+                        string sm = m_header.ReadGroups[tag_id].Sample;
+                        uint32_t sindex = find_sample_index(sm,m_samples);
                         target_site.sample_data[sindex].import_alignment(it->Alignment, *pos, b_index);               
                     }
                 }
@@ -242,6 +244,7 @@ class FilterVisitor: public PileupVisitor{
         int m_ref_pos;
         char m_ref_base;
         string m_initial_data;
+        SamHeader m_header;
        // ExperimentSiteData target_site;
     
 };
@@ -282,6 +285,7 @@ int main(int argc, char* argv[]){
     ifstream putations(input_path);
     BamReader experiment;
     experiment.Open(bam_path);
+    SamHeader header = experiment.GetHeader();
     string L;
     while(getline(putations, L)){    
     
@@ -302,9 +306,9 @@ int main(int argc, char* argv[]){
         int pos = stoul(pos_s);
         int ref_id = experiment.GetReferenceID(chr);
         
-        
-        experiment.SetRegion(ref_id, pos-1, ref_id, pos);
+        experiment.SetRegion(ref_id, pos, ref_id, pos+1);
         FilterVisitor *f = new FilterVisitor(ali, 
+                                             header,
                                              sample_names,
                                              &outfile,
                                              pos, L, ref_base);
@@ -313,6 +317,7 @@ int main(int argc, char* argv[]){
             pileup.AddAlignment(ali);
         }
         pileup.Flush();
+        experiment.Rewind();
     }
     return 0;
 }

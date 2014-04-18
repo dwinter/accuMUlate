@@ -90,13 +90,6 @@ uint16_t base_index(char b){
     }
 }
 
-string get_sample(string& tag){
-    string res;
-    for(size_t i = 0; tag[i] != '_'; i++) {
-        res.push_back(tag[i]);
-    }
-    return(res);            
-}
 
 uint32_t find_sample_index(string s, SampleNames sv){
     for (size_t i=0; i < sv.size(); i++){
