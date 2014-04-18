@@ -7,10 +7,11 @@ find_package( Boost COMPONENTS program_options REQUIRED )
 include_directories("${CMAKE_SOURCE_DIR}/third-party/bamtools/src")
 include_directories("${CMAKE_SOURCE_DIR}/third-party/")
 include_directories(${Boost_INCLUDE_DIR})
+include_directories("./")
 
 add_executable(accuMUlate main.cc model.cc parsers.cc)
 target_link_libraries(accuMUlate bamtools bamtools-utils ${Boost_LIBRARIES})
 
-#add_executable(filter_vars post_processor.cc parsers.cc)
-#target_link_libraries(filter_vars bamtools bamtools-utils ${Boost_LIBRARIES})
+add_executable(pp utils/post_processor.cc parsers.cc model.cc)
+target_link_libraries(pp bamtools bamtools-utils ${Boost_LIBRARIES})
 
