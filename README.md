@@ -19,11 +19,13 @@ your path you can do this
 ```sh
 cmake .
 make
-./accuMUlate--config params.ini -b test/test.bam -r test/test.fasta -o test/test.out -p 0
+./accuMUlate -c test/test_params.ini -b test/test.bam -r test/test.fasta -o test/test.out
+./pp -c test/pp_params.ini -b test/test.bam -i test/test.out 
+
 ```
 
-The last line will  run the caller on a test dateset with ~2 000 bases, printing
-the probability for each base
+The last line will  run the caller on a test dateset with 6 000 bases, and
+show find mutations in each gene.
 
 ##TODO
 
