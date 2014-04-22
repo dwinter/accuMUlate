@@ -45,7 +45,8 @@ class VariantVisitor : public PileupVisitor{
                       it != end(pileupData.PileupAlignments); 
                       ++it){
                  int const *pos = &it->PositionInAlignment;
-                 if (it->Alignment.Qualities[*pos] - 33 >= m_qual_cut){
+                 uint16_t bqual = static_cast<short>(it->Alignment.Qualities[*pos]) - 33;
+                 if(bqual >= m_qual_cut){
                      it->Alignment.GetTag("RG", tag_id);
                      string sm =  m_header.ReadGroups[tag_id].Sample;
                      uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed! 

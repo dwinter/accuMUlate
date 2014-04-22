@@ -59,7 +59,7 @@ class SampleSiteData{
         void import_alignment(const BamAlignment& al, const int& pos, const int& bindex){
             uint16_t b_index = base_index(al.AlignedBases[pos]);
             BQ.reads[bindex] += (al.Qualities[pos] - 33);
-            MQ.reads[bindex] += (al.MapQuality - 33 );
+            MQ.reads[bindex] += (al.MapQuality);
             if(al.IsReverseStrand()){ 
                 rev_reads.reads[bindex] += 1; 
             } 
