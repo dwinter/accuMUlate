@@ -26,12 +26,14 @@ class VariantVisitor : public PileupVisitor{
                        const ModelParams& p,  
                        BamAlignment& ali, 
                        int qual_cut,
+                       int mapping_cut,
                        double prob_cut):
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
                              m_header(header), m_samples(samples), 
                              m_qual_cut(qual_cut), m_params(p), m_ali(ali), 
-                             m_ostream(out_stream), m_prob_cut(prob_cut)
+                             m_ostream(out_stream), m_prob_cut(prob_cut),
+                             m_mapping_cut(mapping_cut)
                               { }
         ~VariantVisitor(void) { }
     public:
@@ -42,19 +44,21 @@ class VariantVisitor : public PileupVisitor{
              ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
              string tag_id;
              for(auto it = begin(pileupData.PileupAlignments);
-                      it != end(pileupData.PileupAlignments); 
+                      it !=  end(pileupData.PileupAlignments); 
                       ++it){
-                 int const *pos = &it->PositionInAlignment;
-                 uint16_t bqual = static_cast<short>(it->Alignment.Qualities[*pos]) - 33;
-                 if(bqual >= m_qual_cut){
-                     it->Alignment.GetTag("RG", tag_id);
-                     string sm =  m_header.ReadGroups[tag_id].Sample;
-                     uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed! 
-                     uint16_t bindex  = base_index(it->Alignment.QueryBases[*pos]);
-                     if (bindex < 4 ){
-                         bcalls[sindex].reads[bindex] += 1;
-                     }
-                 }
+                 if(it->Alignment.MapQuality >= m_mapping_cut){
+                    int const *pos = &it->PositionInAlignment;
+                    uint16_t bqual = static_cast<short>(it->Alignment.Qualities[*pos]) - 33;
+                    if(bqual >= m_qual_cut){
+                         it->Alignment.GetTag("RG", tag_id);
+                        string sm =  m_header.ReadGroups[tag_id].Sample;
+                        uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed! 
+                        uint16_t bindex  = base_index(it->Alignment.QueryBases[*pos]);
+                        if (bindex < 4 ){
+                             bcalls[sindex].reads[bindex] += 1;
+                        }
+                    }
+                }
             }
             uint16_t ref_base_idx = base_index(current_base);
             if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N'
@@ -70,7 +74,7 @@ class VariantVisitor : public PileupVisitor{
                                 << endl;          
                 }
             }
-        }
+         }
     private:
         RefVector m_bam_ref;
         SamHeader m_header;
@@ -80,10 +84,10 @@ class VariantVisitor : public PileupVisitor{
         BamAlignment& m_ali;
         ModelParams m_params;
         int m_qual_cut;
+        int m_mapping_cut;
         double m_prob_cut;
         char current_base;
         uint64_t chr_index;
-            
 };
 
 
@@ -103,6 +107,10 @@ int main(int argc, char** argv){
         ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
         ("qual,q", po::value<int>()->default_value(13), 
                    "Base quality cuttoff")
+        
+        ("mapping-qual,m", po::value<int>()->default_value(13), 
+                    "Mapping quality cuttoff")
+     
         ("prob,p", po::value<double>()->default_value(0.1),
                    "Mutaton probability cut-off")
         ("out,o", po::value<string>()->default_value("acuMUlate_result.tsv"),
@@ -142,8 +150,7 @@ int main(int argc, char** argv){
     string index_path = vm["bam-index"].as<string>();
     if(index_path == ""){
         index_path = bam_path + ".bai";
-    }
-    
+    }   
 
     ofstream result_stream (vm["out"].as<string>());
     //TODO: check sucsess of all these opens/reads:
@@ -166,7 +173,9 @@ int main(int argc, char** argv){
             params, 
             ali, 
             vm["qual"].as<int>(), 
-            vm["prob"].as<double>() );
+            vm["mapping-qual"].as<int>(),
+            vm["prob"].as<double>()
+        );
     pileup.AddVisitor(v);
    
     if (vm.count("intervals")){
@@ -191,8 +200,4 @@ int main(int argc, char** argv){
     return 0;
     }
 }
-        
-        
-
-
 
