@@ -97,10 +97,8 @@ int main(int argc, char** argv){
     cmd.add_options()
         ("help,h", "Print a help message")
         ("bam,b", po::value<string>()->required(), "Path to BAM file")
-        ("bam_index,x" po::value<string>()->default_value(""), 
-            "Path to BAM index, (defalult is <bam_path>.bai"),
-        ("reference,r", po::value<string>(&ref_file)->required(),
-                        "Path to reference genome")
+        ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
+        ("reference,r", po::value<string>(&ref_file)->required(),  "Path to reference genome")
 //       ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
         ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
         ("qual,q", po::value<int>()->default_value(13), 

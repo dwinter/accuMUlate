@@ -258,6 +258,7 @@ int main(int argc, char* argv[]){
     cmd.add_options()
         ("help,h", "Print a help message")
         ("bam,b", po::value<string>(&bam_path)->required(), "Path to BAM file")
+        ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index (default is <bam_path>.bai")
         ("input,i", po::value<string>(&input_path)->required(), "Path to results file")
         ("sample-name,s", po::value<vector <string> >(&sample_names)->required(), "Sample tags")
         ("config,c", po::value<string>(), "Path to config file")
@@ -283,8 +284,15 @@ int main(int argc, char* argv[]){
     ofstream outfile (vm["out"].as<string>());
 
     ifstream putations(input_path);
+    
+    string index_path = vm["bam-index"].as<string>();
+    if(index_path == ""){
+        index_path = bam_path + ".bai";
+    }
+
     BamReader experiment;
     experiment.Open(bam_path);
+    experiment.OpenIndex(index_path);
     SamHeader header = experiment.GetHeader();
     string L;
     while(getline(putations, L)){    
@@ -317,7 +325,6 @@ int main(int argc, char* argv[]){
             pileup.AddAlignment(ali);
         }
         pileup.Flush();
-        experiment.Rewind();
     }
     return 0;
 }
