@@ -222,19 +222,20 @@ class FilterVisitor: public PileupVisitor{
             for (auto it =  pileupData.PileupAlignments.begin();
                       it != pileupData.PileupAlignments.end();
                       it++){
-                int const *pos = &it->PositionInAlignment;
-                if(it->Alignment.Qualities[*pos] > 46){//TODO user-defined qual cut 
-                    uint16_t b_index = base_index(it->Alignment.QueryBases[*pos]);
-                    if (b_index < 4){
-                        string tag_id;
-                        it->Alignment.GetTag("RG", tag_id);
-                        string sm = m_header.ReadGroups[tag_id].Sample;
-                        uint32_t sindex = find_sample_index(sm,m_samples);
-                        target_site.sample_data[sindex].import_alignment(it->Alignment, *pos, b_index);               
+                if(it->Alignment.MapQuality > 13){//TODO options for baseQ, mapQ
+                    int const *pos = &it->PositionInAlignment;
+                    if(it->Alignment.Qualities[*pos] > 46){//TODO user-defined qual cut 
+                        uint16_t b_index = base_index(it->Alignment.QueryBases[*pos]);
+                        if (b_index < 4){
+                            string tag_id;
+                            it->Alignment.GetTag("RG", tag_id);
+                            string sm = m_header.ReadGroups[tag_id].Sample;
+                            uint32_t sindex = find_sample_index(sm,m_samples);
+                            target_site.sample_data[sindex].import_alignment(it->Alignment, *pos, b_index);               
+                        }
                     }
                 }
             }
-        
         target_site.summarize(m_out_stream);
     }
 
