@@ -6,80 +6,72 @@
 #include "utils/bamtools_pileup_engine.h"
 
 #include "model.h"
+#include "parsers.h"
 
 using namespace BamTools;
 using namespace std;
 
-//TODO this is copy-pasted from parse_bam.cc. If is used more 
-uint16_t base_index(char b){
-    switch(b){//TODO best 'null/npos' result for a short int?
-        case 'A':
-        case 'a':    
-            return 0;
-         case 'T':
-         case 't':
-             return 3;
-         case 'C':
-         case 'c':
-             return 1;
-         case 'G':
-         case 'g':
-             return 2;
-         case '-':
-         case 'N':
-             return 4;
-         default:
-             cerr << "Don't know what to make of base" << b <<endl;
-             return 4;
-    };
-}
-
-
 
 class FreqVisitor: public PileupVisitor{
     public:
-        FreqVisitor(BamAlignment ali, string chr, int ref_pos):
-            PileupVisitor(), m_ref_pos(ref_pos), m_chr(chr) { }
+        FreqVisitor(BamAlignment ali, 
+                    const SamHeader& header,
+                    const SampleNames& samples,
+                    int ref_pos,
+                    char ref_base,
+                    string initial_data
+                    ):
+            PileupVisitor(), m_ref_pos(ref_pos), m_samples(samples), 
+                             m_header(header), m_ref_base(ref_base),
+                             m_initial_data(initial_data) {
+                nsamp = m_samples.size(); 
+            }
         ~FreqVisitor(void) { }
     public:
         void Visit(const PileupPosition& pileupData){
-            ReadData bcalls;
-            bcalls.key = 0;
+            uint16_t ref_base_index = base_index(m_ref_base); 
+            if(pileupData.Position != m_ref_pos){
+                return;
+            } 
+
+            vector<int> non_ref(nsamp, 0);
+            vector<int> denoms(nsamp, 0);
             for(auto it = begin(pileupData.PileupAlignments);
                      it !=end(pileupData.PileupAlignments);
                      ++it){
-                if(pileupData.Position == m_ref_pos){
+                if(it->Alignment.MapQuality > 13){
                     int const *pos = &it->PositionInAlignment;
-                    if(it->Alignment.Qualities[*pos] > 46){
-                        uint16_t b_index = base_index(it->Alignment.AlignedBases[*pos]);
+                    if(it->Alignment.Qualities[*pos] > 46){///TODO user-define cut-offs
+                        uint16_t b_index = base_index(it->Alignment.QueryBases[*pos]);
                         if (b_index < 4){
-                            bcalls.reads[b_index] += 1;
+                            string tag_id;
+                            it->Alignment.GetTag("RG", tag_id);
+                            string sm = m_header.ReadGroups[tag_id].Sample;
+                            uint32_t sindex = find_sample_index(sm, m_samples);
+                            if(b_index != ref_base_index){
+                                non_ref[sindex] += 1;
+                            }
+                            denoms[sindex] += 1;
                         }
-                    }
+                    }   
                 }
             }
-            
-            int m = 0;
-            int nreads = 0;
-            for(size_t i = 0; i < 4; i++){
-                nreads += bcalls.reads[i];
-                if(bcalls.reads[i] > m){
-                    m = bcalls.reads[i];
-                }
+            cout << m_initial_data << '\t';
+            for(size_t i = 0; i < nsamp; i++){// will return -nan for sample with no coverage.
+                cout << non_ref[i]/denoms[i] << '\t';
             }
-            if(nreads > 10){ 
-                double result = 1 - (m/(double)nreads);        
-                if(result > 0.05){ 
-                    cout << m_chr << '\t' << m_ref_pos << '\t' << result << '\t' << nreads << endl;                        
-                }
-            }
-                            
-            
-        }      
+            cout << endl;
+            return; // don't nead the rest of the
+        } 
     private:
+        int nsamp;
+        SampleNames m_samples;
+        char m_ref_base;
+        SamHeader m_header;
         int m_ref_pos;
-        string m_chr;
+        string m_initial_data;
 };
+        
         
 
 int main(int argc, char* argv[]){
@@ -87,10 +79,17 @@ int main(int argc, char* argv[]){
     bed.open(argv[1]);
     BamReader bam;
     bam.Open(argv[2]);
+    SamHeader header = bam.GetHeader();
+    SampleNames samples;
+    for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
+        if(it->HasSample()){
+                samples.push_back(it->Sample);
+        }
+    }
     BamAlignment ali;
-    PileupEngine pileup;
     string L;
     while(getline(bed, L)){
+        PileupEngine pileup;
         string chr_s;
         size_t i = 0;
         for(;L[i] != '\t';i++){
@@ -105,13 +104,22 @@ int main(int argc, char* argv[]){
             pos_s.push_back(L[i]);
         }
         int pos = stoul(pos_s);
-        bam.SetRegion(chr,pos, chr, pos);
-        FreqVisitor *f = new FreqVisitor(ali, chr_s, pos);
+        char ref_base = L[i+1];
+
+        bam.SetRegion(chr,pos, chr, pos+1);
+
+        FreqVisitor *f = new FreqVisitor(ali, 
+                                         header,
+                                         samples,
+                                         pos,
+                                         ref_base,
+                                         L);
         pileup.AddVisitor(f); 
         while(bam.GetNextAlignment(ali)){
             pileup.AddAlignment(ali);
         }
-    };
     pileup.Flush();
+    }
     return 0;
 }
+      
