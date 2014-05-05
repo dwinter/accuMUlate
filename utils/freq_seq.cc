@@ -79,6 +79,7 @@ int main(int argc, char* argv[]){
     bed.open(argv[1]);
     BamReader bam;
     bam.Open(argv[2]);
+    bam.OpenIndex(argv[2]+".bai");
     SamHeader header = bam.GetHeader();
     SampleNames samples;
     for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
