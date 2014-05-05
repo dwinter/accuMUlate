@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string>
 #include <algorithm>
+
 #include "api/BamReader.h"
 #include "utils/bamtools_pileup_engine.h"
 
@@ -58,7 +59,7 @@ class FreqVisitor: public PileupVisitor{
             }
             cout << m_initial_data << '\t';
             for(size_t i = 0; i < nsamp; i++){// will return -nan for sample with no coverage.
-                cout << non_ref[i]/denoms[i] << '\t';
+                cout << non_ref[i]/(double)denoms[i] << '\t';
             }
             cout << endl;
             return; // don't nead the rest of the
@@ -77,9 +78,10 @@ class FreqVisitor: public PileupVisitor{
 int main(int argc, char* argv[]){
     fstream bed;
     bed.open(argv[1]);
+    string bam_path = argv[2];
     BamReader bam;
-    bam.Open(argv[2]);
-    bam.OpenIndex(argv[2]+".bai");
+    bam.Open(bam_path);
+    bam.OpenIndex(bam_path + ".bai");
     SamHeader header = bam.GetHeader();
     SampleNames samples;
     for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
