@@ -46,17 +46,13 @@ class VariantVisitor : public PileupVisitor{
              for(auto it = begin(pileupData.PileupAlignments);
                       it !=  end(pileupData.PileupAlignments); 
                       ++it){
-                 if(it->Alignment.MapQuality >= m_mapping_cut){
-                    int const *pos = &it->PositionInAlignment;
-                    uint16_t bqual = static_cast<short>(it->Alignment.Qualities[*pos]) - 33;
-                    if(bqual >= m_qual_cut){
-                         it->Alignment.GetTag("RG", tag_id);
-                        string sm =  m_header.ReadGroups[tag_id].Sample;
-                        uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed! 
-                        uint16_t bindex  = base_index(it->Alignment.QueryBases[*pos]);
-                        if (bindex < 4 ){
-                             bcalls[sindex].reads[bindex] += 1;
-                        }
+                 if( include_site(*it, m_mapping_cut, m_qual_cut) ){
+                    it->Alignment.GetTag("RG", tag_id);
+                    string sm =  m_header.ReadGroups[tag_id].Sample;
+                    uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed! 
+                    uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
+                    if (bindex < 4 ){
+                        bcalls[sindex].reads[bindex] += 1;
                     }
                 }
             }

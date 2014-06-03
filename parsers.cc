@@ -6,7 +6,9 @@
 
 #include "parsers.h"
 
+
 using namespace std;
+using namespace BamTools;
 
 FastaReference::FastaReference(string ref_file_name){
     ifstream ref_file (ref_file_name);
@@ -99,6 +101,19 @@ uint32_t find_sample_index(string s, SampleNames sv){
     }
     return(-1); //TODO refactor this to  update sample in place
 }
+
+bool include_site(PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
+    const BamAlignment *ali = &pileup.Alignment;
+    if(ali->MapQuality > map_cut){
+        uint16_t bqual = static_cast<short>(ali->Qualities[pileup.PositionInAlignment]) - 33;
+        if(bqual > qual_cut){
+            return(not (ali->IsDuplicate()) && not(ali->IsFailedQC()) && ali->IsPrimaryAlignment());
+        }
+    }
+    return false;
+}
+
+
 
 
 
