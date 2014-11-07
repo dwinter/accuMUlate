@@ -21,9 +21,10 @@ class VariantVisitor : public PileupVisitor{
         VariantVisitor(const RefVector& bam_references, 
                        const SamHeader& header,
                        const Fasta& idx_ref,
-                       ostream *out_stream,
+                       GenomeData& all_the_data,
+//                       ostream *out_stream,
                        SampleNames samples, 
-                       const ModelParams& p,  
+//                       const ModelParams& p,  
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
@@ -31,96 +32,59 @@ class VariantVisitor : public PileupVisitor{
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
                              m_header(header), m_samples(samples), 
-                             m_qual_cut(qual_cut), m_params(p), m_ali(ali), 
-                             m_ostream(out_stream),
-                             m_mapping_cut(mapping_cut),
-                             m_prob_cut(prob_cut)
+                             m_qual_cut(qual_cut), m_ali(ali), 
+                             m_all_the_data(all_the_data), m_prob_cut(prob_cut),
+                             m_mapping_cut(mapping_cut)
                               { }
         ~VariantVisitor(void) { }
     public:
-	void Visit(const PileupPosition& pileupData) {
-//printf("apply: %i\n", pileupData.PileupAlignments.size());// ~200
-		string chr = m_bam_ref[pileupData.RefId].RefName;
-		uint64_t pos = pileupData.Position;
-		m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
-		ReadDataVector bcalls(m_samples.size(), ReadData { { 0, 0, 0, 0 } });
-		string tag_id;
-
-		for (auto it = begin(pileupData.PileupAlignments);
-				it != end(pileupData.PileupAlignments); ++it) {
-			if (include_site(*it, m_mapping_cut, m_qual_cut)) {
-				it->Alignment.GetTag("RG", tag_id);
-				string sm = m_header.ReadGroups[tag_id].Sample;
-				uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed!
-				uint16_t bindex = base_index(
-						it->Alignment.QueryBases[it->PositionInAlignment]);
-				if (bindex < 4) {
-					bcalls[sindex].reads[bindex] += 1;
-				}
-			}
-		}
-		uint16_t ref_base_idx = base_index(current_base);
-		if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N'
-			ModelInput d = { ref_base_idx, bcalls };
-			double prob_one = TetMAProbOneMutation(m_params, d);
-			double prob = TetMAProbability(m_params, d);
-			if (prob >= m_prob_cut) {
-				printf("IN customer visitor:%s %lu %c\n", chr.c_str(), pos,
-						current_base);
-				printf("%s\n",
-						pileupData.PileupAlignments[0].Alignment.Qualities.c_str());
-				printf("%s\n",
-						pileupData.PileupAlignments[0].Alignment.AlignedBases.c_str());
-				printf("%zu %zu %s\n", bcalls.size(), m_samples.size(),
-						m_samples[0].c_str());
-//				for (auto t : m_samples) {
-//					printf("%s\n", t.c_str());
-//				}
-////				ReadDataVector bcalls(m_samples.size(),
-////						ReadData { (uint64_t) 0 });
-//				for (auto t : bcalls) {
-//					printf("%llu %u %u %u %u\n", t, t.reads[0], t.reads[1], t.reads[2], t.reads[3]);
-//
-//				}
-
-				for (auto it = begin(pileupData.PileupAlignments);	it != end(pileupData.PileupAlignments); ++it) {
-//					printf("%s ", it->Alignment.QueryBases.c_str());
-					if (include_site(*it, m_mapping_cut, m_qual_cut)) {
-//						printf("%s \n", it->Alignment.QueryBases.c_str());
-
-						it->Alignment.GetTag("RG", tag_id);
-						string sm = m_header.ReadGroups[tag_id].Sample;
-						uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed!
-						uint16_t bindex = base_index(
-										it->Alignment.QueryBases[it->PositionInAlignment]);
-//						printf("%s %s %u %lu %d\n", tag_id.c_str(), sm.c_str(), sindex, bindex, it->PositionInAlignment);
-						if (bindex < 4) {
-							bcalls[sindex].reads[bindex] += 1;
-						}
-					}
-				}
-				printf("%u %u %u %u\n",bcalls[0].reads[0],  bcalls[0].reads[1],bcalls[0].reads[2],bcalls[0].reads[3]);
-                	 printf("\n");
-                     *m_ostream << chr << '\t' 
-                                << pos << '\t' 
-                                << current_base << '\t' 
-                                << prob << '\t' 
-                                << prob_one << '\t' 
-                                << endl;          
+         void Visit(const PileupPosition& pileupData) {
+             string chr = m_bam_ref[pileupData.RefId].RefName;
+             uint64_t pos  = pileupData.Position;
+             m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
+             ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
+             string tag_id;
+             for(auto it = begin(pileupData.PileupAlignments);
+                      it !=  end(pileupData.PileupAlignments); 
+                      ++it){
+                 if( include_site(*it, m_mapping_cut, m_qual_cut) ){
+                    it->Alignment.GetTag("RG", tag_id);
+                    string sm =  m_header.ReadGroups[tag_id].Sample;
+                    uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed! 
+                    uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
+                    if (bindex < 4 ){
+                        bcalls[sindex].reads[bindex] += 1;
+                    }
                 }
+            }
+            uint16_t ref_base_idx = base_index(current_base);
+            if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N'
+//                ModelInput d = {ref_base_idx, bcalls};
+                m_all_the_data.push_back(ModelInput{ ref_base_idx, bcalls });
+//                ModelInput d = {ref_base_idx, bcalls};
+//                double prob_one = TetMAProbOneMutation(m_params,d);
+//                double prob = TetMAProbability(m_params, d);
+//                if(prob >= m_prob_cut){
+//                     *m_ostream << chr << '\t' 
+//                                << pos << '\t' 
+//                                << current_base << '\t' 
+//                                << prob << '\t' 
+//                                << prob_one << '\t' 
+//                               << endl;          
+//                }
             }
          }
     private:
         RefVector m_bam_ref;
         SamHeader m_header;
         Fasta m_idx_ref; 
-        ostream* m_ostream;
+        GenomeData& m_all_the_data;
         SampleNames m_samples;
         BamAlignment& m_ali;
-        ModelParams m_params;
-        int m_qual_cut;		// 13
-        int m_mapping_cut;	// 13
-        double m_prob_cut;	// 0.1
+//        ModelParams m_params;
+        int m_qual_cut;
+        int m_mapping_cut;
+        double m_prob_cut;
         char current_base;
         uint64_t chr_index;
 };
@@ -152,12 +116,12 @@ int main(int argc, char** argv){
                     "Out file name")
         ("intervals,i", po::value<string>(), "Path to bed file")
         ("config,c", po::value<string>(), "Path to config file")
-        ("theta", po::value<double>()->required(), "theta")			//0.0001
+        ("theta", po::value<double>()->required(), "theta")            
         ("nfreqs", po::value<vector<double> >()->multitoken(), "")     
-        ("mu", po::value<double>()->required(), "")					//1e-8
-        ("seq-error", po::value<double>()->required(), "")			//0.01
-        ("phi-haploid",     po::value<double>()->required(), "")	//0.001
-        ("phi-diploid",     po::value<double>()->required(), "");	//0.001
+        ("mu", po::value<double>()->required(), "")  
+        ("seq-error", po::value<double>()->required(), "") 
+        ("phi-haploid",     po::value<double>()->required(), "") 
+        ("phi-diploid",     po::value<double>()->required(), ""); 
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, cmd), vm);
@@ -173,49 +137,58 @@ int main(int argc, char** argv){
     }
 
     vm.notify();
-    ModelParams params = {
-        vm["theta"].as<double>(),
-        vm["nfreqs"].as<vector< double> >(),
-        vm["mu"].as<double>(),
-        vm["seq-error"].as<double>(), 
-        vm["phi-haploid"].as<double>(),
-        vm["phi-diploid"].as<double>(),
-    };
+//    ModelParams params = {
+//        vm["theta"].as<double>(),
+//        vm["nfreqs"].as<vector< double> >(),
+//        vm["mu"].as<double>(),
+//        vm["seq-error"].as<double>(), 
+//        vm["phi-haploid"].as<double>(), 
+//        vm["phi-diploid"].as<double>(),
+//    };
     string bam_path = vm["bam"].as<string>();
     string index_path = vm["bam-index"].as<string>();
     if(index_path == ""){
         index_path = bam_path + ".bai";
     }   
 
-    ofstream result_stream (vm["out"].as<string>());
+//    ofstream result_stream (vm["out"].as<string>());
     //TODO: check sucsess of all these opens/reads:
     BamReader experiment; 
     experiment.Open(bam_path);
     experiment.OpenIndex(index_path);
     RefVector references = experiment.GetReferenceData(); 
     SamHeader header = experiment.GetHeader();
-    Fasta reference_genome; // BamTools::Fasta
-    reference_genome.Open(ref_file);
-    reference_genome.CreateIndex(ref_file + ".fai");
+    Fasta reference_genome; // BamTools::Fasef_file);
+    reference_genome.Open(ref_file, ref_file+ ".fai");
+//    reference_genome.CreateIndex(ref_file + ".fai");
     PileupEngine pileup;
     BamAlignment ali;
+
+    uint32_t total_len = 0;
+    for_each(references.begin(),references.end(),[&](RefData chrom){
+        total_len += chrom.RefLength;
+     });
+
+    GenomeData base_counts;
+    base_counts.reserve(total_len);
     VariantVisitor *v = new VariantVisitor(
             references,
             header,
             reference_genome, 
-            &result_stream,
+            base_counts,
+//            &result_stream,
             vm["sample-name"].as<vector< string> >(),
-            params, 
+//            params, 
             ali, 
             vm["qual"].as<int>(), 
             vm["mapping-qual"].as<int>(),
             vm["prob"].as<double>()
         );
     pileup.AddVisitor(v);
-   
+//  TODO: Only allocate interval-sized memory vector   
+//  if intervals are set
     if (vm.count("intervals")){
         BedFile bed (vm["intervals"].as<string>());
-        FastaReference my_ref (ref_file + ".fai");
         BedInterval region;
         while(bed.get_interval(region) == 0){
             int ref_id = experiment.GetReferenceID(region.chr);
@@ -228,16 +201,12 @@ int main(int argc, char** argv){
     else{
 
         BamAlignment ali;
-        int i = 0;
         while( experiment.GetNextAlignment(ali)){
             pileup.AddAlignment(ali);
-            i++;
-//            printf("V:\t%d\n",i);
-            if(i==10000)break;
-
-
         };  
     pileup.Flush();
+    cout << base_counts.size() << endl;
     return 0;
     }
 }
+
