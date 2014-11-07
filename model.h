@@ -13,6 +13,13 @@ union ReadData{
 
 typedef vector<ReadData> ReadDataVector;
 
+struct ModelInput{// Can probably stand to lose this, started out more complex..
+    uint16_t reference;
+    ReadDataVector all_reads;
+};
+
+typedef vector<ModelInput> GenomeData;
+
 struct ModelParams{
     double theta;               //
     vector<double> nuc_freq;    //ACGT
@@ -22,10 +29,6 @@ struct ModelParams{
     double phi_diploid;         // Overdispersion for diploid sequencing
 };
 
-struct ModelInput{// Can probably stand to lose this, started out more complex..
-    uint16_t reference;
-    ReadDataVector all_reads;
-};
 
 typedef Eigen::Array4d HaploidProbs;
 typedef Eigen::Array<double, 16, 1> DiploidProbs;

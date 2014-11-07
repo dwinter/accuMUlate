@@ -21,9 +21,10 @@ class VariantVisitor : public PileupVisitor{
         VariantVisitor(const RefVector& bam_references, 
                        const SamHeader& header,
                        const Fasta& idx_ref,
-                       ostream *out_stream,
+                       GenomeData& all_the_data,
+//                       ostream *out_stream,
                        SampleNames samples, 
-                       const ModelParams& p,  
+//                       const ModelParams& p,  
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
@@ -31,8 +32,8 @@ class VariantVisitor : public PileupVisitor{
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
                              m_header(header), m_samples(samples), 
-                             m_qual_cut(qual_cut), m_params(p), m_ali(ali), 
-                             m_ostream(out_stream), m_prob_cut(prob_cut),
+                             m_qual_cut(qual_cut), m_ali(ali), 
+                             m_all_the_data(all_the_data), m_prob_cut(prob_cut),
                              m_mapping_cut(mapping_cut)
                               { }
         ~VariantVisitor(void) { }
@@ -59,26 +60,28 @@ class VariantVisitor : public PileupVisitor{
             uint16_t ref_base_idx = base_index(current_base);
             if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N'
                 ModelInput d = {ref_base_idx, bcalls};
-                double prob_one = TetMAProbOneMutation(m_params,d);
-                double prob = TetMAProbability(m_params, d);
-                if(prob >= m_prob_cut){
-                     *m_ostream << chr << '\t' 
-                                << pos << '\t' 
-                                << current_base << '\t' 
-                                << prob << '\t' 
-                                << prob_one << '\t' 
-                                << endl;          
-                }
+                m_all_the_data.push_back(d);
+//                ModelInput d = {ref_base_idx, bcalls};
+//                double prob_one = TetMAProbOneMutation(m_params,d);
+//                double prob = TetMAProbability(m_params, d);
+//                if(prob >= m_prob_cut){
+//                     *m_ostream << chr << '\t' 
+//                                << pos << '\t' 
+//                                << current_base << '\t' 
+//                                << prob << '\t' 
+//                                << prob_one << '\t' 
+//                               << endl;          
+//                }
             }
          }
     private:
         RefVector m_bam_ref;
         SamHeader m_header;
         Fasta m_idx_ref; 
-        ostream* m_ostream;
+        GenomeData& m_all_the_data;
         SampleNames m_samples;
         BamAlignment& m_ali;
-        ModelParams m_params;
+//        ModelParams m_params;
         int m_qual_cut;
         int m_mapping_cut;
         double m_prob_cut;
@@ -134,39 +137,40 @@ int main(int argc, char** argv){
     }
 
     vm.notify();
-    ModelParams params = {
-        vm["theta"].as<double>(),
-        vm["nfreqs"].as<vector< double> >(),
-        vm["mu"].as<double>(),
-        vm["seq-error"].as<double>(), 
-        vm["phi-haploid"].as<double>(), 
-        vm["phi-diploid"].as<double>(),
-    };
+//    ModelParams params = {
+//        vm["theta"].as<double>(),
+//        vm["nfreqs"].as<vector< double> >(),
+//        vm["mu"].as<double>(),
+//        vm["seq-error"].as<double>(), 
+//        vm["phi-haploid"].as<double>(), 
+//        vm["phi-diploid"].as<double>(),
+//    };
     string bam_path = vm["bam"].as<string>();
     string index_path = vm["bam-index"].as<string>();
     if(index_path == ""){
         index_path = bam_path + ".bai";
     }   
 
-    ofstream result_stream (vm["out"].as<string>());
+//    ofstream result_stream (vm["out"].as<string>());
     //TODO: check sucsess of all these opens/reads:
     BamReader experiment; 
     experiment.Open(bam_path);
     experiment.OpenIndex(index_path);
     RefVector references = experiment.GetReferenceData(); 
     SamHeader header = experiment.GetHeader();
-    Fasta reference_genome; // BamTools::Fasta
-    reference_genome.Open(ref_file);
+    Fasta reference_genome; // BamTools::Fasef_file);
     reference_genome.CreateIndex(ref_file + ".fai");
     PileupEngine pileup;
     BamAlignment ali;
+    GenomeData base_counts;
     VariantVisitor *v = new VariantVisitor(
             references,
             header,
             reference_genome, 
-            &result_stream,
+            base_counts,
+//            &result_stream,
             vm["sample-name"].as<vector< string> >(),
-            params, 
+//            params, 
             ali, 
             vm["qual"].as<int>(), 
             vm["mapping-qual"].as<int>(),
@@ -193,6 +197,7 @@ int main(int argc, char** argv){
             pileup.AddAlignment(ali);
         };  
     pileup.Flush();
+    cout << base_counts.size() << endl;
     return 0;
     }
 }
