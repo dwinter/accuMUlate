@@ -93,14 +93,14 @@ uint16_t base_index(char b){
 }
 
 
-uint32_t find_sample_index(string s, SampleNames sv){
-    for (size_t i=0; i < sv.size(); i++){
-        if(s.compare(sv[i])==0){
-            return i;
-        }
-    }
-    return(-1); //TODO refactor this to  update sample in place
-}
+//uint32_t find_sample_index(string s, SampleNames sv){
+//    for (size_t i=0; i < sv.size(); i++){
+//        if(s.compare(sv[i])==0){
+//            return i;
+//        }
+//    }
+//    return(-1); //TODO refactor this to  update sample in place
+//}
 
 bool include_site(PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
     const BamAlignment *ali = &pileup.Alignment;
