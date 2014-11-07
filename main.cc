@@ -159,7 +159,8 @@ int main(int argc, char** argv){
     RefVector references = experiment.GetReferenceData(); 
     SamHeader header = experiment.GetHeader();
     Fasta reference_genome; // BamTools::Fasef_file);
-    reference_genome.CreateIndex(ref_file + ".fai");
+    reference_genome.Open(ref_file, ref_file+ ".fai");
+//    reference_genome.CreateIndex(ref_file + ".fai");
     PileupEngine pileup;
     BamAlignment ali;
     GenomeData base_counts;
