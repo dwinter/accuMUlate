@@ -163,7 +163,14 @@ int main(int argc, char** argv){
 //    reference_genome.CreateIndex(ref_file + ".fai");
     PileupEngine pileup;
     BamAlignment ali;
+
+    uint32_t total_len = 0;
+    for_each(references.begin(),references.end(),[&](RefData chrom){
+        total_len += chrom.RefLength;
+     });
+
     GenomeData base_counts;
+    base_counts.reserve(total_len);
     VariantVisitor *v = new VariantVisitor(
             references,
             header,
@@ -181,7 +188,6 @@ int main(int argc, char** argv){
    
     if (vm.count("intervals")){
         BedFile bed (vm["intervals"].as<string>());
-        FastaReference my_ref (ref_file + ".fai");
         BedInterval region;
         while(bed.get_interval(region) == 0){
             int ref_id = experiment.GetReferenceID(region.chr);
