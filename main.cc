@@ -59,8 +59,8 @@ class VariantVisitor : public PileupVisitor{
             }
             uint16_t ref_base_idx = base_index(current_base);
             if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N'
-                ModelInput d = {ref_base_idx, bcalls};
-                m_all_the_data.push_back(d);
+//                ModelInput d = {ref_base_idx, bcalls};
+                m_all_the_data.push_back(ModelInput{ ref_base_idx, bcalls });
 //                ModelInput d = {ref_base_idx, bcalls};
 //                double prob_one = TetMAProbOneMutation(m_params,d);
 //                double prob = TetMAProbability(m_params, d);
@@ -185,7 +185,8 @@ int main(int argc, char** argv){
             vm["prob"].as<double>()
         );
     pileup.AddVisitor(v);
-   
+//  TODO: Only allocate interval-sized memory vector   
+//  if intervals are set
     if (vm.count("intervals")){
         BedFile bed (vm["intervals"].as<string>());
         BedInterval region;
