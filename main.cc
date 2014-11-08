@@ -22,7 +22,7 @@ class VariantVisitor : public PileupVisitor{
                        const SamHeader& header,
                        const Fasta& idx_ref,
                        ostream *out_stream,
-                       SampleMap samples, 
+                       const SampleMap& samples, 
                        const ModelParams& p,  
                        BamAlignment& ali, 
                        int qual_cut,
