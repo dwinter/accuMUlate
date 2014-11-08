@@ -2,10 +2,12 @@
 #define parsers_H
 
 #include "utils/bamtools_pileup_engine.h"
+#include <unordered_map>
 
 using namespace std;
 
-typedef vector< string > SampleNames;
+//typedef vector< string > SampleNames;
+typedef unordered_map<string, uint16_t> SampleMap;
 
 struct FastaReferenceData{
     string name;
@@ -44,7 +46,7 @@ class BedFile{
 bool include_site(BamTools::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut);
 uint16_t base_index(char b);
 string get_sample(string& tag);
-uint32_t find_sample_index(string, SampleNames);
+//uint32_t find_sample_index(string, SampleNames);
 
 #endif
 
