@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "boost/program_options.hpp"
+#include <boost/program_options.hpp>
 #include "api/BamReader.h"
 #include "utils/bamtools_pileup_engine.h"
 #include "utils/bamtools_fasta.h"
@@ -89,10 +89,9 @@ class VariantVisitor : public PileupVisitor{
         uint64_t chr_index;
 };
 
-
-
 int main(int argc, char** argv){
 
+	exit(-1);
     namespace po = boost::program_options;
     string ref_file;
     string config_path;

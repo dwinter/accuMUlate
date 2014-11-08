@@ -18,12 +18,12 @@ double DirichletMultinomialLogProbability(double alphas[4], ReadData data) {
 	// TODO: Cache most of the math here
 	// TODO: Does not include the multinomail coefficient
 
-	for (int i = 0; i < 4; ++i) {
-			data.reads[i] = 0;
-			cout << alphas[i] << endl;
-			alphas[i] = 0.25;
-		}
-	data.reads[0] = 3;
+//	for (int i = 0; i < 4; ++i) {
+//			data.reads[i] = 0;
+//			cout << alphas[i] << endl;
+//			alphas[i] = 0.25;
+//		}
+//	data.reads[0] = 3;
 
 	int read_count = data.reads[0]+data.reads[1]+data.reads[2]+data.reads[3];
 

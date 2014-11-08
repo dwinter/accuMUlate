@@ -1,0 +1,2 @@
+#add_executable(accuMUlate DirichletMultinomialDistribution.cpp)
+add_library(distributions DirichletMultinomialDistribution.cpp)
