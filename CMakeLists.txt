@@ -40,8 +40,8 @@ target_link_libraries(accuMUlate ${LIBS} )
 #target_link_libraries(accuMUlate bamtools bamtools-utils ${LIBS} distributions)
 
 
-add_executable(pp utils/post_processor.cc parsers.cc model.cc)
-target_link_libraries(pp ${Boost_LIBRARIES} ${Bamtools_LIBRARIES})
+#add_executable(pp utils/post_processor.cc parsers.cc model.cc)
+#target_link_libraries(pp ${Boost_LIBRARIES} ${Bamtools_LIBRARIES})
 #link_directories("${Bamtools_LIBRARY_DIR}/bamtools/")
 #target_link_libraries(pp ${Boost_LIBRARIES} bamtools bamtools-utils )
 
