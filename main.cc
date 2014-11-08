@@ -22,9 +22,8 @@ class VariantVisitor : public PileupVisitor{
                        const SamHeader& header,
                        const Fasta& idx_ref,
                        GenomeData& all_the_data,
-//                       ostream *out_stream,
-                       SampleNames samples, 
-//                       const ModelParams& p,  
+                       SampleMap samples, 
+                       const ModelParams& p,  
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
@@ -50,7 +49,7 @@ class VariantVisitor : public PileupVisitor{
                  if( include_site(*it, m_mapping_cut, m_qual_cut) ){
                     it->Alignment.GetTag("RG", tag_id);
                     string sm =  m_header.ReadGroups[tag_id].Sample;
-                    uint32_t sindex = find_sample_index(sm, m_samples); //TODO check samples existed! 
+                    uint32_t sindex = m_samples[sm]; //TODO check samples existed! 
                     uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
                     if (bindex < 4 ){
                         bcalls[sindex].reads[bindex] += 1;
@@ -79,7 +78,7 @@ class VariantVisitor : public PileupVisitor{
         SamHeader m_header;
         Fasta m_idx_ref; 
         GenomeData& m_all_the_data;
-        SampleNames m_samples;
+        SampleMap m_samples;
         BamAlignment& m_ali;
 //        ModelParams m_params;
         int m_qual_cut;
@@ -103,7 +102,7 @@ int main(int argc, char** argv){
         ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
         ("reference,r", po::value<string>(&ref_file)->required(),  "Path to reference genome")
 //       ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
-        ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
+//        ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
         ("qual,q", po::value<int>()->default_value(13), 
                    "Base quality cuttoff")
         
@@ -171,14 +170,27 @@ int main(int argc, char** argv){
 
     GenomeData base_counts;
     base_counts.reserve(total_len);
+    
+    SampleMap samples;
+    uint16_t sindex = 0;
+    for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
+        if(it->HasSample()){
+            auto s  = samples.find(it->Sample);
+            if( s == samples.end()){ // not in there yet
+                samples[it->Sample] = sindex;
+                sindex += 1;
+            }
+        }
+    }
+
     VariantVisitor *v = new VariantVisitor(
             references,
             header,
             reference_genome, 
             base_counts,
 //            &result_stream,
-            vm["sample-name"].as<vector< string> >(),
-//            params, 
+            samples,
+            params, 
             ali, 
             vm["qual"].as<int>(), 
             vm["mapping-qual"].as<int>(),
