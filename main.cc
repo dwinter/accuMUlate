@@ -210,14 +210,24 @@ int main(int argc, char** argv){
         }
     }
     else{
-
+        clock_t t;
+        uint64_t ali_counter = 0;
+        t = clock();
         BamAlignment ali;
         while( experiment.GetNextAlignment(ali)){
             pileup.AddAlignment(ali);
-        };  
+            ali_counter += 1;
+            if (ali_counter % 1000000 == 0){
+                t = clock() - t;
+                cout << "Processed 1 million reads (" 
+                     << ((float)t)/CLOCKS_PER_SEC
+                     << " seconds)" << endl;
+            }
+        } 
     pileup.Flush();
     cout << base_counts.size() << endl;
     return 0;
     }
 }
+
 
