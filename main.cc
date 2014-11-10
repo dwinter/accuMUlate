@@ -3,6 +3,9 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <sys/stat.h>
+
+
 
 #include "boost/program_options.hpp"
 #include "api/BamReader.h"
@@ -38,18 +41,15 @@ class VariantVisitor : public PileupVisitor{
         ~VariantVisitor(void) { }
     public:
          void Visit(const PileupPosition& pileupData) {
-             string chr = m_bam_ref[pileupData.RefId].RefName;
              uint64_t pos  = pileupData.Position;
              m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
              ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
-             string tag_id;
              for(auto it = begin(pileupData.PileupAlignments);
                       it !=  end(pileupData.PileupAlignments); 
                       ++it){
                  if( include_site(*it, m_mapping_cut, m_qual_cut) ){
                     it->Alignment.GetTag("RG", tag_id);
-                    string sm =  m_header.ReadGroups[tag_id].Sample;
-                    uint32_t sindex = m_samples[sm]; //TODO check samples existed! 
+                    uint32_t sindex = m_samples[tag_id]; //TODO check samples existed! 
                     uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
                     if (bindex < 4 ){
                         bcalls[sindex].reads[bindex] += 1;
@@ -62,7 +62,7 @@ class VariantVisitor : public PileupVisitor{
                 double prob_one = TetMAProbOneMutation(m_params,d);
                 double prob = TetMAProbability(m_params, d);
                 if(prob >= m_prob_cut){
-                     *m_ostream << chr << '\t' 
+                     *m_ostream << m_bam_ref[pileupData.RefId].RefName << '\t'
                                 << pos << '\t' 
                                 << current_base << '\t' 
                                 << prob << '\t' 
@@ -83,6 +83,7 @@ class VariantVisitor : public PileupVisitor{
         int m_mapping_cut;
         double m_prob_cut;
         char current_base;
+        string tag_id;
         uint64_t chr_index;
 };
 
@@ -149,29 +150,50 @@ int main(int argc, char** argv){
     }   
 
     ofstream result_stream (vm["out"].as<string>());
+    // Start setiing up files
     //TODO: check sucsess of all these opens/reads:
+
     BamReader experiment; 
     experiment.Open(bam_path);
     experiment.OpenIndex(index_path);
     RefVector references = experiment.GetReferenceData(); 
     SamHeader header = experiment.GetHeader();
-    Fasta reference_genome; // BamTools::Fasta
-    reference_genome.Open(ref_file);
-    reference_genome.CreateIndex(ref_file + ".fai");
-    PileupEngine pileup;
-    BamAlignment ali;
 
-    SampleMap samples;
+    
+    //Fasta reference
+    Fasta reference_genome; // BamTools::Fasta
+    struct stat file_info;
+    string faidx_path = ref_file + ".fai";
+    if (stat(faidx_path.c_str(), &file_info) != 0){
+        reference_genome.CreateIndex(faidx_path);
+    }
+    reference_genome.Open(faidx_path, faidx_path);
+
+    // Map readgroups to samples
+    // TODO: this presumes first sample is ancestor. True for our data, not for
+    // others.
+    // First map all sample names to an index for ReadDataVectors
+    SampleMap name_map;
     uint16_t sindex = 0;
     for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
         if(it->HasSample()){
-            auto s  = samples.find(it->Sample);
-            if( s == samples.end()){ // not in there yet
-                samples[it->Sample] = sindex;
+            auto s  = name_map.find(it->Sample);
+            if( s == name_map.end()){ // not in there yet
+                name_map[it->Sample] = sindex;
                 sindex += 1;
             }
         }
     }
+    // And now, go back over the read groups to map RG:sample index
+    SampleMap samples;
+    for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
+        if(it->HasSample()){
+            samples[it->ID] = name_map[it->Sample];  
+        }
+    }
+
+    PileupEngine pileup;
+    BamAlignment ali;
 
     VariantVisitor *v = new VariantVisitor(
             references,
@@ -190,7 +212,6 @@ int main(int argc, char** argv){
    
     if (vm.count("intervals")){
         BedFile bed (vm["intervals"].as<string>());
-        FastaReference my_ref (ref_file + ".fai");
         BedInterval region;
         while(bed.get_interval(region) == 0){
             int ref_id = experiment.GetReferenceID(region.chr);
@@ -201,13 +222,12 @@ int main(int argc, char** argv){
         }
     }
     else{
-
-        BamAlignment ali;
         while( experiment.GetNextAlignment(ali)){
             pileup.AddAlignment(ali);
-        };  
+        }  
+    }
     pileup.Flush();
     return 0;
-    }
 }
+
 
