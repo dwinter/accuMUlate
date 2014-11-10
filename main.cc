@@ -161,11 +161,22 @@ int main(int argc, char** argv){
     PileupEngine pileup;
     BamAlignment ali;
 
-    uint32_t total_len = 0;
-    for_each(references.begin(),references.end(),[&](RefData chrom){
-        total_len += chrom.RefLength;
-     });
 
+//  Assign some memory for the big list
+    uint32_t total_len = 0;
+    if (vm.count("intervals")){
+        BedFile bed (vm["intervals"].as<string>());
+        BedInterval region;
+        while(bed.get_interval(region) == 0){
+            total_len += (region.end - region.start);
+        }
+    }
+    else {
+        
+        for_each(references.begin(),references.end(),[&](RefData chrom){
+            total_len += chrom.RefLength;
+         });
+    }
     GenomeData base_counts;
     base_counts.reserve(total_len);
     
