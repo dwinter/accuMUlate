@@ -90,7 +90,6 @@ class VariantVisitor : public PileupVisitor{
 
 int main(int argc, char** argv){
 
-	exit(-1);
     namespace po = boost::program_options;
     string ref_file;
     string config_path;
@@ -223,11 +222,11 @@ int main(int argc, char** argv){
                      << ((float)t)/CLOCKS_PER_SEC
                      << " seconds)" << endl;
             }
-        } 
+        }
+    } 
     pileup.Flush();
     cout << base_counts.size() << endl;
     return 0;
-    }
 }
 
 
