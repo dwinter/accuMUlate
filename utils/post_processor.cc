@@ -74,10 +74,10 @@ class ExperimentSiteData{
     public:
         string m_initial_data;
         vector<SampleSiteData> sample_data;
-        SampleNames snames;
+        vector<string> snames;
         char m_ref_base;
 
-        ExperimentSiteData(SampleNames sn, string initial_data, char ref_base){
+        ExperimentSiteData(vector<string> sn, string initial_data, char ref_base){
             snames = sn;
             m_initial_data = initial_data;
             m_ref_base = ref_base;
@@ -200,14 +200,15 @@ class FilterVisitor: public PileupVisitor{
     public: 
         FilterVisitor(BamAlignment& ali, 
                       const SamHeader& header,
-                      const SampleNames& samples, 
+                      const vector< string >& samples, 
+                      const SampleMap& sample_map,
                       ostream* out_stream,
                       int ref_pos,
                       string input_data,
                       char ref_base):
             PileupVisitor(), m_header(header), m_samples(samples), m_ref_pos(ref_pos), 
                              m_out_stream(out_stream), m_initial_data(input_data),
-                             m_ref_base(ref_base)
+                             m_ref_base(ref_base), m_sample_map(sample_map)
             {  } 
         ~FilterVisitor(void) { }
 
@@ -222,15 +223,13 @@ class FilterVisitor: public PileupVisitor{
             for (auto it =  pileupData.PileupAlignments.begin();
                       it != pileupData.PileupAlignments.end();
                       it++){
-                if(it->Alignment.MapQuality > 13){//TODO options for baseQ, mapQ
+                if(it->Alignment.MapQuality > 30){//TODO options for baseQ, mapQ
                     int const *pos = &it->PositionInAlignment;
                     if(it->Alignment.Qualities[*pos] > 46){//TODO user-defined qual cut 
                         uint16_t b_index = base_index(it->Alignment.QueryBases[*pos]);
                         if (b_index < 4){
-                            string tag_id;
                             it->Alignment.GetTag("RG", tag_id);
-                            string sm = m_header.ReadGroups[tag_id].Sample;
-                            uint32_t sindex = find_sample_index(sm,m_samples);
+                            uint32_t sindex = m_sample_map[tag_id];
                             target_site.sample_data[sindex].import_alignment(it->Alignment, *pos, b_index);               
                         }
                     }
@@ -240,12 +239,14 @@ class FilterVisitor: public PileupVisitor{
     }
 
     private:
-        SampleNames m_samples;
+        vector< string > m_samples;
+        SampleMap m_sample_map;
+        SamHeader m_header;
         ostream* m_out_stream;
         int m_ref_pos;
         char m_ref_base;
         string m_initial_data;
-        SamHeader m_header;
+        string tag_id;
        // ExperimentSiteData target_site;
     
 };
@@ -291,10 +292,35 @@ int main(int argc, char* argv[]){
         index_path = bam_path + ".bai";
     }
 
+
     BamReader experiment;
     experiment.Open(bam_path);
     experiment.OpenIndex(index_path);
     SamHeader header = experiment.GetHeader();
+
+    SampleMap name_map;
+    uint16_t sindex = 0;
+    for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
+        if(it->HasSample()){
+            auto s  = name_map.find(it->Sample);
+            if( s == name_map.end()){ // not in there yet
+                name_map[it->Sample] = sindex;
+                sindex += 1;
+            }
+        }
+    }
+    // And now, go back over the read groups to map RG:sample index
+    SampleMap samples;
+    for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
+        if(it->HasSample()){
+            samples[it->ID] = name_map[it->Sample];  
+        }
+    }
+
+
+
+
+
     string L;
     while(getline(putations, L)){    
     
@@ -319,6 +345,7 @@ int main(int argc, char* argv[]){
         FilterVisitor *f = new FilterVisitor(ali, 
                                              header,
                                              sample_names,
+                                             samples,
                                              &outfile,
                                              pos, L, ref_base);
         pileup.AddVisitor(f);
