@@ -25,17 +25,15 @@ class VariantVisitor : public PileupVisitor{
                        const SamHeader& header,
                        const Fasta& idx_ref,
                        const SampleMap& samples, 
-                       const ModelParams& p,  
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
-                       double prob_cut,
                        vector<uint64_t> &denoms) :
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
                              m_header(header), m_samples(samples), 
-                             m_qual_cut(qual_cut), m_params(p), m_ali(ali), 
-                             m_prob_cut(prob_cut), m_denoms(denoms),
+                             m_qual_cut(qual_cut), m_ali(ali), 
+                             m_denoms(denoms),
                              m_mapping_cut(mapping_cut)
                               { }
         ~VariantVisitor(void) { }
@@ -123,10 +121,8 @@ class VariantVisitor : public PileupVisitor{
         Fasta m_idx_ref; 
         SampleMap m_samples;
         BamAlignment& m_ali;
-        ModelParams m_params;
         int m_qual_cut;
         int m_mapping_cut;
-        double m_prob_cut;
         char current_base;
         string tag_id;
         uint64_t chr_index;
@@ -154,18 +150,7 @@ int main(int argc, char** argv){
         ("mapping-qual,m", po::value<int>()->default_value(13), 
                     "Mapping quality cuttoff")
      
-        ("prob,p", po::value<double>()->default_value(0.1),
-                   "Mutaton probability cut-off")
-        ("out,o", po::value<string>()->default_value("acuMUlate_result.tsv"),
-                    "Out file name")
-        ("intervals,i", po::value<string>(), "Path to bed file")
-        ("config,c", po::value<string>(), "Path to config file")
-        ("theta", po::value<double>()->required(), "theta")            
-        ("nfreqs", po::value<vector<double> >()->multitoken(), "")     
-        ("mu", po::value<double>()->required(), "")  
-        ("seq-error", po::value<double>()->required(), "") 
-        ("phi-haploid",     po::value<double>()->required(), "") 
-        ("phi-diploid",     po::value<double>()->required(), ""); 
+        ("intervals,i", po::value<string>(), "Path to bed file");
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, cmd), vm);
@@ -175,29 +160,14 @@ int main(int argc, char** argv){
         return 0;
     }
 
-    if (vm.count("config")){
-        ifstream config_stream (vm["config"].as<string>());
-        po::store(po::parse_config_file(config_stream, cmd, false), vm);
-    }
 
     vm.notify();
-    ModelParams params = {
-        vm["theta"].as<double>(),
-        vm["nfreqs"].as<vector< double> >(),
-        vm["mu"].as<double>(),
-        vm["seq-error"].as<double>(), 
-        vm["phi-haploid"].as<double>(), 
-        vm["phi-diploid"].as<double>(),
-    };
     string bam_path = vm["bam"].as<string>();
     string index_path = vm["bam-index"].as<string>();
     if(index_path == ""){
         index_path = bam_path + ".bai";
     }   
 
-    ofstream result_stream (vm["out"].as<string>());
-    // Start setiing up files
-    //TODO: check sucsess of all these opens/reads:
 
     BamReader experiment; 
     experiment.Open(bam_path);
@@ -249,11 +219,9 @@ int main(int argc, char** argv){
             reference_genome, 
 //            vm["sample-name"].as<vector< string> >(),
             samples,
-            params, 
             ali, 
             vm["qual"].as<int>(), 
             vm["mapping-qual"].as<int>(),
-            vm["prob"].as<double>(),
             denoms            
         );
     pileup.AddVisitor(v);
