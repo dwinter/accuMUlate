@@ -167,7 +167,7 @@ int main(int argc, char** argv){
     if (stat(faidx_path.c_str(), &file_info) != 0){
         reference_genome.CreateIndex(faidx_path);
     }
-    reference_genome.Open(faidx_path, faidx_path);
+    reference_genome.Open(ref_file, faidx_path);
 
     // Map readgroups to samples
     // TODO: this presumes first sample is ancestor. True for our data, not for
