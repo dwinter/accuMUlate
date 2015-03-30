@@ -253,7 +253,7 @@ int main(int argc, char** argv){
     PileupEngine pileup;
     BamAlignment ali;
 
-    ReadDataVector denoms (sindex, {0,0,0,0} );
+    ReadDataVector denoms (samples.size(), {0,0,0,0} );
 
     VariantVisitor *v = new VariantVisitor(
             references,
