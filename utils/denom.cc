@@ -18,6 +18,32 @@
 using namespace std;
 using namespace BamTools;
 
+
+ModelParams params = {
+        0.0001,
+        {0.388, 0.112, 0.112, 0.338},
+        1e-8,
+        0.01,
+        0.01, 
+        0.005
+};
+
+
+void call_ancestor(const ModelParams &params, int ref_allele, const ReadData &d){
+	DiploidProbs genotypes = DiploidSequencing(params, ref_allele, d);
+    Eigen::Array33d::Index idx;
+    //std::cerr << genotypes.maxCoeff() << std::endl;
+    genotypes.maxCoeff(&idx);
+    uint16_t result[2];
+    result[1] = idx / 4;
+    result[2] = idx % 4;
+    std::cerr << result[1] << '\t' << result[2] << '\t';
+}
+
+
+
+    
+
                              
 class VariantVisitor : public PileupVisitor{
     public:
@@ -42,7 +68,8 @@ class VariantVisitor : public PileupVisitor{
              uint64_t pos  = pileupData.Position;
              m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
              ReadDataVector fwd_calls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
-             ReadDataVector rev_calls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
+             ReadDataVector rev_calls (m_samples.size(), ReadData{{ 0,0,0,0 }});
+             vector<int> keepers (m_samples.size(), 0);
              for(auto it = begin(pileupData.PileupAlignments);
                       it !=  end(pileupData.PileupAlignments); 
                       ++it){
@@ -65,13 +92,14 @@ class VariantVisitor : public PileupVisitor{
                 
                 ReadDataVector all_calls (m_samples.size(), ReadData{{ 0,0,0,0 }});
                 uint64_t total_depth = 0;
-                for(size_t i = 1; i < m_samples.size(); i ++){
+                for(size_t i = 0; i < m_samples.size(); i ++){
                     for(size_t j =0; j < 4; j++){
                         uint16_t sum_calls = fwd_calls[i].reads[j] + rev_calls[i].reads[j];
                         all_calls[i].reads[j] = sum_calls;
                         total_depth += total_depth;                
                     }
                 }
+                call_ancestor(params, ref_base_idx, all_calls[0]);
                 uint32_t major_alleles = 0;
                 for(auto it = begin(all_calls); it != end(all_calls); ++it){
                     major_alleles +=  *max_element(it->reads, it->reads + 4);
@@ -92,10 +120,17 @@ class VariantVisitor : public PileupVisitor{
                    }
                    if(distance(rev_calls[i].reads, Rm) == distance(fwd_calls[i].reads, Fm)){
                        m_denoms[i] += 1;
+                       keepers[i] = 1;
                    }
                 }
             }
+         for(size_t i = 0; i < m_samples.size(); i++){
+             cerr << keepers[i] << '\t';
          }
+         cerr << endl;
+
+         }
+         
 
 
 
@@ -204,6 +239,7 @@ int main(int argc, char** argv){
     SampleMap samples;
     for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
         if(it->HasSample()){
+            cout << it->Sample<< endl;
             samples[it->ID] = name_map[it->Sample];  
         }
     }
@@ -243,10 +279,10 @@ int main(int argc, char** argv){
         }  
     }
     pileup.Flush();
-    for(size_t i = 0; i < sindex; i++){
-        cerr << denoms[i] << '\t'; 
-    }
-    cerr << endl;
+//    for(size_t i = 0; i < sindex; i++){
+//        cerr << denoms[i] << '\t'; 
+//    }
+//    cerr << endl;
     return 0;
 }
 
