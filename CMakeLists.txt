@@ -15,5 +15,5 @@ target_link_libraries(accuMUlate bamtools bamtools-utils ${Boost_LIBRARIES})
 add_executable(pp utils/post_processor.cc parsers.cc model.cc)
 target_link_libraries(pp bamtools bamtools-utils ${Boost_LIBRARIES})
 
-add_executable(denom utils/denom.cc parsers.cc)
+add_executable(denom utils/denom.cc parsers.cc model.cc)
 target_link_libraries(denom bamtools bamtools-utils ${Boost_LIBRARIES})
