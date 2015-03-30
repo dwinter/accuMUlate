@@ -19,6 +19,7 @@ using namespace std;
 using namespace BamTools;
 
 
+
 ModelParams params = {
         0.0001,
         {0.388, 0.112, 0.112, 0.338},
@@ -30,13 +31,19 @@ ModelParams params = {
 
 
 void call_ancestor(const ModelParams &params, int ref_allele, const ReadData &d){
-	DiploidProbs genotypes = DiploidSequencing(params, ref_allele, d);
-    Eigen::Array33d::Index idx;
-    //std::cerr << genotypes.maxCoeff() << std::endl;
-    genotypes.maxCoeff(&idx);
     uint16_t result[2];
-    result[1] = idx / 4;
-    result[2] = idx % 4;
+    if( (d.reads[0] + d.reads[1] + d.reads[2] + d.reads[3]) == 0){
+        result[0] = ref_allele;
+        result[1] = ref_allele;
+    }
+    else{
+    	DiploidProbs genotypes = DiploidSequencing(params, ref_allele, d);
+        Eigen::Array33d::Index idx;
+        //std::cerr << genotypes.maxCoeff() << std::endl;
+        genotypes.maxCoeff(&idx);
+        result[1] = idx / 4;
+        result[2] = idx % 4;
+    }
     std::cerr << result[1] << '\t' << result[2] << '\t';
 }
 
@@ -54,7 +61,7 @@ class VariantVisitor : public PileupVisitor{
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
-                       vector<uint64_t> &denoms) :
+                       ReadDataVector &denoms) :
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
                              m_header(header), m_samples(samples), 
@@ -119,7 +126,7 @@ class VariantVisitor : public PileupVisitor{
                        continue;
                    }
                    if(distance(rev_calls[i].reads, Rm) == distance(fwd_calls[i].reads, Fm)){
-                       m_denoms[i] += 1;
+                       m_denoms[i].reads[0] += 1;
                        keepers[i] = 1;
                    }
                 }
@@ -161,7 +168,7 @@ class VariantVisitor : public PileupVisitor{
         char current_base;
         string tag_id;
         uint64_t chr_index;
-        vector<uint64_t>& m_denoms;
+        ReadDataVector& m_denoms;
 };
 
 
@@ -246,7 +253,7 @@ int main(int argc, char** argv){
     PileupEngine pileup;
     BamAlignment ali;
 
-    vector<uint64_t> denoms (sindex, 0);
+    ReadDataVector denoms (sindex, {0,0,0,0} );
 
     VariantVisitor *v = new VariantVisitor(
             references,
