@@ -239,7 +239,6 @@ int main(int argc, char** argv){
     SampleMap samples;
     for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
         if(it->HasSample()){
-            cout << it->Sample<< endl;
             samples[it->ID] = name_map[it->Sample];  
         }
     }
