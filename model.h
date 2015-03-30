@@ -32,7 +32,7 @@ typedef Eigen::Array<double, 16, 1> DiploidProbs;
 typedef Eigen::Array<double, 16, 4> MutationMatrix;
 
 
-
+DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data); 
 double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data);
 double TetMAProbability(const ModelParams &params, const ModelInput site_data);
 
