@@ -41,10 +41,10 @@ void call_ancestor(const ModelParams &params, int ref_allele, const ReadData &d)
         Eigen::Array33d::Index idx;
         //std::cerr << genotypes.maxCoeff() << std::endl;
         genotypes.maxCoeff(&idx);
-        result[1] = idx / 4;
-        result[2] = idx % 4;
+        result[0] = idx / 4;
+        result[1] = idx % 4;
     }
-    std::cerr << result[1] << '\t' << result[2] << '\t';
+    std::cerr << result[0] << '\t' << result[1] << '\t';
 }
 
 
