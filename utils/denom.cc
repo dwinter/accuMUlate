@@ -58,13 +58,14 @@ class VariantVisitor : public PileupVisitor{
                        const SamHeader& header,
                        const Fasta& idx_ref,
                        const SampleMap& samples, 
+                       int nsamples,
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
-                       ReadDataVector &denoms) :
+                       ReadDataVector &denoms):
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
-                             m_header(header), m_samples(samples), 
+                             m_header(header), m_samples(samples),m_nsamp(nsamples), 
                              m_qual_cut(qual_cut), m_ali(ali), 
                              m_denoms(denoms),
                              m_mapping_cut(mapping_cut)
@@ -131,7 +132,7 @@ class VariantVisitor : public PileupVisitor{
                    }
                 }
             }
-         for(size_t i = 0; i < m_samples.size(); i++){
+         for(size_t i = 0; i < m_nsamp; i++){
              cerr << keepers[i] << '\t';
          }
          cerr << endl;
@@ -162,6 +163,7 @@ class VariantVisitor : public PileupVisitor{
         SamHeader m_header;
         Fasta m_idx_ref; 
         SampleMap m_samples;
+        int m_nsamp;
         BamAlignment& m_ali;
         int m_qual_cut;
         int m_mapping_cut;
@@ -253,7 +255,7 @@ int main(int argc, char** argv){
     PileupEngine pileup;
     BamAlignment ali;
 
-    ReadDataVector denoms (samples.size(), {0,0,0,0} );
+    ReadDataVector denoms (sindex, {0,0,0,0} );
 
     VariantVisitor *v = new VariantVisitor(
             references,
@@ -261,6 +263,7 @@ int main(int argc, char** argv){
             reference_genome, 
 //            vm["sample-name"].as<vector< string> >(),
             samples,
+            sindex,
             ali, 
             vm["qual"].as<int>(), 
             vm["mapping-qual"].as<int>(),
