@@ -77,7 +77,7 @@ class VariantVisitor : public PileupVisitor{
              m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
              ReadDataVector fwd_calls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
              ReadDataVector rev_calls (m_samples.size(), ReadData{{ 0,0,0,0 }});
-             vector<int> keepers (m_samples.size(), 0);
+             vector<int> keepers (m_nsamp, 0);
              for(auto it = begin(pileupData.PileupAlignments);
                       it !=  end(pileupData.PileupAlignments); 
                       ++it){
