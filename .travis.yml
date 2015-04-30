@@ -1,0 +1,7 @@
+langauge: cpp
+compiler: clang
+before_script:
+  - sudo apt-get install libboost-program-options-dev
+script:
+    - cmake
+    - make
