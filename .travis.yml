@@ -2,7 +2,10 @@ language: cpp
 compiler: clang
 before_script:
   - sudo apt-get install libboost-program-options-dev
-  - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz --strip-components 1 */Eigen
+  - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz 
+  - mv eigen-eigen-10219c95fe65/Eigen/ Eigen/
 script:
     - cmake .
     - make
+    - ./run_tests.sh 
+
