@@ -1,8 +1,9 @@
 language: cpp
+compiler: clang
 before_script:
   - sudo apt-get install libboost-program-options-dev
   - mkdir Eigen
   - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz -C Eigen/ --strip-components 1
 script:
-    - cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ .
+    - cmake
     - make
