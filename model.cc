@@ -175,6 +175,10 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
     return(result);
 }
 
+// Uncommon and compile with this:
+// clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
+//
+// to play around with / debug results.
 //int main(){
 //    ModelParams p = { 
 //        0.0001, 
