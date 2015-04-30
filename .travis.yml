@@ -5,5 +5,5 @@ before_script:
   - mkdir Eigen
   - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz -C Eigen/ --strip-components 1
 script:
-    - cmake
+    - cmake .
     - make
