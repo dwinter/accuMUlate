@@ -107,7 +107,6 @@ class VariantVisitor : public PileupVisitor{
                         total_depth += total_depth;                
                     }
                 }
-                call_ancestor(params, ref_base_idx, all_calls[0]);
                 uint32_t major_alleles = 0;
                 for(auto it = begin(all_calls); it != end(all_calls); ++it){
                     major_alleles +=  *max_element(it->reads, it->reads + 4);
@@ -116,6 +115,7 @@ class VariantVisitor : public PileupVisitor{
                 if(major_freq < 0.95){
                     return;
                 }
+                call_ancestor(params, ref_base_idx, all_calls[0]);
 
                 for(size_t i  = 1; i < m_samples.size(); i++){
                    auto Fm = max_element(fwd_calls[i].reads, fwd_calls[i].reads+4);
