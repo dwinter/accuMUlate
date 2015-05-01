@@ -7,10 +7,12 @@ before_script:
   - mv eigen-eigen-10219c95fe65/Eigen/ Eigen/
   - wget -qO-  https://github.com/pezmaster31/bamtools/archive/v2.3.0.tar.gz | tar zx
   - cd bamtools-2.3.0/ && mkdir build && cd build && cmake .. && make
-  - mv ../lib/*.a ../../../
+  - mv ../lib/*.a /home/travis/build/dwinter/accuMUlate/
 
 script:
-    - cmake .
+    - cd /home/travis/build/dwinter/accuMUlate/build/
+    - cmake ..
     - make
+    - ../run_tests.sh
 
 
