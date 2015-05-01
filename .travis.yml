@@ -1,18 +1,16 @@
 language: cpp
 compiler: clang
+install:
+  - sudo apt-get install libboost-program-options-dev
 before_script:
   - mkdir build
-  - sudo apt-get install libboost-program-options-dev
   - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz 
   - mv eigen-eigen-10219c95fe65/Eigen/ Eigen/
-  - wget -qO-  https://github.com/pezmaster31/bamtools/archive/v2.3.0.tar.gz | tar zx
-  - cd bamtools-2.3.0/ && mkdir build && cd build && cmake .. && make
-  - mv ../lib/* /home/travis/build/dwinter/accuMUlate/
+  - cd third-party/bamtools/build && cmake .. && make
 
 script:
     - cd /home/travis/build/dwinter/accuMUlate/build/
-    - cmake ..
+    - cmake -DBamtools_PREFIX=../third-party/bamtools/ ..
     - make
-    - ../run_tests.sh
 
 
