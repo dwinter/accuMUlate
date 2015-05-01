@@ -165,6 +165,7 @@ int main(int argc, char** argv){
     struct stat file_info;
     string faidx_path = ref_file + ".fai";
     if (stat(faidx_path.c_str(), &file_info) != 0){
+        reference_genome.Open(ref_file);
         reference_genome.CreateIndex(faidx_path);
     }
     reference_genome.Open(ref_file, faidx_path);
