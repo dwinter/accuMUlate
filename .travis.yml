@@ -1,9 +1,16 @@
 language: cpp
 compiler: clang
 before_script:
+  - mkdir build
   - sudo apt-get install libboost-program-options-dev
   - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz 
   - mv eigen-eigen-10219c95fe65/Eigen/ Eigen/
+  - wget -qO-  https://github.com/pezmaster31/bamtools/archive/v2.3.0.tar.gz | tar zx
+  - cd bamtools-2.3.0/ && mkdir build && cd build && cmake .. && make
+  - mv ../lib/*.a ../../
+  - cd ../../
+  
+
 script:
     - cmake .
     - make
