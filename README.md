@@ -1,4 +1,6 @@
+[![Build Status](https://travis-ci.org/dwinter/accuMUlate.svg?branch=master)](https://travis-ci.org/dwinter/accuMUlate)
 #Calling mutations from MA lines
+
 
 
 ##Required libs
