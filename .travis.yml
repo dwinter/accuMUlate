@@ -12,5 +12,5 @@ before_script:
 script:
     - cmake .
     - make
-    - ./run_tests.sh 
+
 
