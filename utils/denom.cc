@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include <sys/stat.h>
 
 
@@ -28,6 +29,31 @@ ModelParams params = {
         0.01, 
         0.005
 };
+
+
+
+bool include_sample(const ModelParams &params, const ReadDataVector fwd, const ReadDataVector rev,  const ReadDataVector site_data, int sindex, int ref_base, double pcut){
+    
+    //Can't be included if you don't have 3fwd, 3rev so check that before we do
+    //any number crunching    
+    auto Fm = max_element(fwd[sindex].reads, fwd[sindex].reads+4);
+    if (*Fm < 3){
+        return false;
+    }
+    
+    auto Rm = max_element(rev[sindex].reads, rev[sindex].reads+4);
+    if (*Rm < 3){
+        return false;
+    }
+
+    ReadDataVector _site_data = site_data;
+    std::random_shuffle( begin(_site_data[sindex].reads), end(_site_data[sindex].reads) );
+    ModelInput d = { ref_base, _site_data };
+    return (TetMAProbOneMutation(params, d) < pcut);
+}
+
+
+
 
 
 void call_ancestor(const ModelParams &params, int ref_allele, const ReadData &d){
@@ -62,7 +88,8 @@ class VariantVisitor : public PileupVisitor{
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
-                       ReadDataVector &denoms):
+                       ReadDataVector &denoms,
+                       ModelParams& params):
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
                              m_header(header), m_samples(samples),m_nsamp(nsamples), 
@@ -70,14 +97,15 @@ class VariantVisitor : public PileupVisitor{
                              m_denoms(denoms),
                              m_mapping_cut(mapping_cut)
                               { }
+
         ~VariantVisitor(void) { }
     public:
          void Visit(const PileupPosition& pileupData) {
+
              uint64_t pos  = pileupData.Position;
              m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
              ReadDataVector fwd_calls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
              ReadDataVector rev_calls (m_samples.size(), ReadData{{ 0,0,0,0 }});
-             vector<int> keepers (m_nsamp, 0);
              for(auto it = begin(pileupData.PileupAlignments);
                       it !=  end(pileupData.PileupAlignments); 
                       ++it){
@@ -95,49 +123,25 @@ class VariantVisitor : public PileupVisitor{
                     }
                 }
             }
+             
             uint16_t ref_base_idx = base_index(current_base);
-            if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N'
-                
+            if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N' 
                 ReadDataVector all_calls (m_samples.size(), ReadData{{ 0,0,0,0 }});
-                uint64_t total_depth = 0;
                 for(size_t i = 0; i < m_samples.size(); i ++){
                     for(size_t j =0; j < 4; j++){
                         uint16_t sum_calls = fwd_calls[i].reads[j] + rev_calls[i].reads[j];
                         all_calls[i].reads[j] = sum_calls;
-                        total_depth += total_depth;                
                     }
                 }
-                uint32_t major_alleles = 0;
-                for(auto it = begin(all_calls); it != end(all_calls); ++it){
-                    major_alleles +=  *max_element(it->reads, it->reads + 4);
-                }
-                double major_freq = major_alleles / (double)total_depth;
-                if(major_freq < 0.95){
-                    return;
-                }
-                call_ancestor(params, ref_base_idx, all_calls[0]);
 
                 for(size_t i  = 1; i < m_samples.size(); i++){
-                   auto Fm = max_element(fwd_calls[i].reads, fwd_calls[i].reads+4);
-                   if (*Fm < 3){
-                       continue;
-                   }
-                   auto Rm = max_element(rev_calls[i].reads, rev_calls[i].reads+4);
-                   if (*Rm < 3){
-                       continue;
-                   }
-                   if(distance(rev_calls[i].reads, Rm) == distance(fwd_calls[i].reads, Fm)){
-                       m_denoms[i].reads[0] += 1;
-                       keepers[i] = 1;
-                   }
+                    if( include_sample(m_params, fwd_calls, rev_calls, all_calls, i, ref_base_idx, 0.1) ){
+                        m_denoms[i].reads[ref_base_idx] += 1;
+                    }
                 }
             }
-         for(size_t i = 0; i < m_nsamp; i++){
-             cerr << keepers[i] << '\t';
          }
-         cerr << endl;
 
-         }
          
 
 
@@ -171,6 +175,7 @@ class VariantVisitor : public PileupVisitor{
         string tag_id;
         uint64_t chr_index;
         ReadDataVector& m_denoms;
+        ModelParams m_params;
 };
 
 
@@ -203,7 +208,14 @@ int main(int argc, char** argv){
         cout << cmd << endl;
         return 0;
     }
-
+    ModelParams params = {
+        0.0001,
+        {0.388, 0.112, 0.112, 0.338},
+        1e-8,
+        0.01,
+        0.01, 
+        0.005
+    };
 
     vm.notify();
     string bam_path = vm["bam"].as<string>();
@@ -267,7 +279,8 @@ int main(int argc, char** argv){
             ali, 
             vm["qual"].as<int>(), 
             vm["mapping-qual"].as<int>(),
-            denoms            
+            denoms,
+            params            
         );
     pileup.AddVisitor(v);
    
@@ -288,10 +301,12 @@ int main(int argc, char** argv){
         }  
     }
     pileup.Flush();
-//    for(size_t i = 0; i < sindex; i++){
-//        cerr << denoms[i] << '\t'; 
-//    }
-//    cerr << endl;
+    for(size_t i = 0; i < sindex; i++){
+        for( size_t j = 0; j < 4; j++){
+            cerr << denoms[i].reads[j] << '\t'; 
+        }
+    }
+    cerr << endl;
     return 0;
 }
 
