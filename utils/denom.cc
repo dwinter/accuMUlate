@@ -5,7 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <sys/stat.h>
-
+#include <stdlib.h>     /* srand, rand */
 
 
 #include "boost/program_options.hpp"
@@ -45,11 +45,15 @@ bool include_sample(const ModelParams &params, const ReadDataVector fwd, const R
     if (*Rm < 3){
         return false;
     }
-
     ReadDataVector _site_data = site_data;
-    std::random_shuffle( begin(_site_data[sindex].reads), end(_site_data[sindex].reads) );
+    int rotate_to = rand() % 3 + 1;
+    rotate( begin(_site_data[sindex].reads), begin(_site_data[sindex].reads) + rotate_to, end(_site_data[sindex].reads) );
     ModelInput d = { ref_base, _site_data };
-    return (TetMAProbOneMutation(params, d) < pcut);
+    double p  = TetMAProbability(params, d); 
+    if (p > 0.1){
+        return true;
+    }
+    return false;
 }
 
 
@@ -95,7 +99,7 @@ class VariantVisitor : public PileupVisitor{
                              m_header(header), m_samples(samples),m_nsamp(nsamples), 
                              m_qual_cut(qual_cut), m_ali(ali), 
                              m_denoms(denoms),
-                             m_mapping_cut(mapping_cut)
+                             m_mapping_cut(mapping_cut), m_params(params)
                               { }
 
         ~VariantVisitor(void) { }
@@ -303,10 +307,10 @@ int main(int argc, char** argv){
     pileup.Flush();
     for(size_t i = 0; i < sindex; i++){
         for( size_t j = 0; j < 4; j++){
-            cerr << denoms[i].reads[j] << '\t'; 
+            cout << denoms[i].reads[j] << '\t'; 
         }
     }
-    cerr << endl;
+    cout << endl;
     return 0;
 }
 

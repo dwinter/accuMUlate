@@ -141,8 +141,6 @@ double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
 		HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
 		anc_genotypes *= (m.matrix()*p.matrix()).array();
 		num_genotypes *= (mn.matrix()*p.matrix()).array();
-        cerr <<  (mn.matrix()*p.matrix()).array().sum() << '\t' <<
-          (m.matrix()*p.matrix()).array().sum() << endl;
 
 	}
 
@@ -172,7 +170,6 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
         mut_genotypes += (agen/dgen - 1); //(agen+dgen)/agen
         denom *= agen;
     }
-    cerr << '(' << denom.sum() << ')';
     double result = (nomut_genotypes * mut_genotypes).sum() / denom.sum();
     return(result);
 }

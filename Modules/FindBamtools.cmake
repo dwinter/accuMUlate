@@ -23,7 +23,7 @@
 #  Bamtools_LIBRARIES
 #  Bamtools_DEFINITIONS
 
-set(Bamtools_PREFIX "/usr/" "/usr/local/" "~/lib/" "~/local/lib/" CACHE PATH "Directory Bamtools resides in")
+set(Bamtools_PREFIX "/usr/" "/usr/local/" "~/lib/" "~/local/lib/" "~/local/" CACHE PATH "Directory Bamtools resides in")
 find_path(Bamtools_INCLUDE_DIR api/api_global.h HINTS ${Bamtools_PREFIX}/include PATH_SUFFIXES bamtools)
 find_path(Bamtools_LINK_LIBRARY_DIR libbamtools.a HINTS ${Bamtools_PREFIX}/lib/ PATH_SUFFIXES bamtools)
 
