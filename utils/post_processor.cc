@@ -110,7 +110,7 @@ class ExperimentSiteData{
                     mutant_base = i;
                 }
             }
-            if (n_mutant != 1){
+//            if (n_mutant != 1){
                 //Looks like messy data. Print out the read matrix so we can
                 //unerstand what going on, add an empty line to the output
                 *out_stream  << m_initial_data
@@ -124,7 +124,7 @@ class ExperimentSiteData{
                     }
                     cerr << endl;
                 }
-                return; // 
+//                return; // 
             }
             auto it = find_if(genotypes.begin(), genotypes.end(), 
                     [&](int v) {return v==mutant_base;});

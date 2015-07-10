@@ -141,8 +141,6 @@ double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
 		HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
 		anc_genotypes *= (m.matrix()*p.matrix()).array();
 		num_genotypes *= (mn.matrix()*p.matrix()).array();
-        cerr <<  (mn.matrix()*p.matrix()).array().sum() << '\t' <<
-          (m.matrix()*p.matrix()).array().sum() << endl;
 
 	}
 
@@ -172,7 +170,6 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
         mut_genotypes += (agen/dgen - 1); //(agen+dgen)/agen
         denom *= agen;
     }
-    cerr << '(' << denom.sum() << ')';
     double result = (nomut_genotypes * mut_genotypes).sum() / denom.sum();
     return(result);
 }
@@ -181,82 +178,82 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
 // clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
 //
 // to play around with / debug results.
-int main(){
-    ModelParams p = { 
-        0.0001, 
-        {0.38, 0.12, 0.12, 0.38}, 
-        1e-8,
-        0.01,
-        0.01,
-        0.05,
-    };
-    ModelInput two_vars = { 2, 
-        {
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0,  0,  0, 30},
-        { 0, 0,   0, 30},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-
-        }
-    };
-
-
-    ModelInput  one_vars = { 1,
-        {
-        { 0, 30,  0,  0},
-        { 0,  0,  0, 30},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0,  0},
-        { 0, 30,  0, 0}}
-    };    
-
-   ModelInput no_vars = {1,
-      {{0,   0,  0, 5},       
-       {3,   0,  0, 4},       
-       {8,   0,  0, 0},
-       {3,   0,  0, 3},     
-       {0,  0,  0, 2},       
-       {2,  0,  0, 3},
-       {0,  0,  0, 0},  
-       {0,  0,  0, 5},       
-       {0,  0,  0, 4},
-       {1,  0,  0, 3},
-       {0,  0,  0, 28},
-       {0 ,  0,  0, 3}}
-   };
-    
-    cout << "___With the no-variant data___" << endl;
-//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,no_vars)<< endl;
-//    cout << "P(any|data)= " << TetMAProbability(p,no_vars) << endl;
-
-    cout << TetMAProbability(p,no_vars) << endl;
-    
-    cout << "___With the one-variant data___" << endl;  
-//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,one_vars)<< endl;
-//    cout << "P(any|data)= " << TetMAProbability(p,one_vars) << endl;
-      cout << TetMAProbability(p,one_vars) << endl;
-    
-    cout << "___With the two-variant data___" << endl;
-    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,two_vars)<< endl;
-    cout << "P(any|data)= " << TetMAProbability(p,two_vars) << endl;   
-
-    
-    cout << "calculating the same number once: " << TetMAProbOneMutation(p,two_vars) << endl;
-    cout << "then another time: " << TetMAProbOneMutation(p,two_vars) << endl;
-    TetMAProbOneMutation(p,no_vars);
-    cout << "And once more after calling from the the no-vars data: " << TetMAProbOneMutation(p,two_vars) << endl;
-    return 0;
-}
+//int main(){
+//    ModelParams p = { 
+//        0.0001, 
+//        {0.38, 0.12, 0.12, 0.38}, 
+//        1e-8,
+//        0.01,
+//        0.01,
+//        0.05,
+//    };
+//    ModelInput two_vars = { 2, 
+//        {
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0,  0,  0, 30},
+//        { 0, 0,   0, 30},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
 //
+//        }
+//    };
+//
+//
+//    ModelInput  one_vars = { 1,
+//        {
+//        { 0, 30,  0,  0},
+//        { 0,  0,  0, 30},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0, 0}}
+//    };    
+//
+//   ModelInput no_vars = {1,
+//      {{0,   0,  0, 5},       
+//       {3,   0,  0, 4},       
+//       {8,   0,  0, 0},
+//       {3,   0,  0, 3},     
+//       {0,  0,  0, 2},       
+//       {2,  0,  0, 3},
+//       {0,  0,  0, 0},  
+//       {0,  0,  0, 5},       
+//       {0,  0,  0, 4},
+//       {1,  0,  0, 3},
+//       {0,  0,  0, 28},
+//       {0 ,  0,  0, 3}}
+//   };
+//    
+//    cout << "___With the no-variant data___" << endl;
+////    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,no_vars)<< endl;
+////    cout << "P(any|data)= " << TetMAProbability(p,no_vars) << endl;
+//
+//    cout << TetMAProbability(p,no_vars) << endl;
+//    
+//    cout << "___With the one-variant data___" << endl;  
+////    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,one_vars)<< endl;
+////    cout << "P(any|data)= " << TetMAProbability(p,one_vars) << endl;
+//      cout << TetMAProbability(p,one_vars) << endl;
+//    
+//    cout << "___With the two-variant data___" << endl;
+//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,two_vars)<< endl;
+//    cout << "P(any|data)= " << TetMAProbability(p,two_vars) << endl;   
+//
+//    
+//    cout << "calculating the same number once: " << TetMAProbOneMutation(p,two_vars) << endl;
+//    cout << "then another time: " << TetMAProbOneMutation(p,two_vars) << endl;
+//    TetMAProbOneMutation(p,no_vars);
+//    cout << "And once more after calling from the the no-vars data: " << TetMAProbOneMutation(p,two_vars) << endl;
+//    return 0;
+//}
+////
 
 
 

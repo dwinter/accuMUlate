@@ -7,7 +7,9 @@ find_package( Boost COMPONENTS program_options REQUIRED )
 find_package( Bamtools REQUIRED )
 
 
+
 set(LIBS ${LIBS} ${Boost_LIBRARIES} ${Bamtools_LIBRARIES})
+#set(LIBS ${LIBS} ${Boost_LIBRARIES},  "${CMAKE_SOURCE_DIR}/third-party/bamtools/lib")
 include_directories("${CMAKE_SOURCE_DIR}/third-party/bamtools/src")
 include_directories("${CMAKE_SOURCE_DIR}/third-party/")
 include_directories(${Boost_INCLUDE_DIR})
