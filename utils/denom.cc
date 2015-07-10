@@ -5,7 +5,6 @@
 #include <string>
 #include <algorithm>
 #include <sys/stat.h>
-#include <stdlib.h>     /* srand, rand */
 
 
 #include "boost/program_options.hpp"
@@ -21,37 +20,30 @@ using namespace BamTools;
 
 
 
-ModelParams params = {
-        0.0001,
-        {0.388, 0.112, 0.112, 0.338},
-        1e-8,
-        0.01,
-        0.01, 
-        0.005
-};
 
-
-
-bool include_sample(const ModelParams &params, const ReadDataVector fwd, const ReadDataVector rev,  const ReadDataVector site_data, int sindex, int ref_base, double pcut){
+bool include_sample(const ModelParams &params, const ReadDataVector fwd, const ReadDataVector rev,  const ReadDataVector site_data, int sindex, int ref_base, double pcut, bool central){
     
     //Can't be included if you don't have 3fwd, 3rev so check that before we do
     //any number crunching    
-    auto Fm = max_element(fwd[sindex].reads, fwd[sindex].reads+4);
-    if (*Fm < 3){
-        return false;
-    }
-    
-    auto Rm = max_element(rev[sindex].reads, rev[sindex].reads+4);
-    if (*Rm < 3){
-        return false;
-    }
+    //if(central == true){
+        auto Fm = max_element(fwd[sindex].reads, fwd[sindex].reads+4);
+        if (*Fm < 3){
+            return false;
+        }
+        
+        auto Rm = max_element(rev[sindex].reads, rev[sindex].reads+4);
+        if (*Rm < 3){
+            return false;
+        }
+   // }
     ReadDataVector _site_data = site_data;
-    int rotate_to = rand() % 3 + 1;
-    rotate( begin(_site_data[sindex].reads), begin(_site_data[sindex].reads) + rotate_to, end(_site_data[sindex].reads) );
-    ModelInput d = { ref_base, _site_data };
-    double p  = TetMAProbability(params, d); 
-    if (p > 0.1){
-        return true;
+    for(size_t i = 1; i < 4; i++){
+        rotate( begin(_site_data[sindex].reads), begin(_site_data[sindex].reads) + i, end(_site_data[sindex].reads) );
+        ModelInput d = { ref_base, _site_data };
+        double p  = TetMAProbability(params, d); 
+        if (p > 0.1){
+            return true;
+        }
     }
     return false;
 }
@@ -105,8 +97,9 @@ class VariantVisitor : public PileupVisitor{
         ~VariantVisitor(void) { }
     public:
          void Visit(const PileupPosition& pileupData) {
-
              uint64_t pos  = pileupData.Position;
+             uint32_t dist_to_end  = ( (pos < 500) ? pos :  (m_bam_ref[pileupData.RefId].RefLength - pos));
+             bool central = dist_to_end > 500;
              m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
              ReadDataVector fwd_calls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
              ReadDataVector rev_calls (m_samples.size(), ReadData{{ 0,0,0,0 }});
@@ -139,7 +132,7 @@ class VariantVisitor : public PileupVisitor{
                 }
 
                 for(size_t i  = 1; i < m_samples.size(); i++){
-                    if( include_sample(m_params, fwd_calls, rev_calls, all_calls, i, ref_base_idx, 0.1) ){
+                    if( include_sample(m_params, fwd_calls, rev_calls, all_calls, i, ref_base_idx, 0.1, central) ){
                         m_denoms[i].reads[ref_base_idx] += 1;
                     }
                 }
