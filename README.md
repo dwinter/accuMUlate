@@ -29,27 +29,3 @@ make
 The last line will  run the caller on a test dateset with 6 000 bases, and
 show find mutations in each gene.
 
-##TODO
-
-
-* ~~have the main loop run the analysis from~~
-    * ~~BAM file~~
-    * ~~kist of sample IDs (one ancestor, rest descendants)~~
-    * ~~Model Params:~~
-        *~~theta~~
-        *~~mu~~
-        *~~nfreqs~~
-        *~~phi-haploid~~
-        *~~phi-diploid~~
-    * ~~[BED file of coords to include]~~
-    * ~~[probability threshold]~~
-    * ~~[quality cut-off]~~
-* ~~Boost PO/YAML/some other format to handle run variables~~
-* ~~Manage build across platforms w/ CMake~~
-
-* Optimize model code
-* Clean up sample mapping/base calling
-* Post-processor for putative mutations
-* Create `.vcf` and annotations files from snps
-* Make real test suite
-
