@@ -57,7 +57,7 @@ class VariantVisitor : public PileupVisitor{
                 }
             }
             uint16_t ref_base_idx = base_index(current_base);
-            if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N'
+            if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N' (=masked for Tt, maybe not others?)
                 ModelInput d = {ref_base_idx, bcalls};
                 double prob_one = TetMAProbOneMutation(m_params,d);
                 double prob = TetMAProbability(m_params, d);
