@@ -21,7 +21,7 @@ using namespace BamTools;
 
 
 
-bool include_sample(const ModelParams &params, const ReadDataVector fwd, const ReadDataVector rev,  const ReadDataVector site_data, int sindex, int ref_base, double pcut, bool central){
+bool include_sample(const ModelParams &params, const ReadDataVector fwd, const ReadDataVector rev,  const ReadDataVector site_data, int sindex, uint16_t ref_base, double pcut, bool central){
     
     //Can't be included if you don't have 3fwd, 3rev so check that before we do
     //any number crunching    
