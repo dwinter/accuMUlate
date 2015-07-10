@@ -1,6 +1,13 @@
 [![Build Status](https://travis-ci.org/dwinter/accuMUlate.svg?branch=master)](https://travis-ci.org/dwinter/accuMUlate)
 #Calling mutations from MA lines
 
+`accuMUlate` is a mutation caller designed with Mutation Accumulation (MA)
+experiments in mind. Up until recently the software has been developed with the
+goal of studying a specific MA experiment, but we are in the process of adapting
+the program to work on any MA dataset you might have. 
+
+Please [contact us](mailto:david.winter@gmail.com) if you are interested in using the software
+while we develop it.
 
 
 ##Required libs
