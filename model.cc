@@ -127,6 +127,43 @@ HaploidProbs HaploidSequencing(const ModelParams &params, int ref_allele, ReadDa
 	return (result - scale).exp();
 }
 
+DiploidProbs IsHet(){
+	DiploidProbs result;
+    for(int i : {0,1,2,3}) {
+		for(int j : {0,1,2,3}) {
+            if(i == j){
+                result(i*4+j) = 0.0;
+            }
+            else{
+                result(i*4+j) = 1.0;
+            }
+        }
+    }
+    return(result);
+}
+
+vector<double> AncestralHeterozygosity(const ModelParams &params, const ModelInput site_data){
+    MutationMatrix m = MutationAccumulation(params, true);
+	MutationMatrix mt = MutationAccumulation(params, false);
+	MutationMatrix mn = m-mt;	                           //
+    DiploidProbs h = IsHet();
+	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);//prior
+	auto it = site_data.all_reads.begin();
+	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
+	anc_genotypes *= pop_genotypes;
+    double before =  (h * anc_genotypes).sum() / anc_genotypes.sum();
+    double results = 0;
+	for(++it; it != site_data.all_reads.end(); ++it) {
+		HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
+		anc_genotypes *= (mn.matrix()*p.matrix()).array();
+
+    }
+    double after = (h * anc_genotypes).sum() / anc_genotypes.sum();
+    vector<double> res = {before, after};
+    return(res);
+}
+
+
 double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
 	MutationMatrix m = MutationAccumulation(params, false);
 	MutationMatrix mt = MutationAccumulation(params, true);
@@ -174,8 +211,65 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
     return(result);
 }
 
-// Uncommon and compile with this:
-// clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
+//int main(){
+//    ModelParams p = { 
+//      0.0001, 
+//        {0.38, 0.12, 0.12, 0.38}, 
+//        1e-9,
+//        0.01,
+//        0.01,
+//        0.05,
+//    };
+//    ModelInput het = { 2, 
+//        {
+//        { 0, 15,  0,  15},
+//        { 0, 30,  0,  0},
+//        { 0, 0,  0,  30},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 0,  0,  30},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 0,  0,  30},
+//        { 0, 30,  0,  0},
+//        { 0, 0,  0,  30},
+//
+//        }
+//    };
+//
+//
+//    ModelInput  help = { 1,
+//        {
+//        { 0, 15,  0,  2},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  0},
+//        }
+//    };
+//
+//    ModelInput  nohelp = { 1,
+//        {
+//        { 0, 15,  0,  2},
+//        { 0,  0,  0,  30},
+//        { 0, 30,  0,  0},
+//        { 0, 30,  0,  30},
+//        { 0, 30,  0,  0},
+//        }
+//    };    
+//
+//    vector<double> ph1 =  AncestralHeterozygosity(p,het);
+//    cout << "Clean data= "<<  ph1[0] <<',' << ph1[1] << endl;  
+//    vector<double> ph2 =  AncestralHeterozygosity(p,help);
+//    cout << "No descendants= "<<  ph2[0] <<',' << ph2[1] << endl;  
+//    vector<double> ph3 =  AncestralHeterozygosity(p,nohelp);
+//    cout << "Descendant= "<<  ph2[0] <<',' << ph3[1] << endl;  
+//  
+//    return(0);
+//}
+    // Uncommon and compile with this:
+//clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
 //
 // to play around with / debug results.
 //int main(){
