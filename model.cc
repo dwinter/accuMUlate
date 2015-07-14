@@ -143,9 +143,7 @@ DiploidProbs IsHet(){
 }
 
 vector<double> AncestralHeterozygosity(const ModelParams &params, const ModelInput site_data){
-    MutationMatrix m = MutationAccumulation(params, true);
-	MutationMatrix mt = MutationAccumulation(params, false);
-	MutationMatrix mn = m-mt;	                           //
+	MutationMatrix m = MutationAccumulation(params, false);
     DiploidProbs h = IsHet();
 	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);//prior
 	auto it = site_data.all_reads.begin();
@@ -155,7 +153,7 @@ vector<double> AncestralHeterozygosity(const ModelParams &params, const ModelInp
     double results = 0;
 	for(++it; it != site_data.all_reads.end(); ++it) {
 		HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
-		anc_genotypes *= (mn.matrix()*p.matrix()).array();
+		anc_genotypes *= (m.matrix()*p.matrix()).array();
 
     }
     double after = (h * anc_genotypes).sum() / anc_genotypes.sum();

@@ -20,6 +20,9 @@ struct ModelParams{
     double error_prob;          // Sequencing error-rate 
     double phi_haploid;         // Overdispersion for haploid sequencing
     double phi_diploid;         // Overdispersion for diploid sequencing
+    int    ploidy_ancestor;
+    int    ploidy_descendant;
+
 };
 
 struct ModelInput{// Can probably stand to lose this, started out more complex..
@@ -29,12 +32,17 @@ struct ModelInput{// Can probably stand to lose this, started out more complex..
 
 typedef Eigen::Array4d HaploidProbs;
 typedef Eigen::Array<double, 16, 1> DiploidProbs;
+
+//Mutation matrices to match different experimental designs
+//typedef Eigen::Array<double, 4, 4> MutationMatrix_HH;
 typedef Eigen::Array<double, 16, 4> MutationMatrix;
+//typedef Eigen::Array<double, 16, 16> MutationMatrix_DD;
 
 
 DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data); 
 double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data);
 double TetMAProbability(const ModelParams &params, const ModelInput site_data);
+vector<double> AncestralHeterozygosity(const ModelParams &params, const ModelInput site_data);
 
 
 #endif

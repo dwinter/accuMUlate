@@ -30,13 +30,14 @@ class VariantVisitor : public PileupVisitor{
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
-                       double prob_cut):
+                       double prob_cut,
+                       double& sum_hets):
 
             PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
                              m_header(header), m_samples(samples), 
                              m_qual_cut(qual_cut), m_params(p), m_ali(ali), 
                              m_ostream(out_stream), m_prob_cut(prob_cut),
-                             m_mapping_cut(mapping_cut)
+                             m_mapping_cut(mapping_cut), m_sum_hets(sum_hets)
                               { }
         ~VariantVisitor(void) { }
     public:
@@ -59,14 +60,16 @@ class VariantVisitor : public PileupVisitor{
             uint16_t ref_base_idx = base_index(current_base);
             if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N' (=masked for Tt, maybe not others?)
                 ModelInput d = {ref_base_idx, bcalls};
-                double prob_one = TetMAProbOneMutation(m_params,d);
-                double prob = TetMAProbability(m_params, d);
-                if(prob >= m_prob_cut){
+                vector<double> probs =  AncestralHeterozygosity(m_params, d);
+                m_sum_hets += probs[1];
+                if(probs[0] >= m_prob_cut || probs[1] >= m_prob_cut ){
+                     
                      *m_ostream << m_bam_ref[pileupData.RefId].RefName << '\t'
                                 << pos << '\t' 
+                                << pos + 1 << '\t' 
                                 << current_base << '\t' 
-                                << prob << '\t' 
-                                << prob_one << '\t' 
+                                << probs[0] << '\t' 
+                                << probs[1] << '\t' 
                                 << endl;          
                 }
             }
@@ -85,6 +88,7 @@ class VariantVisitor : public PileupVisitor{
         char current_base;
         string tag_id;
         uint64_t chr_index;
+        double& m_sum_hets;
 };
 
 
@@ -195,6 +199,7 @@ int main(int argc, char** argv){
 
     PileupEngine pileup;
     BamAlignment ali;
+    double sum_het;
 
     VariantVisitor *v = new VariantVisitor(
             references,
@@ -207,7 +212,8 @@ int main(int argc, char** argv){
             ali, 
             vm["qual"].as<int>(), 
             vm["mapping-qual"].as<int>(),
-            vm["prob"].as<double>()
+            vm["prob"].as<double>(),
+            sum_het
         );
     pileup.AddVisitor(v);
    
@@ -228,6 +234,7 @@ int main(int argc, char** argv){
         }  
     }
     pileup.Flush();
+    cout << sum_het << endl;
     return 0;
 }
 
