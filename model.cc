@@ -143,7 +143,7 @@ DiploidProbs IsHet(){
 }
 
 vector<double> AncestralHeterozygosity(const ModelParams &params, const ModelInput site_data){
-	MutationMatrix m = MutationAccumulation(params, false);
+	MutationMatrix m = MutationAccumulation(params,true);
     DiploidProbs h = IsHet();
 	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);//prior
 	auto it = site_data.all_reads.begin();
