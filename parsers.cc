@@ -41,15 +41,14 @@ class ReadDataVisitor : public PileupVisitor{
                 m_mapping_cut(mapping_cut)   { }
         ~ReadDataVisitor(void) { }
     public:
-         void GatherReadData(const PileupPosition& pileupData) {
+         bool GatherReadData(const PileupPosition& pileupData) {
              //Like it says, collect a sites reads. If the site is good to call
              //from set 
              uint64_t pos  = pileupData.Position;
              m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
              uint16_t ref_base_idx = base_index(current_base);
              if( ref_base_idx > 4 ) { //treat all non IUPAC codes as masks? 
-                 passing_QC = false;
-                 return;
+                 return false;
              }
              ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
              for(auto it = begin(pileupData.PileupAlignments);
@@ -66,11 +65,11 @@ class ReadDataVisitor : public PileupVisitor{
                     }
                 }
              }
-            passing_QC =  true;
             site_data =  {ref_base_idx, bcalls};
+            return true;
          }
-    public:
-            void Visit(const PileupPosition& pileupData) = 0;
+//    public:
+//            void Visit(const PileupPosition& pileupData) = 0;
     private:
         //set by arguments
         const RefVector& m_bam_references;
@@ -164,9 +163,9 @@ bool include_site(PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
 }
 
 
-int main(){
-    return 0;
-}
+//int main(){
+//    return 0;
+//}
 
 
 //int main() {
