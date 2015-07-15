@@ -21,9 +21,8 @@ using namespace BamTools;
 
 //Base visitor, which does two things per site:
 //Set a flag descrbing
-class ReadDataVisitor : public PileupVisitor{
-    public:
-        ReadDataVisitor(const RefVector& bam_references, 
+ReadDataVisitor::ReadDataVisitor(
+                        const RefVector& bam_references, 
                         Fasta& idx_ref,
                         SampleMap& samples, 
                         const ModelParams& p,  
@@ -39,54 +38,36 @@ class ReadDataVisitor : public PileupVisitor{
                 m_ali(ali), 
                 m_qual_cut(qual_cut),  
                 m_mapping_cut(mapping_cut)   { }
-        ~ReadDataVisitor(void) { }
-    public:
-         bool GatherReadData(const PileupPosition& pileupData) {
-             //Like it says, collect a sites reads. If the site is good to call
-             //from set 
-             uint64_t pos  = pileupData.Position;
-             m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
-             uint16_t ref_base_idx = base_index(current_base);
-             if( ref_base_idx > 4 ) { //treat all non IUPAC codes as masks? 
-                 return false;
-             }
-             ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
-             for(auto it = begin(pileupData.PileupAlignments);
-                      it !=  end(pileupData.PileupAlignments); 
-                      ++it){
-                 if( include_site(*it, m_mapping_cut, m_qual_cut) ){
-                    it->Alignment.GetTag("RG", tag_id);
-                    uint32_t sindex = m_samples[tag_id]; //TODO check samples existed! 
-                    if( sindex  != std::numeric_limits<uint32_t>::max()  ){
-                        uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
-                        if (bindex < 4 ){
-                            bcalls[sindex].reads[bindex] += 1;
-                        }
-                    }
-                }
-             }
-            site_data =  {ref_base_idx, bcalls};
-            return true;
-         }
+//        ~ReadDataVisitor(void) { }
 //    public:
-//            void Visit(const PileupPosition& pileupData) = 0;
-    private:
-        //set by arguments
-        const RefVector& m_bam_references;
-        Fasta& m_idx_ref;
-        SampleMap& m_samples;
-        const ModelParams& m_params;
-        BamAlignment& m_ali;
-        int m_qual_cut;
-        int m_mapping_cut;
-        //refered to by fnxs
-        bool passing_QC;
-        char current_base;
-        string tag_id;
-        uint64_t chr_index;
-        ModelInput site_data;
-};
 
+bool ReadDataVisitor::GatherReadData(const PileupPosition& pileupData) {
+    //Like it says, collect a sites reads. If the site is good to call
+    //from set the site_data object and return `true`.  
+    uint64_t pos  = pileupData.Position;
+    m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
+    uint16_t ref_base_idx = base_index(current_base);
+    if( ref_base_idx > 4 ) { // TODO: This treats all non IUPAC codes as masks. Document this is we keep it 
+        return false;
+    }
+    ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
+    for(auto it = begin(pileupData.PileupAlignments);
+             it !=  end(pileupData.PileupAlignments); 
+             ++it){
+        if( include_site(*it, m_mapping_cut, m_qual_cut) ){
+            it->Alignment.GetTag("RG", tag_id);
+            uint32_t sindex = m_samples[tag_id]; 
+                if( sindex  != std::numeric_limits<uint32_t>::max()  ){
+                uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
+                if (bindex < 4 ){
+                    bcalls[sindex].reads[bindex] += 1;
+                }
+            }
+        }
+    }
+    site_data =  {ref_base_idx, bcalls};
+    return true;
+};
 
 
 BedFile::BedFile(string bed_file_name){

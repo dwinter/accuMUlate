@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 using namespace std;
+using namespace BamTools;
 
 //typedef vector< string > SampleNames;
 typedef unordered_map<string, uint16_t> SampleMap;
@@ -26,8 +27,32 @@ class BedFile{
 };
 
 class ReadDataVisitor : public BamTools::PileupVisitor{
+    public:
+        ReadDataVisitor(const RefVector& bam_references, 
+                        Fasta& idx_ref,
+                        SampleMap& samples, 
+                        const ModelParams& p,  
+                        BamAlignment& ali, 
+                        int qual_cut,
+                        int mapping_cut);
     public: 
-        bool GatherReadData() {};
+        bool GatherReadData(const PileupPosition& pileupData) ;
+    public:
+        char current_base;
+        string tag_id;
+        uint64_t chr_index;
+        ModelInput site_data;
+        const ModelParams& m_params;
+        const RefVector& m_bam_references;
+
+    private:
+        //set by arguments
+        Fasta& m_idx_ref;
+        SampleMap& m_samples;
+        BamAlignment& m_ali;
+        int m_qual_cut;
+        int m_mapping_cut;
+        //refered to by fnxs
 };
         
  
