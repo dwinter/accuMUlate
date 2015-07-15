@@ -150,7 +150,6 @@ vector<double> AncestralHeterozygosity(const ModelParams &params, const ModelInp
 	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
 	anc_genotypes *= pop_genotypes;
     double before =  (h * anc_genotypes).sum() / anc_genotypes.sum();
-    double results = 0;
 	for(++it; it != site_data.all_reads.end(); ++it) {
 		HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
 		anc_genotypes *= (m.matrix()*p.matrix()).array();
