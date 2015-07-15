@@ -29,7 +29,12 @@ struct ModelInput{// Can probably stand to lose this, started out more complex..
 
 typedef Eigen::Array4d HaploidProbs;
 typedef Eigen::Array<double, 16, 1> DiploidProbs;
-typedef Eigen::Array<double, 16, 4> MutationMatrix;
+
+typedef Eigen::Matrix4d TransitionMatrix;
+
+typedef Eigen::Array<double, 4, 4> MutationMatrix_HH;
+typedef Eigen::Array<double, 16, 4> MutationMatrix_DH;
+typedef Eigen::Array<double, 16, 16> MutationMatrix_DD;
 
 
 DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data); 

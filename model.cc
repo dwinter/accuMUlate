@@ -53,7 +53,7 @@ DiploidProbs DiploidPopulation(const ModelParams &params, int ref_allele) {
 	return result.exp();
 }
 
-MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut) {
+TransitionMatrix F81(const ModelParams &params){
 	double beta = 1.0;
 	for(auto d : params.nuc_freq)
 		beta -= d*d;
@@ -65,9 +65,33 @@ MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut) {
 			m(i,j) = params.nuc_freq[i]*(1.0-beta);
 		}
 		m(i,i) += beta;
-	}
-	//cerr << m << endl;
-	MutationMatrix result;
+    }
+    return m;
+}
+
+MutationMatrix_HH MutationAccumulation_HH(const ModelParams &params, bool and_mut){
+	TransitionMatrix m = F81(params);
+    if(and_mut){
+        return m;
+    }
+    MutationMatrix_HH result = MutationMatrix_HH::Zero();
+    //identity matrix initialzer is for Matrices only, these are (despite teh
+    //name) arrays so buid it up:
+    for(int i : {0,1,2,3}){
+        for (int j : {0,1,2,3}){
+            if(i == j){
+                result(i,j) = 1.0;
+            }
+        }
+    }
+    return result;
+}
+
+
+
+MutationMatrix_DH MutationAccumulation_DH(const ModelParams &params, bool and_mut) {
+	TransitionMatrix m = F81(params);
+    MutationMatrix_DH result;
 	for(int i : {0,1,2,3}) {
 		for(int j : {0,1,2,3}) {
 			for(int k : {0,1,2,3}) {
@@ -127,53 +151,57 @@ HaploidProbs HaploidSequencing(const ModelParams &params, int ref_allele, ReadDa
 	return (result - scale).exp();
 }
 
-double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
-	MutationMatrix m = MutationAccumulation(params, false);
-	MutationMatrix mt = MutationAccumulation(params, true);
-	MutationMatrix mn = m-mt;	
-	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);
-		
-	auto it = site_data.all_reads.begin();
-	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
-	anc_genotypes *= pop_genotypes;
-	DiploidProbs num_genotypes = anc_genotypes;
-	for(++it; it != site_data.all_reads.end(); ++it) {
-		HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
-		anc_genotypes *= (m.matrix()*p.matrix()).array();
-		num_genotypes *= (mn.matrix()*p.matrix()).array();
+//double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
+//	MutationMatrix m = MutationAccumulation(params, false);
+//	MutationMatrix mt = MutationAccumulation(params, true);
+//	MutationMatrix mn = m-mt;	
+//	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);
+//		
+//	auto it = site_data.all_reads.begin();
+//	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
+//	anc_genotypes *= pop_genotypes;
+//	DiploidProbs num_genotypes = anc_genotypes;
+//	for(++it; it != site_data.all_reads.end(); ++it) {
+//		HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
+//		anc_genotypes *= (m.matrix()*p.matrix()).array();
+//		num_genotypes *= (mn.matrix()*p.matrix()).array();
+//
+//	}
+//
+////    cerr << "\n" << anc_genotypes.sum() << '\t' << num_genotypes.sum() << endl;
+//	return 1.0 - num_genotypes.sum()/anc_genotypes.sum();
+//}
+//
+//double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data) {
+//    MutationMatrix m = MutationAccumulation(params, false);//TODO cache these
+//	MutationMatrix mt = MutationAccumulation(params, true);//
+//	MutationMatrix mn = m-mt;	                           //
+//	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);
+//		
+//	auto it = site_data.all_reads.begin();
+//	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
+//	anc_genotypes *= pop_genotypes;
+//
+//  	DiploidProbs denom = anc_genotypes;   //product of p(Ri|A)
+//    
+//    DiploidProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
+//    DiploidProbs mut_genotypes = DiploidProbs::Zero();      //Sum of p(Ri&Mutation|A=x)
+//	for(++it; it != site_data.all_reads.end(); ++it) {
+//        HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
+//        DiploidProbs dgen =  (mn.matrix()*p.matrix()).array();
+//        DiploidProbs agen = (m.matrix()*p.matrix()).array();
+//        nomut_genotypes *= dgen;
+//        mut_genotypes += (agen/dgen - 1); //(agen+dgen)/agen
+//        denom *= agen;
+//    }
+//    double result = (nomut_genotypes * mut_genotypes).sum() / denom.sum();
+//    return(result);
+//}
 
-	}
 
-//    cerr << "\n" << anc_genotypes.sum() << '\t' << num_genotypes.sum() << endl;
-	return 1.0 - num_genotypes.sum()/anc_genotypes.sum();
+int main(){
+    return 0;
 }
-
-double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data) {
-    MutationMatrix m = MutationAccumulation(params, false);//TODO cache these
-	MutationMatrix mt = MutationAccumulation(params, true);//
-	MutationMatrix mn = m-mt;	                           //
-	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);
-		
-	auto it = site_data.all_reads.begin();
-	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
-	anc_genotypes *= pop_genotypes;
-
-  	DiploidProbs denom = anc_genotypes;   //product of p(Ri|A)
-    
-    DiploidProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
-    DiploidProbs mut_genotypes = DiploidProbs::Zero();      //Sum of p(Ri&Mutation|A=x)
-	for(++it; it != site_data.all_reads.end(); ++it) {
-        HaploidProbs p = HaploidSequencing(params, site_data.reference, *it);
-        DiploidProbs dgen =  (mn.matrix()*p.matrix()).array();
-        DiploidProbs agen = (m.matrix()*p.matrix()).array();
-        nomut_genotypes *= dgen;
-        mut_genotypes += (agen/dgen - 1); //(agen+dgen)/agen
-        denom *= agen;
-    }
-    double result = (nomut_genotypes * mut_genotypes).sum() / denom.sum();
-    return(result);
-}
-
 // Uncommon and compile with this:
 // clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
 //
