@@ -1,7 +1,6 @@
 #ifndef model_H
 #define model_H
 
-
 #include "Eigen/Dense"
 
 using namespace std;
