@@ -36,6 +36,15 @@ class VariantVisitor : public ReadDataVisitor{
     public:
          void Visit(const PileupPosition& pileupData) {
             if (GatherReadData(pileupData) ){
+                vector<double> phets = AncestralHeterozygosity(m_params, site_data);
+                if(phets[0] > m_prob_cut || phets[1] > m_prob_cut){
+                     *m_ostream << m_bam_references[pileupData.RefId].RefName << '\t'
+                                << pileupData.Position << '\t' 
+                                << pileupData.Position  + 1 << '\t' 
+                                << phets[0] << '\t' 
+                                << phets[1] << '\t' 
+                                << endl;   
+                } 
             } 
         }
     private:
