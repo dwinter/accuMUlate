@@ -3,45 +3,71 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <limits>       
 
+#include "api/BamReader.h"
+#include "utils/bamtools_pileup_engine.h"
+#include "utils/bamtools_fasta.h"
+
+
+#include "model.h"
 #include "parsers.h"
 
 
 using namespace std;
 using namespace BamTools;
 
-FastaReference::FastaReference(string ref_file_name){
-    ifstream ref_file (ref_file_name);
-    string L;
-    uint64_t cummulative_len = 0;
-    while( getline(ref_file, L)){
-        size_t i = 0;
-        string chrom;
-        for(; L[i] != '\t'; i++){
-            chrom.push_back(L[i]);
-        }
-        i += 1;
-        string s_len;
-        for (; L[i] !='\t'; i++){
-            s_len.push_back(L[i]);
-        }
-        uint32_t chrom_len = stoul(s_len);
-        cummulative_len += chrom_len;
-        chromosomes.push_back(FastaReferenceData{ chrom, 
-                                                  chrom_len, 
-                                                  cummulative_len
-                                                 });
+
+
+//Base visitor, which does two things per site:
+//Set a flag descrbing
+ReadDataVisitor::ReadDataVisitor(
+                        const RefVector& bam_references, 
+                        Fasta& idx_ref,
+                        SampleMap& samples, 
+                        const ModelParams& p,  
+                        BamAlignment& ali, 
+                        int qual_cut,
+                        int mapping_cut):
+
+            PileupVisitor(),
+                m_bam_references(bam_references),            
+                m_idx_ref(idx_ref),
+                m_samples(samples), 
+                m_params(p),
+                m_ali(ali), 
+                m_qual_cut(qual_cut),  
+                m_mapping_cut(mapping_cut)   { }
+//        ~ReadDataVisitor(void) { }
+//    public:
+
+bool ReadDataVisitor::GatherReadData(const PileupPosition& pileupData) {
+    //Like it says, collect a sites reads. If the site is good to call
+    //from set the site_data object and return `true`.  
+    uint64_t pos  = pileupData.Position;
+    m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
+    uint16_t ref_base_idx = base_index(current_base);
+    if( ref_base_idx > 4 ) { // TODO: This treats all non IUPAC codes as masks. Document this is we keep it 
+        return false;
     }
-}
-    
-void FastaReference::get_ref_id(string search_name, int& chr_id){
-    auto it = find_if(chromosomes.begin(), chromosomes.end(),
-                     [&search_name](const FastaReferenceData& chrom){
-                        return chrom.name == search_name;
-                      });
-    int idx  = distance(chromosomes.begin(), it);
-    chr_id = idx;
-}
+    ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
+    for(auto it = begin(pileupData.PileupAlignments);
+             it !=  end(pileupData.PileupAlignments); 
+             ++it){
+        if( include_site(*it, m_mapping_cut, m_qual_cut) ){
+            it->Alignment.GetTag("RG", tag_id);
+            uint32_t sindex = m_samples[tag_id]; 
+                if( sindex  != std::numeric_limits<uint32_t>::max()  ){
+                uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
+                if (bindex < 4 ){
+                    bcalls[sindex].reads[bindex] += 1;
+                }
+            }
+        }
+    }
+    site_data =  {ref_base_idx, bcalls};
+    return true;
+};
 
 
 BedFile::BedFile(string bed_file_name){
@@ -66,6 +92,10 @@ int BedFile::get_interval(BedInterval& current_interval){
    else {return 1;}
     
 }
+
+
+
+
 
 //
 //Helper functions for parsing data out of BAMs
@@ -114,7 +144,9 @@ bool include_site(PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
 }
 
 
-
+//int main(){
+//    return 0;
+//}
 
 
 //int main() {
@@ -131,9 +163,4 @@ bool include_site(PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
 //    return 0;
 //}
 //
-
-
-
-
-
    

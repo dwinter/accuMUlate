@@ -18,77 +18,30 @@
 using namespace std;
 using namespace BamTools;
 
-                             
-class VariantVisitor : public PileupVisitor{
+class VariantVisitor : public ReadDataVisitor{
     public:
         VariantVisitor(const RefVector& bam_references, 
-                       const SamHeader& header,
-                       const Fasta& idx_ref,
+                       Fasta& idx_ref,
                        ostream *out_stream,
-                       const SampleMap& samples, 
+                       SampleMap& samples, 
                        const ModelParams& p,  
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
-                       double prob_cut,
-                       double& sum_hets):
+                       double prob_cut):
 
-            PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
-                             m_header(header), m_samples(samples), 
-                             m_qual_cut(qual_cut), m_params(p), m_ali(ali), 
-                             m_ostream(out_stream), m_prob_cut(prob_cut),
-                             m_mapping_cut(mapping_cut), m_sum_hets(sum_hets)
-                              { }
+        ReadDataVisitor(bam_references, idx_ref, samples, p, ali, qual_cut, mapping_cut),
+                        m_ostream(out_stream), m_prob_cut(prob_cut) { }
         ~VariantVisitor(void) { }
     public:
          void Visit(const PileupPosition& pileupData) {
-             uint64_t pos  = pileupData.Position;
-             m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
-             ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
-             for(auto it = begin(pileupData.PileupAlignments);
-                      it !=  end(pileupData.PileupAlignments); 
-                      ++it){
-                 if( include_site(*it, m_mapping_cut, m_qual_cut) ){
-                    it->Alignment.GetTag("RG", tag_id);
-                    uint32_t sindex = m_samples[tag_id]; //TODO check samples existed! 
-                    uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
-                    if (bindex < 4 ){
-                        bcalls[sindex].reads[bindex] += 1;
-                    }
-                }
-            }
-            uint16_t ref_base_idx = base_index(current_base);
-            if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N' (=masked for Tt, maybe not others?)
-                ModelInput d = {ref_base_idx, bcalls};
-                vector<double> probs =  AncestralHeterozygosity(m_params, d);
-                m_sum_hets += probs[1];
-                if(probs[0] >= m_prob_cut || probs[1] >= m_prob_cut ){
-                     
-                     *m_ostream << m_bam_ref[pileupData.RefId].RefName << '\t'
-                                << pos << '\t' 
-                                << pos + 1 << '\t' 
-                                << current_base << '\t' 
-                                << probs[0] << '\t' 
-                                << probs[1] << '\t' 
-                                << endl;          
-                }
-            }
-         }
+            if (GatherReadData(pileupData) ){
+            } 
+        }
     private:
-        RefVector m_bam_ref;
-        SamHeader m_header;
-        Fasta m_idx_ref; 
         ostream* m_ostream;
-        SampleMap m_samples;
-        BamAlignment& m_ali;
-        ModelParams m_params;
-        int m_qual_cut;
-        int m_mapping_cut;
         double m_prob_cut;
-        char current_base;
-        string tag_id;
-        uint64_t chr_index;
-        double& m_sum_hets;
+
 };
 
 
@@ -98,14 +51,15 @@ int main(int argc, char** argv){
     namespace po = boost::program_options;
     string ref_file;
     string config_path;
+    string anc_tag;
     po::options_description cmd("Command line options");
     cmd.add_options()
         ("help,h", "Print a help message")
         ("bam,b", po::value<string>()->required(), "Path to BAM file")
         ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
         ("reference,r", po::value<string>(&ref_file)->required(),  "Path to reference genome")
-//       ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
-//        ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
+        ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
+        ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags to include")
         ("qual,q", po::value<int>()->default_value(13), 
                    "Base quality cuttoff")
         
@@ -175,19 +129,38 @@ int main(int argc, char** argv){
     reference_genome.Open(ref_file, faidx_path);
 
     // Map readgroups to samples
-    // TODO: this presumes first sample is ancestor. True for our data, not for
-    // others.
-    // First map all sample names to an index for ReadDataVectors
+    // First check it we want to use a given sample 
+    // map all 'keeper' sample names to an index for ReadDataVectors use
+    // (unsigned) -1 as a "missing" code
+    // 
     SampleMap name_map;
-    uint16_t sindex = 0;
+    vector<string> keepers =  vm["sample-name"].as< vector<string> >();
+    uint16_t sindex = 1;
+    bool ancestor_in_BAM = false;
     for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
         if(it->HasSample()){
-            auto s  = name_map.find(it->Sample);
-            if( s == name_map.end()){ // not in there yet
-                name_map[it->Sample] = sindex;
-                sindex += 1;
+            if (find(keepers.begin(), keepers.end(), it->Sample) == keepers.end()){
+                if(it->Sample == anc_tag ){    
+                      name_map[it->Sample] = 0; 
+                      ancestor_in_BAM = true;
+                } else {      
+                    name_map[it->Sample] = std::numeric_limits<uint32_t>::max()  ;           
+                    cerr << "Warning: excluding data from '" << it->Sample <<
+                         "' which is included in the BAM file but not the list of included samples" << endl;
+                }
+            }else {
+                auto s  = name_map.find(it->Sample);
+                if( s == name_map.end()){ 
+                    name_map[it->Sample] = sindex;
+                    sindex += 1;
+                }
             }
         }
+    }
+    if(!ancestor_in_BAM){
+        cerr << "Error: No data for ancestral sample '" << anc_tag << 
+            "' in the specifified BAM file. Check the sample tags match" << endl;
+        exit(1);
     }
     // And now, go back over the read groups to map RG:sample index
     SampleMap samples;
@@ -199,11 +172,9 @@ int main(int argc, char** argv){
 
     PileupEngine pileup;
     BamAlignment ali;
-    double sum_het;
 
     VariantVisitor *v = new VariantVisitor(
             references,
-            header,
             reference_genome, 
             &result_stream,
 //            vm["sample-name"].as<vector< string> >(),
@@ -212,8 +183,7 @@ int main(int argc, char** argv){
             ali, 
             vm["qual"].as<int>(), 
             vm["mapping-qual"].as<int>(),
-            vm["prob"].as<double>(),
-            sum_het
+            vm["prob"].as<double>()
         );
     pileup.AddVisitor(v);
    
@@ -234,7 +204,6 @@ int main(int argc, char** argv){
         }  
     }
     pileup.Flush();
-    cout << sum_het << endl;
     return 0;
 }
 

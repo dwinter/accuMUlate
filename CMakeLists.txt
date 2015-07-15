@@ -18,8 +18,8 @@ include_directories("./")
 add_executable(accuMUlate main.cc model.cc parsers.cc)
 target_link_libraries(accuMUlate ${LIBS})
 
-add_executable(pp utils/post_processor.cc parsers.cc model.cc)
-target_link_libraries(pp ${LIBS})
+#add_executable(pp utils/post_processor.cc parsers.cc model.cc)
+#target_link_libraries(pp ${LIBS})
 
-add_executable(denom utils/denom.cc parsers.cc model.cc)
-target_link_libraries(denom ${LIBS})
+#add_executable(denom utils/denom.cc parsers.cc model.cc)
+#target_link_libraries(denom ${LIBS})
