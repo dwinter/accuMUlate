@@ -80,7 +80,7 @@ MutationMatrix_HH MutationAccumulation_HH(const ModelParams &params, bool and_mu
     for(int i : {0,1,2,3}){
         for (int j : {0,1,2,3}){
             if(i == j){
-                result(i,j) = 1.0;
+                result(i,j) = m(i,j);
             }
         }
     }
@@ -105,6 +105,27 @@ MutationMatrix_DH MutationAccumulation_DH(const ModelParams &params, bool and_mu
 	}
 	return result;
 }
+
+
+MutationMatrix_DD MutationAccumulation_DD(const ModelParams &params, bool and_mut) {
+	TransitionMatrix m = F81(params);
+    MutationMatrix_DD result;
+	for(int i : {0,1,2,3}) {
+		for(int j : {0,1,2,3}) {
+			for(int k : {0,1,2,3}) {
+    			for(int l : {0,1,2,3}) {                
+    				result(i*4+j,k*4+l) = 0.0;
+    				if(!and_mut || i != k || j != l ){//TODO: check this is right transition prob
+					    result(i*4+j,k*4+l) += m(i,k) * m(j,l);
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+
 
 DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data) {
 	DiploidProbs result;
@@ -200,7 +221,19 @@ HaploidProbs HaploidSequencing(const ModelParams &params, int ref_allele, ReadDa
 
 
 int main(){
-    return 0;
+      ModelParams p = { 
+        0.0001, 
+        {0.38, 0.12, 0.12, 0.38}, 
+        1e-2,
+        0.01,
+        0.01,
+        0.05,
+    };
+   MutationMatrix_DH m = MutationAccumulation_DH(p, true);
+   MutationMatrix_DH mn = MutationAccumulation_DH(p, false);
+//   cerr << m << endl;
+   cout << mn- m << endl;
+   return 0;
 }
 // Uncommon and compile with this:
 // clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
