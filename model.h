@@ -19,6 +19,8 @@ struct ModelParams{
     double error_prob;          // Sequencing error-rate 
     double phi_haploid;         // Overdispersion for haploid sequencing
     double phi_diploid;         // Overdispersion for diploid sequencing
+    int ploidy_ancestor;         //
+    int ploidy_descendant;       //
 };
 
 struct ModelInput{// Can probably stand to lose this, started out more complex..
