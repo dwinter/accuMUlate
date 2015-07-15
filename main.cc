@@ -61,14 +61,15 @@ int main(int argc, char** argv){
     namespace po = boost::program_options;
     string ref_file;
     string config_path;
+    string anc_tag;
     po::options_description cmd("Command line options");
     cmd.add_options()
         ("help,h", "Print a help message")
         ("bam,b", po::value<string>()->required(), "Path to BAM file")
         ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
         ("reference,r", po::value<string>(&ref_file)->required(),  "Path to reference genome")
-//       ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
-//        ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
+        ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
+        ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags to include")
         ("qual,q", po::value<int>()->default_value(13), 
                    "Base quality cuttoff")
         
@@ -138,19 +139,38 @@ int main(int argc, char** argv){
     reference_genome.Open(ref_file, faidx_path);
 
     // Map readgroups to samples
-    // TODO: this presumes first sample is ancestor. True for our data, not for
-    // others.
-    // First map all sample names to an index for ReadDataVectors
+    // First check it we want to use a given sample 
+    // map all 'keeper' sample names to an index for ReadDataVectors use
+    // (unsigned) -1 as a "missing" code
+    // 
     SampleMap name_map;
-    uint16_t sindex = 0;
+    vector<string> keepers =  vm["sample-name"].as< vector<string> >();
+    uint16_t sindex = 1;
+    bool ancestor_in_BAM = false;
     for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
         if(it->HasSample()){
-            auto s  = name_map.find(it->Sample);
-            if( s == name_map.end()){ // not in there yet
-                name_map[it->Sample] = sindex;
-                sindex += 1;
+            if (find(keepers.begin(), keepers.end(), it->Sample) == keepers.end()){
+                if(it->Sample == anc_tag ){    
+                      name_map[it->Sample] = 0; 
+                      ancestor_in_BAM = true;
+                } else {      
+                    name_map[it->Sample] = std::numeric_limits<uint32_t>::max()  ;           
+                    cerr << "Warning: excluding data from '" << it->Sample <<
+                         "' which is included in the BAM file but not the list of included samples" << endl;
+                }
+            }else {
+                auto s  = name_map.find(it->Sample);
+                if( s == name_map.end()){ 
+                    name_map[it->Sample] = sindex;
+                    sindex += 1;
+                }
             }
         }
+    }
+    if(!ancestor_in_BAM){
+        cerr << "Error: No data for ancestral sample '" << anc_tag << 
+            "' in the specifified BAM file. Check the sample tags match" << endl;
+        exit(1);
     }
     // And now, go back over the read groups to map RG:sample index
     SampleMap samples;
