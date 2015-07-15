@@ -3,45 +3,91 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <limits>       
 
+#include "api/BamReader.h"
+#include "utils/bamtools_pileup_engine.h"
+#include "utils/bamtools_fasta.h"
+
+
+#include "model.h"
 #include "parsers.h"
 
 
 using namespace std;
 using namespace BamTools;
 
-FastaReference::FastaReference(string ref_file_name){
-    ifstream ref_file (ref_file_name);
-    string L;
-    uint64_t cummulative_len = 0;
-    while( getline(ref_file, L)){
-        size_t i = 0;
-        string chrom;
-        for(; L[i] != '\t'; i++){
-            chrom.push_back(L[i]);
-        }
-        i += 1;
-        string s_len;
-        for (; L[i] !='\t'; i++){
-            s_len.push_back(L[i]);
-        }
-        uint32_t chrom_len = stoul(s_len);
-        cummulative_len += chrom_len;
-        chromosomes.push_back(FastaReferenceData{ chrom, 
-                                                  chrom_len, 
-                                                  cummulative_len
-                                                 });
-    }
-}
-    
-void FastaReference::get_ref_id(string search_name, int& chr_id){
-    auto it = find_if(chromosomes.begin(), chromosomes.end(),
-                     [&search_name](const FastaReferenceData& chrom){
-                        return chrom.name == search_name;
-                      });
-    int idx  = distance(chromosomes.begin(), it);
-    chr_id = idx;
-}
+
+
+//Base visitor, which does two things per site:
+//Set a flag descrbing
+class ReadDataVisitor : public PileupVisitor{
+    public:
+        ReadDataVisitor(const RefVector& bam_references, 
+                        Fasta& idx_ref,
+                        SampleMap& samples, 
+                        const ModelParams& p,  
+                        BamAlignment& ali, 
+                        int qual_cut,
+                        int mapping_cut):
+
+            PileupVisitor(),
+                m_bam_references(bam_references),            
+                m_idx_ref(idx_ref),
+                m_samples(samples), 
+                m_params(p),
+                m_ali(ali), 
+                m_qual_cut(qual_cut),  
+                m_mapping_cut(mapping_cut)   { }
+        ~ReadDataVisitor(void) { }
+    public:
+         void GatherReadData(const PileupPosition& pileupData) {
+             //Like it says, collect a sites reads. If the site is good to call
+             //from set 
+             uint64_t pos  = pileupData.Position;
+             m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
+             uint16_t ref_base_idx = base_index(current_base);
+             if( ref_base_idx > 4 ) { //treat all non IUPAC codes as masks? 
+                 passing_QC = false;
+                 return;
+             }
+             ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
+             for(auto it = begin(pileupData.PileupAlignments);
+                      it !=  end(pileupData.PileupAlignments); 
+                      ++it){
+                 if( include_site(*it, m_mapping_cut, m_qual_cut) ){
+                    it->Alignment.GetTag("RG", tag_id);
+                    uint32_t sindex = m_samples[tag_id]; //TODO check samples existed! 
+                    if( sindex  != std::numeric_limits<uint32_t>::max()  ){
+                        uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
+                        if (bindex < 4 ){
+                            bcalls[sindex].reads[bindex] += 1;
+                        }
+                    }
+                }
+             }
+            passing_QC =  true;
+            site_data =  {ref_base_idx, bcalls};
+         }
+    public:
+            void Visit(const PileupPosition& pileupData) = 0;
+    private:
+        //set by arguments
+        const RefVector& m_bam_references;
+        Fasta& m_idx_ref;
+        SampleMap& m_samples;
+        const ModelParams& m_params;
+        BamAlignment& m_ali;
+        int m_qual_cut;
+        int m_mapping_cut;
+        //refered to by fnxs
+        bool passing_QC;
+        char current_base;
+        string tag_id;
+        uint64_t chr_index;
+        ModelInput site_data;
+};
+
 
 
 BedFile::BedFile(string bed_file_name){
@@ -66,6 +112,10 @@ int BedFile::get_interval(BedInterval& current_interval){
    else {return 1;}
     
 }
+
+
+
+
 
 //
 //Helper functions for parsing data out of BAMs
@@ -114,7 +164,9 @@ bool include_site(PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
 }
 
 
-
+int main(){
+    return 0;
+}
 
 
 //int main() {
@@ -131,9 +183,4 @@ bool include_site(PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
 //    return 0;
 //}
 //
-
-
-
-
-
    
