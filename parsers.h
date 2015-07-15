@@ -9,7 +9,7 @@ using namespace std;
 using namespace BamTools;
 
 //typedef vector< string > SampleNames;
-typedef unordered_map<string, uint16_t> SampleMap;
+typedef unordered_map<string, uint32_t> SampleMap;
 
 struct BedInterval{
     string chr;
