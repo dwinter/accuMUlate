@@ -18,73 +18,40 @@
 using namespace std;
 using namespace BamTools;
 
-                             
-class VariantVisitor : public PileupVisitor{
+class VariantVisitor : public ReadDataVisitor{
     public:
         VariantVisitor(const RefVector& bam_references, 
-                       const SamHeader& header,
-                       const Fasta& idx_ref,
+                       Fasta& idx_ref,
                        ostream *out_stream,
-                       const SampleMap& samples, 
+                       SampleMap& samples, 
                        const ModelParams& p,  
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
                        double prob_cut):
 
-            PileupVisitor(), m_idx_ref(idx_ref), m_bam_ref(bam_references), 
-                             m_header(header), m_samples(samples), 
-                             m_qual_cut(qual_cut), m_params(p), m_ali(ali), 
-                             m_ostream(out_stream), m_prob_cut(prob_cut),
-                             m_mapping_cut(mapping_cut)
-                              { }
+        ReadDataVisitor(bam_references, idx_ref, samples, p, ali, qual_cut, mapping_cut),
+                        m_ostream(out_stream), m_prob_cut(prob_cut) { }
         ~VariantVisitor(void) { }
     public:
          void Visit(const PileupPosition& pileupData) {
-             uint64_t pos  = pileupData.Position;
-             m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
-             ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
-             for(auto it = begin(pileupData.PileupAlignments);
-                      it !=  end(pileupData.PileupAlignments); 
-                      ++it){
-                 if( include_site(*it, m_mapping_cut, m_qual_cut) ){
-                    it->Alignment.GetTag("RG", tag_id);
-                    uint32_t sindex = m_samples[tag_id]; //TODO check samples existed! 
-                    uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
-                    if (bindex < 4 ){
-                        bcalls[sindex].reads[bindex] += 1;
-                    }
-                }
-            }
-            uint16_t ref_base_idx = base_index(current_base);
-            if (ref_base_idx < 4  ){ //TODO Model for bases at which reference is 'N' (=masked for Tt, maybe not others?)
-                ModelInput d = {ref_base_idx, bcalls};
-                double prob_one = TetMAProbOneMutation(m_params,d);
-                double prob = TetMAProbability(m_params, d);
+            if (GatherReadData(pileupData) ){
+                double prob = TetMAProbability(m_params, site_data);
                 if(prob >= m_prob_cut){
-                     *m_ostream << m_bam_ref[pileupData.RefId].RefName << '\t'
-                                << pos << '\t' 
-                                << current_base << '\t' 
-                                << prob << '\t' 
-                                << prob_one << '\t' 
-                                << endl;          
+                    double prob_one = TetMAProbOneMutation(m_params, site_data);
+                         *m_ostream << m_bam_references[pileupData.RefId].RefName << '\t'
+                                    << pileupData.Position << '\t' 
+                                    << current_base << '\t' 
+                                    << prob << '\t' 
+                                    << prob_one << '\t' 
+                                    << endl;          
                 }
             }
-         }
+        }
     private:
-        RefVector m_bam_ref;
-        SamHeader m_header;
-        Fasta m_idx_ref; 
         ostream* m_ostream;
-        SampleMap m_samples;
-        BamAlignment& m_ali;
-        ModelParams m_params;
-        int m_qual_cut;
-        int m_mapping_cut;
         double m_prob_cut;
-        char current_base;
-        string tag_id;
-        uint64_t chr_index;
+
 };
 
 
@@ -198,7 +165,6 @@ int main(int argc, char** argv){
 
     VariantVisitor *v = new VariantVisitor(
             references,
-            header,
             reference_genome, 
             &result_stream,
 //            vm["sample-name"].as<vector< string> >(),
