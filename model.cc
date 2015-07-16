@@ -72,7 +72,11 @@ MutationMatrix_DD DiploidAutoDiploid(const ModelParams &params) {
 		for(int j : {0,1,2,3}) {
 			for(int k : {0,1,2,3}) {
 			    for(int l : {0,1,2,3}) {
-    				result(i*4+j,k*4+l) = 0.5*m(i,k) + 0.5*m(j,l);
+                    if( k != l){ 
+        				result(i*4+j,k*4+l) = 0.0;
+                    } else {
+        				result(i*4+j,k*4+l) = 0.5*m(i,k) + 0.5*m(j,l);
+                    }
                 }
 			}
 		}
