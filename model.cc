@@ -53,6 +53,26 @@ DiploidProbs DiploidPopulation(const ModelParams &params, int ref_allele) {
 	return result.exp();
 }
 
+HaploidProbs HaploidPopulation(const ModelParams &params, int ref_allele) {
+	ReadData d;
+	HaploidProbs result;
+	double alphas[4];
+	for(int i : {0,1,2,3})
+		alphas[i] = params.theta*params.nuc_freq[i];
+    for(int i : {0,1,2,3}){
+        d.key = 0;
+        d.reads[i] = 1;
+        d.reads[ref_allele] = 1;
+        result[i] = DirichletMultinomialLogProbability(alphas, d);
+    }
+    return result;
+}
+        
+
+}
+
+
+
 TransitionMatrix F81(const ModelParams &params){
 	double beta = 1.0;
 	for(auto d : params.nuc_freq)
@@ -189,9 +209,9 @@ double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
 }
 
 double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data) {
-	MutationMatrix_DD m = MutationAccumulation_DD(params, false);
-	MutationMatrix_DD mt = MutationAccumulation_DD(params, true);
-	MutationMatrix_DD mn = m-mt;	
+	MutationMatrix m = MutationAccumulation_DD(params, false);
+	MutationMatrix mt = MutationAccumulation_DD(params, true);
+	MutationMatrix mn = m-mt;	
 	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);	
 	auto it = site_data.all_reads.begin();
 	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
