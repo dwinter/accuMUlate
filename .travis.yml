@@ -1,3 +1,21 @@
+## DW original version
+#language: cpp
+#compiler: clang
+#install:
+#  - sudo apt-get install libboost-program-options-dev
+#before_script:
+#  - mkdir build
+#  - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz
+#  - mv eigen-eigen-10219c95fe65/Eigen/ Eigen/
+#  - cd third-party/bamtools/build && cmake .. && make
+
+#script:
+#    - cd /home/travis/build/dwinter/accuMUlate/build/
+#    - cmake -DBamtools_PREFIX=../third-party/bamtools/ ..
+#    - make
+
+
+## Update version with cache
 language: cpp
 sudo: false
 compiler:
