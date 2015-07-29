@@ -99,7 +99,7 @@ script:
   - ls -l $HOME
   - ls -l $HOME/build
   - ls -l $HOME/builds
-  - cd $HOME/build/stevenhwu/accuMUlate/ && pwd &&  mkdir -p build && cd build && cmake -DBamtools_PREFIX=${HOME}/build/bamtools/ .. #-DEIGEN3_INCLUDE_DIR=$HOME/include/ -DBOOST_INCLUDEDIR=$HOME .. && make
+  - mkdir -p build && cd build && cmake -DBamtools_PREFIX=${HOME}/build/bamtools/ .. #-DEIGEN3_INCLUDE_DIR=$HOME/include/ -DBOOST_INCLUDEDIR=$HOME .. && make
   - make 
 cache:
     directories:
