@@ -69,47 +69,43 @@ TransitionMatrix F81(const ModelParams &params){
     return m;
 }
 
-MutationMatrix_HH MutationAccumulation_HH(const ModelParams &params, bool and_mut){
+
+
+MutationMatrix MutationAccumulation_(const ModelParams &params, bool and_mut){
 	TransitionMatrix m = F81(params);
-    if(and_mut){
-        return m;
-    }
-    MutationMatrix_HH result = MutationMatrix_HH::Zero();
-    //identity matrix initialzer is for Matrices only, these are (despite teh
-    //name) arrays so buid it up:
-    for(int i : {0,1,2,3}){
-        for (int j : {0,1,2,3}){
-            if(i == j){
-                result(i,j) = m(i,j);
+    if(params.ploidy_ancestor == 1){//haploid->haploid design
+        if(and_mut){
+            return m;
+        }
+        Eigen::ArrayXXd result = MutationMatrix_HH::Zero();
+        //identity matrix initialzer is for Matrices only, these are (despite teh
+        //name) arrays so buid it up:
+        for(int i : {0,1,2,3}){
+            for (int j : {0,1,2,3}){
+                if(i == j){
+                    result(i,j) = m(i,j);
+                }
             }
         }
+        return result;
     }
-    return result;
-}
-
-
-
-MutationMatrix_DH MutationAccumulation_DH(const ModelParams &params, bool and_mut) {
-	TransitionMatrix m = F81(params);
-    MutationMatrix_DH result;
-	for(int i : {0,1,2,3}) {
-		for(int j : {0,1,2,3}) {
-			for(int k : {0,1,2,3}) {
-				result(i*4+j,k) = 0.0;
-				if(!and_mut || i != k)
+    if(params.ploidy_descendant == 1){//diploid -> haploid design
+        result = MutationMarix(16,4)
+        for(int i : {0,1,2,3}) {
+		    for(int j : {0,1,2,3}) {
+			    for(int k : {0,1,2,3}) {
+				    result(i*4+j,k) = 0.0;
+        				if(!and_mut || i != k)
 					result(i*4+j,k) += 0.5*m(i,k);
-				if(!and_mut || j != k)
+		        		if(!and_mut || j != k)
 					result(i*4+j,k) += 0.5*m(j,k);
-			}
-		}
-	}
-	return result;
-}
-
-
-MutationMatrix_DD MutationAccumulation_DD(const ModelParams &params, bool and_mut) {
-	TransitionMatrix m = F81(params);
-    MutationMatrix_DD result;
+                }
+            }
+	    }
+	    return result;
+    }
+    //only diploid->diploid left 
+    result = MutationMarix(16,16);
 	for(int i : {0,1,2,3}) {
 		for(int j : {0,1,2,3}) {
 			for(int k : {0,1,2,3}) {

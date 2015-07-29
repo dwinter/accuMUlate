@@ -33,9 +33,11 @@ typedef Eigen::Array<double, 16, 1> DiploidProbs;
 
 typedef Eigen::Matrix4d TransitionMatrix;
 
-typedef Eigen::Array<double, 4, 4> MutationMatrix_HH;
-typedef Eigen::Array<double, 16, 4> MutationMatrix_DH;
-typedef Eigen::Array<double, 16, 16> MutationMatrix_DD;
+typedef Eigen::ArrayXXd MutationMatix; //array of dynamic dimensions
+
+//typedef Eigen::Array<double, 4, 4> MutationMatrix_HH;
+//typedef Eigen::Array<double, 16, 4> MutationMatrix_DH;
+//typedef Eigen::Array<double, 16, 16> MutationMatrix_DD;
 
 
 DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data); 

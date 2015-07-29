@@ -87,8 +87,7 @@ int main(int argc, char** argv){
         ("mu", po::value<double>()->required(), "")  
         ("seq-error", po::value<double>()->required(), "") 
         ("phi-haploid",     po::value<double>()->required(), "") 
-        ("phi-diploid",     po::value<double>()->required(), ""); 
-
+        ("phi-diploid",     po::value<double>()->required(), "");
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, cmd), vm);
 
