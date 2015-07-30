@@ -144,36 +144,40 @@ MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut){
     return result;
 }
 
+//Calculate the genotype likelihoods. Again we have one function with returns 
+//differently sized results depending on the ploidy of experiment.
 
-GenotypeProbs Sequencing(const ModelParams &params, int ref_allele, ReadData data, int ploidy) {
-    if(ploidy == 2){
-    	DiploidProbs result;
-	    double alphas_total = (1.0-params.phi_diploid)/params.phi_diploid;
-    	for(int i : {0,1,2,3}) {
-	    	for(int j=0;j<i;++j) {
-		    	double alphas[4];
-			    for(int k : {0,1,2,3}) {
-				    if(k == i || k == j)
-					    alphas[k] = (0.5-params.error_prob/3.0)*alphas_total;
-    				else
-	    				alphas[k] = (params.error_prob/3.0)*alphas_total;
-		    	}
-			    result[i*4+j] = DirichletMultinomialLogProbability(alphas, data);
-    			result[j*4+i] = result[i*4+j];
-	    	}
-		    double alphas[4];
-    		for(int k : {0,1,2,3}) {
-	    		if(k == i)
-		    		alphas[k] = (1.0-params.error_prob)*alphas_total;
-			    else
-				    alphas[k] = params.error_prob/3.0*alphas_total;
-    		}
-	    	result[i*4+i] = DirichletMultinomialLogProbability(alphas, data);
-    	}
-	    double scale = result.maxCoeff();
-    	return (result - scale).exp();
-    }
-    	HaploidProbs result;
+
+DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data) {
+	DiploidProbs result;
+	double alphas_total = (1.0-params.phi_diploid)/params.phi_diploid;
+	for(int i : {0,1,2,3}) {
+		for(int j=0;j<i;++j) {
+			double alphas[4];
+			for(int k : {0,1,2,3}) {
+				if(k == i || k == j)
+					alphas[k] = (0.5-params.error_prob/3.0)*alphas_total;
+				else
+					alphas[k] = (params.error_prob/3.0)*alphas_total;
+			}
+			result[i*4+j] = DirichletMultinomialLogProbability(alphas, data);
+			result[j*4+i] = result[i*4+j];
+		}
+		double alphas[4];
+		for(int k : {0,1,2,3}) {
+			if(k == i)
+				alphas[k] = (1.0-params.error_prob)*alphas_total;
+			else
+				alphas[k] = params.error_prob/3.0*alphas_total;
+		}
+		result[i*4+i] = DirichletMultinomialLogProbability(alphas, data);
+	}
+	double scale = result.maxCoeff();
+	return (result - scale).exp();
+}
+
+HaploidProbs HaploidSequencing(const ModelParams &params, int ref_allele, ReadData data) {
+	HaploidProbs result;
 	double alphas_total = (1.0-params.phi_haploid)/params.phi_haploid;
 	for(int i : {0,1,2,3}) {
 		double alphas[4];
@@ -187,6 +191,15 @@ GenotypeProbs Sequencing(const ModelParams &params, int ref_allele, ReadData dat
 	}
 	double scale = result.maxCoeff();
 	return (result - scale).exp();
+}
+
+GenotypeProbs Sequencing(const ModelParams &params, int ref_allele, ReadData data, int ploidy) {
+    if(ploidy == 2){
+        DiploidProbs result = DiploidSequencing(params, ref_allele, data);
+        return result;
+    }
+    HaploidProbs result = HaploidSequencing(params, ref_allele, data);
+    return result;
 }
 
 
