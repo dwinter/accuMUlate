@@ -28,6 +28,8 @@ struct ModelInput{// Can probably stand to lose this, started out more complex..
     ReadDataVector all_reads;
 };
 
+typedef Eigen::ArrayXd GenotypeProbs;
+
 typedef Eigen::Array4d HaploidProbs;
 typedef Eigen::Array<double, 16, 1> DiploidProbs;
 

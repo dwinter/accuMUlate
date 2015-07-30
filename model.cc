@@ -30,6 +30,7 @@ double DirichletMultinomialLogProbability(double alphas[4], ReadData data) {
 	return result;
 }
 
+
 DiploidProbs DiploidPopulation(const ModelParams &params, int ref_allele) {
 	ReadData d;
 	DiploidProbs result;
@@ -68,6 +69,14 @@ HaploidProbs HaploidPopulation(const ModelParams &params, int ref_allele) {
     return result.exp();
 }
 
+GenotypeProbs PopulationProbs(const ModelParams &params, int ref_allele, int ploidy){
+    if(ploidy==2){
+        DiploidProbs result = DiploidPopulation(params, ref_allele);
+        return result;
+    }
+    HaploidProbs result = HaploidPopulation(params, ref_allele);
+    return result;
+}
 
 TransitionMatrix F81(const ModelParams &params){
 	double beta = 1.0;
@@ -141,36 +150,35 @@ MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut){
 }
 
 
-DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data) {
-	DiploidProbs result;
-	double alphas_total = (1.0-params.phi_diploid)/params.phi_diploid;
-	for(int i : {0,1,2,3}) {
-		for(int j=0;j<i;++j) {
-			double alphas[4];
-			for(int k : {0,1,2,3}) {
-				if(k == i || k == j)
-					alphas[k] = (0.5-params.error_prob/3.0)*alphas_total;
-				else
-					alphas[k] = (params.error_prob/3.0)*alphas_total;
-			}
-			result[i*4+j] = DirichletMultinomialLogProbability(alphas, data);
-			result[j*4+i] = result[i*4+j];
-		}
-		double alphas[4];
-		for(int k : {0,1,2,3}) {
-			if(k == i)
-				alphas[k] = (1.0-params.error_prob)*alphas_total;
-			else
-				alphas[k] = params.error_prob/3.0*alphas_total;
-		}
-		result[i*4+i] = DirichletMultinomialLogProbability(alphas, data);
-	}
-	double scale = result.maxCoeff();
-	return (result - scale).exp();
-}
-
-HaploidProbs HaploidSequencing(const ModelParams &params, int ref_allele, ReadData data) {
-	HaploidProbs result;
+GenotypeProbs Sequencing(const ModelParams &params, int ref_allele, ReadData data, int ploidy) {
+    if(ploidy == 2){
+    	DiploidProbs result;
+	    double alphas_total = (1.0-params.phi_diploid)/params.phi_diploid;
+    	for(int i : {0,1,2,3}) {
+	    	for(int j=0;j<i;++j) {
+		    	double alphas[4];
+			    for(int k : {0,1,2,3}) {
+				    if(k == i || k == j)
+					    alphas[k] = (0.5-params.error_prob/3.0)*alphas_total;
+    				else
+	    				alphas[k] = (params.error_prob/3.0)*alphas_total;
+		    	}
+			    result[i*4+j] = DirichletMultinomialLogProbability(alphas, data);
+    			result[j*4+i] = result[i*4+j];
+	    	}
+		    double alphas[4];
+    		for(int k : {0,1,2,3}) {
+	    		if(k == i)
+		    		alphas[k] = (1.0-params.error_prob)*alphas_total;
+			    else
+				    alphas[k] = params.error_prob/3.0*alphas_total;
+    		}
+	    	result[i*4+i] = DirichletMultinomialLogProbability(alphas, data);
+    	}
+	    double scale = result.maxCoeff();
+    	return (result - scale).exp();
+    }
+    	HaploidProbs result;
 	double alphas_total = (1.0-params.phi_haploid)/params.phi_haploid;
 	for(int i : {0,1,2,3}) {
 		double alphas[4];
@@ -186,18 +194,15 @@ HaploidProbs HaploidSequencing(const ModelParams &params, int ref_allele, ReadDa
 	return (result - scale).exp();
 }
 
-double TetMAProbability(const ModelParams &params, const ModelInput site_data) {
-	MutationMatrix m = MutationAccumulation(params, false);
-	MutationMatrix mt = MutationAccumulation(params, true);
-	MutationMatrix mn = m-mt;	
-	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);
-		
+
+double TetMAProbability(const ModelParams &params, const ModelInput site_data, const MutationMatrix m, const MutationMatrix mn) {
+    DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);
 	auto it = site_data.all_reads.begin();
-	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
+	DiploidProbs anc_genotypes = Sequencing(params, site_data.reference, *it, 2);
 	anc_genotypes *= pop_genotypes;
 	DiploidProbs num_genotypes = anc_genotypes;
 	for(++it; it != site_data.all_reads.end(); ++it) {
-		DiploidProbs p = DiploidSequencing(params, site_data.reference, *it);
+		DiploidProbs p = Sequencing(params, site_data.reference, *it, 1);
 		anc_genotypes *= (m.matrix()*p.matrix()).array();
 		num_genotypes *= (mn.matrix()*p.matrix()).array();
 
@@ -213,7 +218,7 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
 	MutationMatrix mn = m-mt;	
 	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);	
 	auto it = site_data.all_reads.begin();
-	DiploidProbs anc_genotypes = DiploidSequencing(params, site_data.reference, *it);
+	DiploidProbs anc_genotypes = Sequencing(params, site_data.reference, *it, 2);
 	anc_genotypes *= pop_genotypes;
 
   	DiploidProbs denom = anc_genotypes;   //product of p(Ri|A)
@@ -221,7 +226,7 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
     DiploidProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
     DiploidProbs mut_genotypes = DiploidProbs::Zero();      //Sum of p(Ri&Mutation|A=x)
 	for(++it; it != site_data.all_reads.end(); ++it) {
-        DiploidProbs p = DiploidSequencing(params, site_data.reference, *it);
+        DiploidProbs p = Sequencing(params, site_data.reference, *it, 1);
         DiploidProbs dgen =  (mn.matrix()*p.matrix()).array();
         DiploidProbs agen = (m.matrix()*p.matrix()).array();
         nomut_genotypes *= dgen;
@@ -233,22 +238,22 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
 }
 
 
-//int main(){
-//      ModelParams p = { 
-//        0.0001, 
-//        {0.38, 0.12, 0.12, 0.38}, 
-//        1e-2,
-//        0.01,
-//       0.01,
-//        0.05, 
-//        1,1
-//    };
-//   MutationMatrix m = MutationAccumulation(p, true);
-//   MutationMatrix mn = MutationAccumulation(p, false);
-//   cerr << m << endl << endl;
-//   cout << mn - m << endl;
-//   return 0;
-//}
+int main(){
+      ModelParams p = { 
+        0.0001, 
+        {0.38, 0.12, 0.12, 0.38}, 
+        1e-2,
+        0.01,
+       0.01,
+        0.05, 
+        1,1
+};
+   MutationMatrix m = MutationAccumulation(p, true);
+   MutationMatrix mn = MutationAccumulation(p, false);
+   cerr << m << endl << endl;
+   cout << mn - m << endl;
+   return 0;
+}
 // Uncommon and compile with this:
 // clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
 //

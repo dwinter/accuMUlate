@@ -44,6 +44,8 @@ class ReadDataVisitor : public BamTools::PileupVisitor{
         ModelInput site_data;
         const ModelParams& m_params;
         const RefVector& m_bam_references;
+        MutationMatrix m_mutation_paths;
+        MutationMatrix m_non_mutation_paths;
 
     private:
         //set by arguments
