@@ -62,7 +62,10 @@ GenotypeProbs PopulationProbs(const ModelParams &params, int ref_allele, int plo
         DiploidProbs result = DiploidPopulation(params, ref_allele);
         return result;
     }
-    HaploidProbs result = params.nuc_freq;
+    HaploidProbs result;
+    for( int i :{0,1,2,3}) {
+       result[i] = params.nuc_freq[i];
+    }
     return result;
 }
 
@@ -70,13 +73,13 @@ GenotypeProbs PopulationProbs(const ModelParams &params, int ref_allele, int plo
 //Create the mutation matrices which represent the probabilites of different
 //histories with or without mutation. 
 
-HaploidProbs F81(const ModelParams &params){
+TransitionMatrix F81(const ModelParams &params){
 	double beta = 1.0;
 	for(auto d : params.nuc_freq)
 		beta -= d*d;
 	beta = 1.0/beta;
 	beta = exp(-beta*params.mutation_rate);
-	Eigen::Matrix4d m;
+	TransitionMatrix m;
 	for(int i : {0,1,2,3}) {
 		for(int j : {0,1,2,3}) {
 			m(i,j) = params.nuc_freq[i]*(1.0-beta);
@@ -99,7 +102,7 @@ MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut){
         //name) arrays so buid it up:
         for(int i : {0,1,2,3}){
             for (int j : {0,1,2,3}){
-                if(i == j){
+                if(i != j){
                     result(i,j) = m(i,j);
                 }
                 else{
@@ -236,7 +239,7 @@ int main(){
         {0.38, 0.12, 0.12, 0.38}, 
         1e-2,
         0.01,
-       0.01,
+        0.01,
         0.05, 
         1,1
 };
