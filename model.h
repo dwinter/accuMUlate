@@ -33,7 +33,7 @@ typedef Eigen::Array<double, 16, 1> DiploidProbs;
 
 typedef Eigen::Matrix4d TransitionMatrix;
 
-typedef Eigen::ArrayXXd MutationMatix; //array of dynamic dimensions
+typedef Eigen::ArrayXXd MutationMatrix; //array of dynamic dimensions
 
 //typedef Eigen::Array<double, 4, 4> MutationMatrix_HH;
 //typedef Eigen::Array<double, 16, 4> MutationMatrix_DH;
