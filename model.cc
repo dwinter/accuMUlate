@@ -30,6 +30,9 @@ double DirichletMultinomialLogProbability(double alphas[4], ReadData data) {
 	return result;
 }
 
+//'Population' refers to the pop. from which the ancestor comes
+// We deal only with GC/AT bias and (in the diploid case) heterozygosity
+
 
 DiploidProbs DiploidPopulation(const ModelParams &params, int ref_allele) {
 	ReadData d;
@@ -54,31 +57,20 @@ DiploidProbs DiploidPopulation(const ModelParams &params, int ref_allele) {
 	return result.exp();
 }
 
-HaploidProbs HaploidPopulation(const ModelParams &params, int ref_allele) {
-	ReadData d;
-	HaploidProbs result;
-	double alphas[4];
-	for(int i : {0,1,2,3})
-		alphas[i] = params.theta*params.nuc_freq[i];
-    for(int i : {0,1,2,3}){
-        d.key = 0;
-        d.reads[i] = 1;
-        d.reads[ref_allele] = 1;
-        result[i] = DirichletMultinomialLogProbability(alphas, d);
-    }
-    return result.exp();
-}
-
 GenotypeProbs PopulationProbs(const ModelParams &params, int ref_allele, int ploidy){
     if(ploidy==2){
         DiploidProbs result = DiploidPopulation(params, ref_allele);
         return result;
     }
-    HaploidProbs result = HaploidPopulation(params, ref_allele);
+    HaploidProbs result = params.nuc_freq;
     return result;
 }
 
-TransitionMatrix F81(const ModelParams &params){
+
+//Create the mutation matrices which represent the probabilites of different
+//histories with or without mutation. 
+
+HaploidProbs F81(const ModelParams &params){
 	double beta = 1.0;
 	for(auto d : params.nuc_freq)
 		beta -= d*d;
@@ -248,10 +240,10 @@ int main(){
         0.05, 
         1,1
 };
-   MutationMatrix m = MutationAccumulation(p, true);
-   MutationMatrix mn = MutationAccumulation(p, false);
+   MutationMatrix mt = MutationAccumulation(p, true);
+   MutationMatrix m = MutationAccumulation(p, false);
    cerr << m << endl << endl;
-   cout << mn - m << endl;
+   cout << m -mt << endl;
    return 0;
 }
 // Uncommon and compile with this:
