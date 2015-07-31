@@ -28,9 +28,7 @@ ReadDataVisitor::ReadDataVisitor(
                         const ModelParams& p,  
                         BamAlignment& ali, 
                         int qual_cut,
-                        int mapping_cut, 
-                        MutationMatrix mut,
-                        MutationMatrix no_mut):
+                        int mapping_cut):
 
             PileupVisitor(),
                 m_bam_references(bam_references),            
@@ -39,9 +37,7 @@ ReadDataVisitor::ReadDataVisitor(
                 m_params(p),
                 m_ali(ali), 
                 m_qual_cut(qual_cut),  
-                m_mapping_cut(mapping_cut),
-                m_mutation_paths(mut),
-                m_non_mutation_paths(no_mut) { }
+                m_mapping_cut(mapping_cut) {}
 //        ~ReadDataVisitor(void) { }
 //    public:
 
