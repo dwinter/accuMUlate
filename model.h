@@ -43,7 +43,8 @@ typedef Eigen::ArrayXXd MutationMatrix; //array of dynamic dimensions
 
 
 DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data); 
-double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data,const MutationMatrix m, const MutationMatrix mn);
-double TetMAProbability(const ModelParams &params, const ModelInput site_data);
+double TetMAProbability(const ModelParams &params, const ModelInput site_data, const MutationMatrix m, const MutationMatrix mn);
+double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data, const MutationMatrix m, const MutationMatrix mn);
+MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut);
 
 #endif

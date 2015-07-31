@@ -218,23 +218,19 @@ double TetMAProbability(const ModelParams &params, const ModelInput site_data, c
 	return 1.0 - num_genotypes.sum()/anc_genotypes.sum();
 }
 
-double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data) {
-	MutationMatrix m = MutationAccumulation(params, false);
-	MutationMatrix mt = MutationAccumulation(params, true);
-	MutationMatrix mn = m-mt;	
-	DiploidProbs pop_genotypes = DiploidPopulation(params, site_data.reference);	
+double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data, const MutationMatrix m, const MutationMatrix mn) {
+	GenotypeProbs pop_genotypes = PopulationProbs(params, site_data.reference);	
 	auto it = site_data.all_reads.begin();
-	DiploidProbs anc_genotypes = Sequencing(params, site_data.reference, *it, 2);
+    GenotypeProbs anc_genotypes = Sequencing(params, site_data.reference, *it, params.ploidy_ancestor);
 	anc_genotypes *= pop_genotypes;
-
-  	DiploidProbs denom = anc_genotypes;   //product of p(Ri|A)
-    
-    DiploidProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
-    DiploidProbs mut_genotypes = DiploidProbs::Zero();      //Sum of p(Ri&Mutation|A=x)
+  	GenotypeProbs denom = anc_genotypes;   //product of p(Ri|A)
+    GenotypeProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
+    GenotypeProbs mut_genotypes = anc_genotypes;      //Sum of p(Ri&Mutation|A=x)
+    anc_genotypes.setZero();
 	for(++it; it != site_data.all_reads.end(); ++it) {
-        DiploidProbs p = Sequencing(params, site_data.reference, *it, 1);
-        DiploidProbs dgen =  (mn.matrix()*p.matrix()).array();
-        DiploidProbs agen = (m.matrix()*p.matrix()).array();
+        GenotypeProbs p = Sequencing(params, site_data.reference, *it, params.ploidy_descendant);
+        GenotypeProbs dgen =  (mn.matrix()*p.matrix()).array();
+        GenotypeProbs agen = (m.matrix()*p.matrix()).array();
         nomut_genotypes *= dgen;
         mut_genotypes += (agen/dgen - 1); //(agen+dgen)/agen
         denom *= agen;
