@@ -28,17 +28,23 @@ class VariantVisitor : public ReadDataVisitor{
                        BamAlignment& ali, 
                        int qual_cut,
                        int mapping_cut,
-                       double prob_cut):
+                       double prob_cut,
+                       MutationMatrix prob_paths_m,
+                       MutationMatrix prob_paths_nm):
 
         ReadDataVisitor(bam_references, idx_ref, samples, p, ali, qual_cut, mapping_cut),
-                        m_ostream(out_stream), m_prob_cut(prob_cut) { }
+                        m_ostream(out_stream), m_prob_cut(prob_cut),
+                        m_prob_paths_m(prob_paths_m), m_prob_paths_nm(prob_paths_nm)
+                        {}
+        
         ~VariantVisitor(void) { }
     public:
          void Visit(const PileupPosition& pileupData) {
             if (GatherReadData(pileupData) ){
-                double prob = TetMAProbability(m_params, site_data);
+                double prob = TetMAProbability(m_params, site_data, m_prob_paths_m, m_prob_paths_nm);
                 if(prob >= m_prob_cut){
-                    double prob_one = TetMAProbOneMutation(m_params, site_data);
+//                    double prob_one = TetMAProbOneMutation(m_params, site_data);
+                    double prob_one = 0.0;
                          *m_ostream << m_bam_references[pileupData.RefId].RefName << '\t'
                                     << pileupData.Position << '\t' 
                                     << current_base << '\t' 
@@ -49,6 +55,8 @@ class VariantVisitor : public ReadDataVisitor{
             }
         }
     private:
+        MutationMatrix m_prob_paths_m;
+        MutationMatrix m_prob_paths_nm;
         ostream* m_ostream;
         double m_prob_cut;
 
@@ -85,7 +93,9 @@ int main(int argc, char** argv){
         ("theta", po::value<double>()->required(), "theta")            
         ("nfreqs", po::value<vector<double> >()->multitoken(), "")     
         ("mu", po::value<double>()->required(), "")  
-        ("seq-error", po::value<double>()->required(), "") 
+        ("seq-error", po::value<double>()->required(), "")
+        ("ploidy-ancestor", po::value<int>()->default_value(2), "")
+        ("ploidy-descendant", po::value<int>()->default_value(2), "")
         ("phi-haploid",     po::value<double>()->required(), "") 
         ("phi-diploid",     po::value<double>()->required(), "");
     po::variables_map vm;
@@ -109,6 +119,8 @@ int main(int argc, char** argv){
         vm["seq-error"].as<double>(), 
         vm["phi-haploid"].as<double>(), 
         vm["phi-diploid"].as<double>(),
+        vm["ploidy-ancestor"].as<int>(),
+        vm["ploidy-descendant"].as<int>()
     };
     string bam_path = vm["bam"].as<string>();
     string index_path = vm["bam-index"].as<string>();
@@ -182,6 +194,11 @@ int main(int argc, char** argv){
     PileupEngine pileup;
     BamAlignment ali;
 
+    MutationMatrix mt = MutationAccumulation(params, true);
+    MutationMatrix m = MutationAccumulation(params, false);
+    MutationMatrix nm = m - mt;
+    cerr << mt <<endl;
+
     VariantVisitor *v = new VariantVisitor(
             references,
             reference_genome, 
@@ -192,7 +209,8 @@ int main(int argc, char** argv){
             ali, 
             vm["qual"].as<int>(), 
             vm["mapping-qual"].as<int>(),
-            vm["prob"].as<double>()
+            vm["prob"].as<double>(),
+            m, nm
         );
     pileup.AddVisitor(v);
    
