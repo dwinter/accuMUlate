@@ -226,7 +226,7 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
   	GenotypeProbs denom = anc_genotypes;   //product of p(Ri|A)
     GenotypeProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
     GenotypeProbs mut_genotypes = anc_genotypes;      //Sum of p(Ri&Mutation|A=x)
-    anc_genotypes.setZero();
+    mut_genotypes.setZero();
 	for(++it; it != site_data.all_reads.end(); ++it) {
         GenotypeProbs p = Sequencing(params, site_data.reference, *it, params.ploidy_descendant);
         GenotypeProbs dgen =  (mn.matrix()*p.matrix()).array();

@@ -43,8 +43,7 @@ class VariantVisitor : public ReadDataVisitor{
             if (GatherReadData(pileupData) ){
                 double prob = TetMAProbability(m_params, site_data, m_prob_paths_m, m_prob_paths_nm);
                 if(prob >= m_prob_cut){
-//                    double prob_one = TetMAProbOneMutation(m_params, site_data);
-                    double prob_one = 0.0;
+                    double prob_one = TetMAProbOneMutation(m_params, site_data, m_prob_paths_m, m_prob_paths_nm);
                          *m_ostream << m_bam_references[pileupData.RefId].RefName << '\t'
                                     << pileupData.Position << '\t' 
                                     << current_base << '\t' 
