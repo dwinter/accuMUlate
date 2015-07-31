@@ -196,7 +196,6 @@ int main(int argc, char** argv){
     MutationMatrix mt = MutationAccumulation(params, true);
     MutationMatrix m = MutationAccumulation(params, false);
     MutationMatrix nm = m - mt;
-    cerr << mt <<endl;
 
     VariantVisitor *v = new VariantVisitor(
             references,
