@@ -37,7 +37,7 @@ ReadDataVisitor::ReadDataVisitor(
                 m_params(p),
                 m_ali(ali), 
                 m_qual_cut(qual_cut),  
-                m_mapping_cut(mapping_cut)   { }
+                m_mapping_cut(mapping_cut) {}
 //        ~ReadDataVisitor(void) { }
 //    public:
 
