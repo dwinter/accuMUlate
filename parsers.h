@@ -29,7 +29,7 @@ class BedFile{
 class ReadDataVisitor : public BamTools::PileupVisitor{
     public:
         ReadDataVisitor(const RefVector& bam_references, 
-                        Fasta& idx_ref,
+                        BamTools::Fasta& idx_ref,
                         SampleMap& samples, 
                         const ModelParams& p,  
                         BamAlignment& ali, 
@@ -49,7 +49,7 @@ class ReadDataVisitor : public BamTools::PileupVisitor{
 
     private:
         //set by arguments
-        Fasta& m_idx_ref;
+        BamTools::Fasta& m_idx_ref;
         SampleMap& m_samples;
         BamAlignment& m_ali;
         int m_qual_cut;
