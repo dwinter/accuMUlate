@@ -30,13 +30,14 @@ namespace BoostUtils {
 
 //    namespace po = boost::program_options;
 
-    void ParseCommandLinkeInput(int argc, char **argv, boost::program_options::variables_map &vm);
+    void ParseCommandLineInput(int argc, char **argv, boost::program_options::variables_map &vm);
 
-    void ExtractInputVariables(boost::program_options::variables_map &vm, GenomeData &genome_data,
+    void CreateMutationVisitor(boost::program_options::variables_map &vm, GenomeData &genome_data,
             BamTools::BamReader &experiment, BamTools::RefVector &references,
             BamTools::SamHeader &header, BamTools::Fasta &reference_genome);
 
     ModelParams CreateModelParams(boost::program_options::variables_map variables_map);
+    SampleMap ParseSamples(boost::program_options::variables_map &vm, BamTools::SamHeader &header);
     
     void ValidateNfreqs(boost::any& v, const vector<string>& values,  vector<double>*)
 
