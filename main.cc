@@ -11,8 +11,8 @@
 #include "api/BamReader.h"
 #include "utils/bamtools_pileup_engine.h"
 #include "utils/bamtools_fasta.h"
-#include "boost_input_utils.h"
 
+#include "boost_input_utils.h"
 #include "model.h"
 #include "parsers.h"
 
@@ -69,18 +69,16 @@ int main(int argc, char** argv){
     boost::program_options::variables_map vm;
     BoostUtils::ParseCommandLineInput(argc, argv, vm);
 
-    string ref_file;
-    string anc_tag;
     ofstream result_stream (vm["out"].as<string>());
 
     BamReader experiment;
-    RefVector references
-    SamHeader header
+    RefVector references;
+    SamHeader header;
     Fasta reference_genome; // BamTools::Fasta
 
-    BoostUtils::ExtractInputVariables(vm,experiment, references,header,reference_genome ) 
-    ModelParams p = BoostUtils::CreateParams(vm);
-    SampleMal samples = BoostUtils::ParseSamples(vm);
+    BoostUtils::ExtractInputVariables(vm,experiment, references,header,reference_genome ); 
+    ModelParams params = BoostUtils::CreateModelParams(vm);
+    SampleMap samples = BoostUtils::ParseSamples(vm, header);
 
     PileupEngine pileup;
     BamAlignment ali;
@@ -93,7 +91,6 @@ int main(int argc, char** argv){
             references,
             reference_genome,
             &result_stream,
-//            vm["sample-name"].as<vector< string> >(),
             samples,
             params,
             ali,
