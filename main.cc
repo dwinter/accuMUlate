@@ -68,8 +68,21 @@ int main(int argc, char** argv){
 
     boost::program_options::variables_map vm;
     BoostUtils::ParseCommandLineInput(argc, argv, vm);
+    
+    
+    streambuf * buf;
+    ofstream of;
+    string out_name =  vm["out"].as<string>();
 
-    ofstream result_stream (vm["out"].as<string>());
+    if(out_name == "") {
+        buf = cout.rdbuf();
+    } 
+    else {
+        of.open(out_name);
+        buf = of.rdbuf();
+    }
+
+    ostream result_stream(buf);
 
     BamReader experiment;
     RefVector references;
