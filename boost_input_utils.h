@@ -28,18 +28,8 @@
 struct nfreqs{
     vector<double> freqs;
 };
-//    double fA,fC,fG,fT;
-//    nfreqs(vector<double> pi){
-//        fA = pi[0];
-//        fC = pi[1];
-//        fG = pi[2];
-//        fT = pi[3];
-//    }
-//    vector<double> asVector(){
-//        vector<double> v {fA, fC, fG, fT};
-//        return v;
-//    }
-//};
+
+void validate(boost::any& v, const vector<string>& values, nfreqs target_type, int);
 
 namespace BoostUtils {
     using namespace std;
@@ -55,7 +45,6 @@ namespace BoostUtils {
     ModelParams CreateModelParams(boost::program_options::variables_map variables_map);
     SampleMap ParseSamples(boost::program_options::variables_map &vm, BamTools::SamHeader &header);
     
-    void ValidateNfreqs(boost::any& v, const vector<string>& values,  vector<double>*);
 
     void CheckArgs(boost::program_options::variables_map vm);
 

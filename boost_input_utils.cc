@@ -144,7 +144,7 @@ namespace BoostUtils {
             ("qual,q", po::value<int>()->default_value(13), "Base quality cuttoff")
             ("mapping-qual,m", po::value<int>()->default_value(13), "Mapping quality cuttoff")
             ("prob,p", po::value<double>()->default_value(0.1), "Mutaton probability cut-off")
-            ("out,o", po::value<string>()->default_value("acuMUlate_result.tsv"), "Out file name")
+            ("out,o", po::value<string>()->default_value(""), "Out file name (default is std out)")
             ("intervals,i", po::value<string>(), "Path to bed file")
             ("config,c", po::value<string>(), "Path to config file")
             ("theta", po::value<double>()->required(), "theta")
@@ -177,7 +177,7 @@ namespace BoostUtils {
     // Set up everything that has to be refered to by reference
     void ExtractInputVariables(boost::program_options::variables_map &vm,
             BamTools::BamReader &experiment, BamTools::RefVector &references,
-            BamTools::SamHeader &header, BamTools::Fasta &reference_genome ) {
+            BamTools::SamHeader &header, BamTools::Fasta &reference_genome){
 
 
         string ref_file = vm["reference"].as<string>();
@@ -201,9 +201,6 @@ namespace BoostUtils {
         else {
             reference_genome.Open(ref_file, ref_file + ".fai");
         }
-
-
-
     }
 
 
