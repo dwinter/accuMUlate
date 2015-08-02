@@ -67,7 +67,7 @@ namespace BoostUtils {
                 cerr << s;
             }
             cerr << endl;
-            exit(1)                
+            exit(1); 
         }
         // And now.. go back over the read groups to map RG->sample index
         SampleMap samples;
@@ -89,13 +89,14 @@ namespace BoostUtils {
             back_inserter(nfreqs));        
         }
         if(nfeqs.size() != 4){
-          throw po::validation_error("Must specify 4 (and only 4) nucleotide frequencies");        
+          throw boost::program_options::validation_error("Must specify 4 (and only 4) nucleotide frequencies");        
         }
         v = nfreqs;
     }
     
-    void check_args(po::variable_map &vm){
+    void check_args(boost::program_options::variable_map &vm){
         // Is the experimental design one of the ones we can handle?
+        namespace po = boost::program_options;
         if (vm["ploidy-ancestor"].as<int>() > 2 or vm["ploidy-ancestor"].as<int>() < 1){
             throw po::validation_error("accuMUlate can't only deal with haploid or diploid ancestral samples"); 
         }

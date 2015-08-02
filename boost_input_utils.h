@@ -39,9 +39,9 @@ namespace BoostUtils {
     ModelParams CreateModelParams(boost::program_options::variables_map variables_map);
     SampleMap ParseSamples(boost::program_options::variables_map &vm, BamTools::SamHeader &header);
     
-    void ValidateNfreqs(boost::any& v, const vector<string>& values,  vector<double>*)
+    void ValidateNfreqs(boost::any& v, const vector<string>& values,  vector<double>*);
 
-    void CheckArgs(boost::program_options::variables_map vm)
+    void CheckArgs(boost::program_options::variables_map vm);
 
 
 }
