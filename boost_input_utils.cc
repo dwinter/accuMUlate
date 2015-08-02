@@ -22,6 +22,8 @@ void validate(boost::any& v, const vector<string>& values, nfreqs* target_type, 
     if(pi.size() != 4){
         throw boost::program_options::invalid_option_value("Must specify 4 (and only 4) nucleotide frequencies");        
     }
+    if( accumulate(pi.begin(), pi.end(), 0.0) != 1.0){
+        throw boost::program_options::invalid_option_value("Nucleotide frequencies don't sum to 1.0");          }
     result.freqs = pi;
     v= result;
 }
