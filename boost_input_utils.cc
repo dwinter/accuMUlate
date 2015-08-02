@@ -11,8 +11,25 @@
 #include "parsers.h"
 #include "boost_input_utils.h"
 
+void validate(boost::any& v, const vector<string>& values, nfreqs* target_type, int){
+    nfreqs result;
+    vector<double> pi;
+    for(vector<string>::const_iterator it = values.begin(); 
+        it != values.end(); ++it){
+        stringstream ss(*it);
+        copy(istream_iterator<double>(ss), istream_iterator<double>(), back_inserter(pi));
+    }
+    if(pi.size() != 4){
+        throw boost::program_options::invalid_option_value("Must specify 4 (and only 4) nucleotide frequencies");        
+    }
+    result.freqs = pi;
+    v= result;
+}
+
 namespace BoostUtils {
     using namespace std;
+    
+
     namespace po = boost::program_options;
 
     static bool file_exists(const std::string &name) {
@@ -86,18 +103,6 @@ namespace BoostUtils {
     }
 
 
-    void ValidateNfreqs(boost::any& v, const vector<string>& values,  vector<double>*){
-        vector<double> nfreqs {0,0,0,0};
-        for(auto it: values){
-            stringstream ss(it);
-            copy(istream_iterator<double>(ss), istream_iterator<double>(),
-            back_inserter(nfreqs));        
-        }
-        if(nfreqs.size() != 4){
-          throw boost::program_options::invalid_option_value("Must specify 4 (and only 4) nucleotide frequencies");        
-        }
-        v = nfreqs;
-    }
     
     void check_args(boost::program_options::variables_map &vm){
         // Is the experimental design one of the ones we can handle?
@@ -141,7 +146,7 @@ namespace BoostUtils {
             ("intervals,i", po::value<string>(), "Path to bed file")
             ("config,c", po::value<string>(), "Path to config file")
             ("theta", po::value<double>()->required(), "theta")
-            ("nfreqs", po::value<vector<double> >()->multitoken(), "Nucleotide frequencies")
+            ("nfreqs", po::value< nfreqs >()->multitoken(), "Nucleotide frequencies")
             ("mu", po::value<double>()->required(), "Experiment-long mutation rate")
             ("seq-error", po::value<double>()->required(), "Probability of sequencing error")
             ("ploidy-ancestor", po::value<int>()->default_value(2), "Polidy of ancestor (1 or 2)")
@@ -201,10 +206,9 @@ namespace BoostUtils {
 
 
     ModelParams CreateModelParams(boost::program_options::variables_map vm) {
-
         ModelParams params = {
             vm["theta"].as<double>(),
-            vm["nfreqs"].as<vector< double> >(),
+            vm["nfreqs"].as< nfreqs >().freqs,
             vm["mu"].as<double>(),
             vm["seq-error"].as<double>(),
             vm["phi-haploid"].as<double>(),

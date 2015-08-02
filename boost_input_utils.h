@@ -25,6 +25,22 @@
 #include "model.h"
 #include <sys/stat.h>
 
+struct nfreqs{
+    vector<double> freqs;
+};
+//    double fA,fC,fG,fT;
+//    nfreqs(vector<double> pi){
+//        fA = pi[0];
+//        fC = pi[1];
+//        fG = pi[2];
+//        fT = pi[3];
+//    }
+//    vector<double> asVector(){
+//        vector<double> v {fA, fC, fG, fT};
+//        return v;
+//    }
+//};
+
 namespace BoostUtils {
     using namespace std;
 
