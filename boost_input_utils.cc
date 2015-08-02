@@ -89,32 +89,31 @@ namespace BoostUtils {
             back_inserter(nfreqs));        
         }
         if(nfeqs.size() != 4){
-          throw boost::program_options::validation_error("Must specify 4 (and only 4) nucleotide frequencies");        
+          throw boost::program_options::invalid_option_value("Must specify 4 (and only 4) nucleotide frequencies");        
         }
         v = nfreqs;
     }
     
     void check_args(boost::program_options::variable_map &vm){
         // Is the experimental design one of the ones we can handle?
-        namespace po = boost::program_options;
         if (vm["ploidy-ancestor"].as<int>() > 2 or vm["ploidy-ancestor"].as<int>() < 1){
-            throw po::validation_error("accuMUlate can't only deal with haploid or diploid ancestral samples"); 
+            throw po::invalid_option_value("accuMUlate can't only deal with haploid or diploid ancestral samples"); 
         }
         if (vm["ploidy-descendant"].as<int>() > 2 or vm["ploidy-desendant"].as<int>() < 1){
-            throw po::validation_error("accuMUlate can't only deal with haploid or descendant samples");        
+            throw po::invalid_option_value("accuMUlate can't only deal with haploid or descendant samples");        
         }
         if (vm["ploidy-ancestor"].as<int>() == 1 and vm["ploidy-descendant"].as<int>() == 2){
-            throw po::validation_error("accuMUlate has no model for a haploid->diploid MA experiemt");
+            throw po::invalid_option_value("accuMUlate has no model for a haploid->diploid MA experiemt");
         }
         //Do we have the right over-dispersion params set
         if (vm["ploidy-ancestor"].as<int>() == 1 or vm["ploidy-descendant"].as<int>() == 1){
             if(not vm.count("phi-haploid")){
-                throw po::validation_error("Must specify phi-haploid (overdispersion for haploid sequencing)");
+                throw po::invalid_option_value("Must specify phi-haploid (overdispersion for haploid sequencing)");
             }
         }
         if (vm["ploidy-ancestor"].as<int>() == 2 or vm["ploidy-descendant"].as<int>() == 2){
             if(not vm.count("phi-diploid")){
-                throw po::validation_error("Must specify phi-diploid (overdispersion for diploid sequencing)");
+                throw po::invalid_option_value("Must specify phi-diploid (overdispersion for diploid sequencing)");
             }
         }
     }
