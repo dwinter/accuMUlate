@@ -15,7 +15,7 @@ include_directories("${CMAKE_SOURCE_DIR}/third-party/")
 include_directories(${Boost_INCLUDE_DIR})
 include_directories("./")
 
-add_executable(accuMUlate main.cc model.cc parsers.cc boost_input_utils.cc)
+add_executable(accuMUlate main.cc model.cc boost_input_utils.cc parsers.cc)
 target_link_libraries(accuMUlate ${LIBS})
 
 #add_executable(pp utils/post_processor.cc parsers.cc model.cc)

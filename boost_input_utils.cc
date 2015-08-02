@@ -3,12 +3,17 @@
  *
  *  Created on: 12/12/14
  *      Author: Steven Wu
+ *  Modified DJW Aug-15
  */
 
 
+#include "utils/bamtools_fasta.h"
+#include "parsers.h"
 #include "boost_input_utils.h"
+
 namespace BoostUtils {
     using namespace std;
+    namespace po = boost::program_options;
 
     static bool file_exists(const std::string &name) {
         struct stat buffer;
@@ -84,22 +89,22 @@ namespace BoostUtils {
     void ValidateNfreqs(boost::any& v, const vector<string>& values,  vector<double>*){
         vector<double> nfreqs {0,0,0,0};
         for(auto it: values){
-            stringstream ss(*it);
+            stringstream ss(it);
             copy(istream_iterator<double>(ss), istream_iterator<double>(),
             back_inserter(nfreqs));        
         }
-        if(nfeqs.size() != 4){
+        if(nfreqs.size() != 4){
           throw boost::program_options::invalid_option_value("Must specify 4 (and only 4) nucleotide frequencies");        
         }
         v = nfreqs;
     }
     
-    void check_args(boost::program_options::variable_map &vm){
+    void check_args(boost::program_options::variables_map &vm){
         // Is the experimental design one of the ones we can handle?
         if (vm["ploidy-ancestor"].as<int>() > 2 or vm["ploidy-ancestor"].as<int>() < 1){
             throw po::invalid_option_value("accuMUlate can't only deal with haploid or diploid ancestral samples"); 
         }
-        if (vm["ploidy-descendant"].as<int>() > 2 or vm["ploidy-desendant"].as<int>() < 1){
+        if (vm["ploidy-descendant"].as<int>() > 2 or vm["ploidy-descendant"].as<int>() < 1){
             throw po::invalid_option_value("accuMUlate can't only deal with haploid or descendant samples");        
         }
         if (vm["ploidy-ancestor"].as<int>() == 1 and vm["ploidy-descendant"].as<int>() == 2){
@@ -116,12 +121,11 @@ namespace BoostUtils {
                 throw po::invalid_option_value("Must specify phi-diploid (overdispersion for diploid sequencing)");
             }
         }
+
     }
 
 
     void ParseCommandLineInput(int argc, char **argv, boost::program_options::variables_map &vm) {
-//    boost::program_options::variables_map vm;
-        namespace po = boost::program_options;
         po::options_description cmd("Command line options");
         cmd.add_options()
             ("help,h", "Print a help message")
@@ -144,7 +148,6 @@ namespace BoostUtils {
             ("ploidy-descendant", po::value<int>()->default_value(2), "Ploidy of descendant (1 or 2)")
             ("phi-haploid",     po::value<double>(), "Over-dispersion for haploid sequencing")
             ("phi-diploid",     po::value<double>(), "Over-dispersion for diploid sequencing");
-        po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, cmd), vm);
     
 
