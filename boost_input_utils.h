@@ -32,7 +32,7 @@ namespace BoostUtils {
 
     void ParseCommandLineInput(int argc, char **argv, boost::program_options::variables_map &vm);
 
-    void CreateMutationVisitor(boost::program_options::variables_map &vm, GenomeData &genome_data,
+    void ExtractInputVariables(boost::program_options::variables_map &vm,
             BamTools::BamReader &experiment, BamTools::RefVector &references,
             BamTools::SamHeader &header, BamTools::Fasta &reference_genome);
 
