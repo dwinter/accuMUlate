@@ -28,6 +28,7 @@ namespace BoostUtils {
         //we warn the user we are skipping some of the data. 
         SampleMap name_map;
         vector<string> keepers =  vm["sample-name"].as< vector<string> >();
+        string anc_tag = vm["ancestor"].as<string>();
         uint16_t sindex = 1;
         bool ancestor_in_BAM = false;
         for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
@@ -93,7 +94,6 @@ namespace BoostUtils {
         v = nfreqs;
     }
     
-    sample_map 
     void check_args(po::variable_map &vm){
         // Is the experimental design one of the ones we can handle?
         if (vm["ploidy-ancestor"].as<int>() > 2 or vm["ploidy-ancestor"].as<int>() < 1){
@@ -119,19 +119,16 @@ namespace BoostUtils {
     }
 
 
-    void ParseCommandLinkeInput(int argc, char **argv, boost::program_options::variables_map &vm) {
+    void ParseCommandLineInput(int argc, char **argv, boost::program_options::variables_map &vm) {
 //    boost::program_options::variables_map vm;
         namespace po = boost::program_options;
-        string ref_file;
-        string config_path;
-        string anc_tag;
         po::options_description cmd("Command line options");
         cmd.add_options()
             ("help,h", "Print a help message")
             ("bam,b", po::value<string>()->required(), "Path to BAM file")
             ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
-            ("reference,r", po::value<string>(&ref_file)->required(),  "Path to reference genome")
-            ("ancestor,a", po::value<string>(&anc_tag), "Ancestor RG sample ID")
+            ("reference,r", po::value<string>()->required(),  "Path to reference genome")
+            ("ancestor,a", po::value<string>()->required(), "Ancestor RG sample ID")
             ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags to include")
             ("qual,q", po::value<int>()->default_value(13), "Base quality cuttoff")
             ("mapping-qual,m", po::value<int>()->default_value(13), "Mapping quality cuttoff")
@@ -168,7 +165,7 @@ namespace BoostUtils {
     }
 
     // Set up everything that has to be refered to by reference
-    void CreateMutationVisitor(boost::program_options::variables_map &vm,
+    void ExtractInputVariables(boost::program_options::variables_map &vm,
             BamTools::BamReader &experiment, BamTools::RefVector &references,
             BamTools::SamHeader &header, BamTools::Fasta &reference_genome ) {
 
@@ -184,9 +181,6 @@ namespace BoostUtils {
         references = experiment.GetReferenceData();
         header = experiment.GetHeader();
 
-        ofstream result_stream (vm["out"].as<string>());
-        SampleMap samples = ParseSamples(vm, header);
-        ModelParams p = CreateModelParams(vm);
         experiment.OpenIndex(index_path);
 
 
