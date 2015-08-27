@@ -27,7 +27,9 @@ class BedFile{
 };
 
 class ReadDataVisitor : public BamTools::PileupVisitor{
+
     public:
+        static const char ZERO_CHAR = ((char) 0);
         ReadDataVisitor(const RefVector& bam_references, 
                         BamTools::Fasta& idx_ref,
                         SampleMap& samples, 
@@ -35,8 +37,14 @@ class ReadDataVisitor : public BamTools::PileupVisitor{
                         BamAlignment& ali, 
                         int qual_cut,
                         int mapping_cut);
-    public: 
+
+        char qual_cut_char;
+        std::string rg_tag;
+    virtual ~ReadDataVisitor() { }
+
+    public:
         bool GatherReadData(const PileupPosition& pileupData) ;
+        bool GatherReadDataNew(const PileupPosition& pileupData) ;
     public:
         char current_base;
         string tag_id;
@@ -55,6 +63,10 @@ class ReadDataVisitor : public BamTools::PileupVisitor{
         int m_qual_cut;
         int m_mapping_cut;
         //refered to by fnxs
+
+
+
+    int GetSampleIndex(const string &tag_data);
 };
         
  
@@ -68,6 +80,11 @@ bool include_site(BamTools::PileupAlignment pileup, uint16_t map_cut, uint16_t q
 uint16_t base_index(char b);
 string get_sample(string& tag);
 //uint32_t find_sample_index(string, SampleNames);
+
+
+extern int base_index2[128];
+bool include_site_4(const BamTools::BamAlignment & alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut);
+
 
 #endif
 

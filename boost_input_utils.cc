@@ -52,11 +52,16 @@ namespace BoostUtils {
         //we warn the user we are skipping some of the data. 
         SampleMap name_map;
         vector<string> keepers =  vm["sample-name"].as< vector<string> >();
+        for (auto key : keepers) {
+            cout << "sample-name: " << key << endl;
+        }
         string anc_tag = vm["ancestor"].as<string>();
+        cout << "A: " << anc_tag << endl;
         uint16_t sindex = 1;
         bool ancestor_in_BAM = false;
         for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
             if(it->HasSample()){
+
                 if (find(keepers.begin(), keepers.end(), it->Sample) == keepers.end()){
                     if(it->Sample == anc_tag ){
                           name_map[it->Sample] = 0;
@@ -70,10 +75,41 @@ namespace BoostUtils {
                 }
                 else {
                     auto s  = name_map.find(it->Sample);
-                    if( s == name_map.end()){//samples can have multiple readgroups... 
+                    if( s == name_map.end()){//samples can have multiple readgroups...
                         name_map[it->Sample] = sindex;
                         sindex += 1;
+//                        auto a = find(keepers.begin(),keepers.end(),it->Sample);
+//                        int  ii =  distance(keepers.begin(), a);
+//                        cerr << *a << "\t" << ii << endl;
+//TODO: Potential bug? or just double counting?
                         keepers.erase(find(keepers.begin(),keepers.end(),it->Sample));
+//                        std::swap(keepers[ii], keepers.back());
+//                        keepers.pop_back();
+
+//                        a = find(keepers.begin(),keepers.end(),it->Sample);
+//                        ii =  distance(keepers.begin(), a);
+//                        cerr << *a << "\t" << ii << endl << endl;
+
+
+
+// Potential bug here, some sort of order matter related
+//sample-name: TtM19
+//sample-name: TtM20
+//sample-name: TtM25
+//sample-name: TtM28
+//sample-name: TtM29
+//sample-name: TtM40
+//sample-name: TtM44
+//sample-name: TtM47
+//sample-name: TtM50
+//sample-name: TtM51
+//sample-name: TtM531
+//A: TtM0
+//Warning: excluding data from 'TtM28' which is included in the BAM file but not the list of included samples
+//Warning: excluding data from 'TtM40' which is included in the BAM file but not the list of included samples
+//Warning: excluding data from 'TtM44' which is included in the BAM file but not the list of included samples
+//Warning: excluding data from 'TtM50' which is included in the BAM file but not the list of included samples
+//Warning: excluding data from 'TtM531' which is included in the BAM file but not the list of included samples
                     }
                 }
             }
@@ -98,8 +134,58 @@ namespace BoostUtils {
         for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
             if(it->HasSample()){
                 samples[it->ID] = name_map[it->Sample];
+                cout << it->ID << " " << name_map[it->Sample] << endl;
             }
         }
+
+
+
+
+
+//EM version
+        SampleMap sample_map_temp;
+        int total_sample_count = 0;
+        SamReadGroupDictionary dictionary = header.ReadGroups;
+        size_t tag_count = dictionary.Size();
+
+        for (auto it = dictionary.Begin(); it != dictionary.End(); it++) {
+            if (it->HasSample()) {
+                auto s = sample_map_temp.find(it->Sample);
+                if (s == sample_map_temp.end()) { // not in there yet
+                    sample_map_temp[it->Sample] = total_sample_count;
+                    total_sample_count++;
+                }
+            }
+        }
+
+//        m_samples = sample_map_temp;
+
+        SampleMap map_tag_sample = std::unordered_map<std::string, uint32_t>(tag_count);
+        for (auto dict = dictionary.Begin(); dict != dictionary.End(); dict++) {
+            map_tag_sample.emplace(dict->ID, sample_map_temp[dict->Sample]);
+//        map_tag_sample_two_stage.emplace(dict->ID, dict->Sample);
+        }
+        std::cout << "================= V2 =============" << std::endl;
+        for (auto sample : map_tag_sample) {
+            std::cout << sample.first << "\t" << sample.second << std::endl;
+        }
+
+
+
+
+
+    //TODO: Update matching here
+
+
+
+
+
+
+
+
+
+
+
         return samples;
 
     }

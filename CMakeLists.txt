@@ -23,7 +23,7 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES} ${Bamtools_LIBRARIES})
 set(INCLUDE_DIR ${INCLUDE_DIR} ${Boost_INCLUDE_DIR} ${Bamtools_INCLUDE_DIR}  ${EIGEN3_INCLUDE_DIR})
 
 include_directories("${CMAKE_SOURCE_DIR}/third-party/bamtools/src")
-include_directories("${CMAKE_SOURCE_DIR}/third-party/")
+#include_directories("${CMAKE_SOURCE_DIR}/third-party/")
 include_directories(SYSTEM ${INCLUDE_DIR})
 include_directories("./")
 

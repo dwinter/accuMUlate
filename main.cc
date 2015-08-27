@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <sys/stat.h>
-
+#include <chrono>
 
 
 #include "boost/program_options.hpp"
@@ -36,16 +36,25 @@ class VariantVisitor : public ReadDataVisitor{
         ReadDataVisitor(bam_references, idx_ref, samples, p, ali, qual_cut, mapping_cut),
                         m_ostream(out_stream), m_prob_cut(prob_cut),
                         m_mut_paths(mut_paths), m_nomut_paths(nomut_paths)
-                        {}
+                        {
+                            qual_cut_char = (char) (qual_cut + 33);
+                            rg_tag.push_back(ZERO_CHAR);
+                            rg_tag += "RGZ";
+                        }
 
         ~VariantVisitor(void) { }
     public:
          void Visit(const PileupPosition& pileupData) {
             if (GatherReadData(pileupData) ){
+//            if (GatherReadDataNew(pileupData) ){
                 double prob = TetMAProbability(m_params, site_data, m_mut_paths, m_nomut_paths);
+                *m_ostream << m_bam_references[pileupData.RefId].RefName << '\t'
+                                    << pileupData.Position << '\t'
+                                    << current_base << '\t'
+                                    << prob << '\t' << endl;
                 if(prob >= m_prob_cut){
                     double prob_one = TetMAProbOneMutation(m_params, site_data, m_mut_paths, m_nomut_paths);
-                         *m_ostream << m_bam_references[pileupData.RefId].RefName << '\t'
+                         *m_ostream << "Z" << m_bam_references[pileupData.RefId].RefName << '\t'
                                     << pileupData.Position << '\t'
                                     << current_base << '\t'
                                     << prob << '\t'
@@ -112,7 +121,11 @@ int main(int argc, char** argv){
             vm["prob"].as<double>(),
             m, nm
         );
+
     pileup.AddVisitor(v);
+
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
 
     if (vm.count("intervals")){
         BedFile bed (vm["intervals"].as<string>());
@@ -131,6 +144,14 @@ int main(int argc, char** argv){
         }
     }
     pileup.Flush();
+
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::time_t start_time = std::chrono::system_clock::to_time_t(start);
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+
+    std::cout << "Started at "<< std::ctime(&start_time) << "EM finished at " << std::ctime(&end_time)  << "\nElapsed time: " << elapsed_seconds.count() << "s\n";
+
     return 0;
 }
 
