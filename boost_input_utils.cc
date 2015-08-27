@@ -7,7 +7,6 @@
  */
 
 
-#include "utils/bamtools_fasta.h"
 #include "parsers.h"
 #include "boost_input_utils.h"
 
@@ -263,7 +262,7 @@ namespace BoostUtils {
     // Set up everything that has to be refered to by reference
     void ExtractInputVariables(boost::program_options::variables_map &vm,
             BamTools::BamReader &experiment, BamTools::RefVector &references,
-            BamTools::SamHeader &header, BamTools::Fasta &reference_genome){
+            BamTools::SamHeader &header, LocalBamToolsUtils::Fasta &reference_genome){
 
 
         string ref_file = vm["reference"].as<string>();

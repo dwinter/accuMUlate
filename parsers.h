@@ -1,7 +1,11 @@
 #ifndef parsers_H
 #define parsers_H
 
-#include "utils/bamtools_pileup_engine.h"
+#include "src/io_data/local_bamtools/bamtools_pileup_engine.h"
+#include "src/io_data/local_bamtools/bamtools_fasta.h"
+//#include "utils/bamtools_pileup_engine.h"
+//#include "utils/bamtools_fasta.h"
+
 #include "model.h"
 #include <unordered_map>
 
@@ -26,12 +30,12 @@ class BedFile{
         
 };
 
-class ReadDataVisitor : public BamTools::PileupVisitor{
+class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
 
     public:
         static const char ZERO_CHAR = ((char) 0);
-        ReadDataVisitor(const RefVector& bam_references, 
-                        BamTools::Fasta& idx_ref,
+        ReadDataVisitor(const RefVector& bam_references,
+                        LocalBamToolsUtils::Fasta& idx_ref,
                         SampleMap& samples, 
                         const ModelParams& p,  
                         BamAlignment& ali, 
@@ -43,8 +47,8 @@ class ReadDataVisitor : public BamTools::PileupVisitor{
     virtual ~ReadDataVisitor() { }
 
     public:
-        bool GatherReadData(const PileupPosition& pileupData) ;
-        bool GatherReadDataNew(const PileupPosition& pileupData) ;
+        bool GatherReadData(const LocalBamToolsUtils::PileupPosition& pileupData) ;
+        bool GatherReadDataNew(const LocalBamToolsUtils::PileupPosition& pileupData) ;
     public:
         char current_base;
         string tag_id;
@@ -57,7 +61,7 @@ class ReadDataVisitor : public BamTools::PileupVisitor{
 
     private:
         //set by arguments
-        BamTools::Fasta& m_idx_ref;
+        LocalBamToolsUtils::Fasta& m_idx_ref;
         SampleMap& m_samples;
         BamAlignment& m_ali;
         int m_qual_cut;
@@ -76,7 +80,7 @@ class ReadDataVisitor : public BamTools::PileupVisitor{
 
 //Helper functions
 
-bool include_site(BamTools::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut);
+bool include_site(LocalBamToolsUtils::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut);
 uint16_t base_index(char b);
 string get_sample(string& tag);
 //uint32_t find_sample_index(string, SampleNames);

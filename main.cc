@@ -9,8 +9,12 @@
 
 #include "boost/program_options.hpp"
 #include "api/BamReader.h"
-#include "utils/bamtools_pileup_engine.h"
-#include "utils/bamtools_fasta.h"
+
+
+#include "src/io_data/local_bamtools/bamtools_pileup_engine.h"
+#include "src/io_data/local_bamtools/bamtools_fasta.h"
+//#include "utils/bamtools_pileup_engine.h"
+//#include "utils/bamtools_fasta.h"
 
 #include "boost_input_utils.h"
 #include "model.h"
@@ -22,7 +26,7 @@ using namespace BamTools;
 class VariantVisitor : public ReadDataVisitor{
     public:
         VariantVisitor(const RefVector& bam_references,
-                       Fasta& idx_ref,
+                       LocalBamToolsUtils::Fasta& idx_ref,
                        ostream *out_stream,
                        SampleMap& samples,
                        const ModelParams& p,
@@ -44,7 +48,7 @@ class VariantVisitor : public ReadDataVisitor{
 
         ~VariantVisitor(void) { }
     public:
-         void Visit(const PileupPosition& pileupData) {
+         void Visit(const LocalBamToolsUtils::PileupPosition& pileupData) {
             if (GatherReadData(pileupData) ){
 //            if (GatherReadDataNew(pileupData) ){
                 double prob = TetMAProbability(m_params, site_data, m_mut_paths, m_nomut_paths);
@@ -96,13 +100,13 @@ int main(int argc, char** argv){
     BamReader experiment;
     RefVector references;
     SamHeader header;
-    Fasta reference_genome; // BamTools::Fasta
+    LocalBamToolsUtils::Fasta reference_genome; // BamTools::Fasta
 
     BoostUtils::ExtractInputVariables(vm,experiment, references,header,reference_genome ); 
     ModelParams params = BoostUtils::CreateModelParams(vm);
     SampleMap samples = BoostUtils::ParseSamples(vm, header);
 
-    PileupEngine pileup;
+    LocalBamToolsUtils::PileupEngine pileup;
     BamAlignment ali;
 
     MutationMatrix mt = MutationAccumulation(params, true);
@@ -123,6 +127,8 @@ int main(int argc, char** argv){
         );
 
     pileup.AddVisitor(v);
+
+    std::cerr.setstate(std::ios_base::failbit) ; //Supress bamtool camplain, "Pileup::Run() : Data not sorted correctly!"
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -145,6 +151,7 @@ int main(int argc, char** argv){
     }
     pileup.Flush();
 
+    std::cerr.clear() ; // Add std::cerr back
     end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
     std::time_t start_time = std::chrono::system_clock::to_time_t(start);

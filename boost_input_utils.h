@@ -19,8 +19,10 @@
 
 #include "parsers.h"
 #include "api/BamReader.h"
-#include "utils/bamtools_pileup_engine.h"
-#include "utils/bamtools_fasta.h"
+#include "src/io_data/local_bamtools/bamtools_pileup_engine.h"
+#include "src/io_data/local_bamtools/bamtools_fasta.h"
+//#include "utils/bamtools_pileup_engine.h"
+//#include "utils/bamtools_fasta.h"
 
 #include "model.h"
 #include <sys/stat.h>
@@ -40,7 +42,7 @@ namespace BoostUtils {
 
     void ExtractInputVariables(boost::program_options::variables_map &vm,
             BamTools::BamReader &experiment, BamTools::RefVector &references,
-            BamTools::SamHeader &header, BamTools::Fasta &reference_genome);
+            BamTools::SamHeader &header, LocalBamToolsUtils::Fasta &reference_genome);
 
     ModelParams CreateModelParams(boost::program_options::variables_map variables_map);
     SampleMap ParseSamples(boost::program_options::variables_map &vm, BamTools::SamHeader &header);

@@ -6,8 +6,6 @@
 #include <limits>       
 
 #include "api/BamReader.h"
-#include "utils/bamtools_pileup_engine.h"
-#include "utils/bamtools_fasta.h"
 
 
 #include "model.h"
@@ -22,8 +20,8 @@ using namespace BamTools;
 //Base visitor, which does two things per site:
 //Set a flag descrbing
 ReadDataVisitor::ReadDataVisitor(
-                        const RefVector& bam_references, 
-                        Fasta& idx_ref,
+                        const RefVector& bam_references,
+                        LocalBamToolsUtils::Fasta& idx_ref,
                         SampleMap& samples, 
                         const ModelParams& p,  
                         BamAlignment& ali, 
@@ -41,7 +39,7 @@ ReadDataVisitor::ReadDataVisitor(
 //        ~ReadDataVisitor(void) { }
 //    public:
 
-bool ReadDataVisitor::GatherReadData(const PileupPosition& pileupData) {
+bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition& pileupData) {
     //Like it says, collect a sites reads. If the site is good to call
     //from set the site_data object and return `true`.  
     uint64_t pos  = pileupData.Position;
@@ -71,7 +69,7 @@ bool ReadDataVisitor::GatherReadData(const PileupPosition& pileupData) {
 };
 
 
-bool ReadDataVisitor::GatherReadDataNew(const PileupPosition& pileupData) {
+bool ReadDataVisitor::GatherReadDataNew(const LocalBamToolsUtils::PileupPosition& pileupData) {
 
     //Like it says, collect a sites reads. If the site is good to call
     //from set the site_data object and return `true`.
@@ -203,7 +201,7 @@ uint16_t base_index(char b){
 //    return(-1); //TODO refactor this to  update sample in place
 //}
 
-bool include_site(PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
+bool include_site(LocalBamToolsUtils::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
     const BamAlignment *ali = &pileup.Alignment;
     if(ali->MapQuality > map_cut){
         uint16_t bqual = static_cast<short>(ali->Qualities[pileup.PositionInAlignment]) - 33;

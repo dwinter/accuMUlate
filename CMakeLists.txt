@@ -22,7 +22,7 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES} ${Bamtools_LIBRARIES})
 #set(LIBS ${LIBS} ${Boost_LIBRARIES},  "${CMAKE_SOURCE_DIR}/third-party/bamtools/lib") try to delete this completely
 set(INCLUDE_DIR ${INCLUDE_DIR} ${Boost_INCLUDE_DIR} ${Bamtools_INCLUDE_DIR}  ${EIGEN3_INCLUDE_DIR})
 
-include_directories("${CMAKE_SOURCE_DIR}/third-party/bamtools/src")
+#include_directories("${CMAKE_SOURCE_DIR}/third-party/bamtools/src")
 #include_directories("${CMAKE_SOURCE_DIR}/third-party/")
 include_directories(SYSTEM ${INCLUDE_DIR})
 include_directories("./")
@@ -30,11 +30,12 @@ include_directories("./")
 #include_directories(${CMAKE_SOURCE_DIR}/src) not at moment, maybe add it later
 
 
-
+ADD_SUBDIRECTORY(src)
+SET(LOCAL_LIBS LibIoData )
 
 
 add_executable(accuMUlate main.cc model.cc boost_input_utils.cc parsers.cc)
-target_link_libraries(accuMUlate ${LIBS})
+target_link_libraries(accuMUlate ${LIBS} ${LOCAL_LIBS})
 
 #add_executable(pp utils/post_processor.cc parsers.cc model.cc)
 #target_link_libraries(pp ${LIBS})
