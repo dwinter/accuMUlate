@@ -37,7 +37,7 @@ else
   echo "DONE rebuild eigen"
 fi
 
-BAMTOOL_FILE="$HOME/lib/libbamtools.so.2.3.0"
+BAMTOOL_FILE="$HOME/lib/libbamtools.so.2.4.0"
 
 if [[ -e ${BAMTOOL_FILE} ]]; 
 then 

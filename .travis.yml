@@ -102,7 +102,8 @@ script:
   - ls -l $HOME
   - ls -l $HOME/build
   - ls -l $HOME/builds
-  - mkdir -p build && cd build && cmake -DBamtools_PREFIX=${HOME}/build/bamtools/ .. #-DEIGEN3_INCLUDE_DIR=$HOME/include/ -DBOOST_INCLUDEDIR=$HOME .. && make
+  - mkdir -p build && cd build && cmake -DBOOST_INCLUDEDIR=${HOME}/include .. #-DBamtools_PREFIX=${HOME}/ ..
+#-DBamtools_PREFIX=${HOME}/build/bamtools/ -DBOOST_INCLUDEDIR=$HOME .. #-DEIGEN3_INCLUDE_DIR=$HOME/include/ -DBOOST_INCLUDEDIR=$HOME .. && make
   - make 
 cache:
     directories:
@@ -112,3 +113,5 @@ cache:
 #    - $HOME/build/
 #    - $HOME/build/eigen
 #    - $HOME/build/boost_install
+#
+#
