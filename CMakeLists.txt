@@ -29,12 +29,22 @@ include_directories("./")
 
 #include_directories(${CMAKE_SOURCE_DIR}/src) not at moment, maybe add it later
 
+SET(SOURCE_FILES CACHE INTERNAL "Global")
+SET(SOURCE_FILES ${SOURCE_FILES}
+        ${CMAKE_CURRENT_SOURCE_DIR}/model.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/boost_input_utils.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/parsers.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/data_struct.h
+        CACHE INTERNAL "Global"
+)
 
 ADD_SUBDIRECTORY(src)
-SET(LOCAL_LIBS LibIoData )
+SET(LOCAL_LIBS LibDistributions LibIoData LibMutations)
+#SET(LOCAL_LIBS LibEvolutionModels LibDistributions LibIoData LibMutations)
 
 
-add_executable(accuMUlate main.cc model.cc boost_input_utils.cc parsers.cc)
+
+add_executable(accuMUlate main.cc ${SOURCE_FILES})
 target_link_libraries(accuMUlate ${LIBS} ${LOCAL_LIBS})
 
 #add_executable(pp utils/post_processor.cc parsers.cc model.cc)

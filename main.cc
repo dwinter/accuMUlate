@@ -17,6 +17,7 @@
 //#include "utils/bamtools_fasta.h"
 
 #include "boost_input_utils.h"
+#include "data_struct.h"
 #include "model.h"
 #include "parsers.h"
 
@@ -36,22 +37,27 @@ class VariantVisitor : public ReadDataVisitor{
                        double prob_cut,
                        MutationMatrix mut_paths,
                        MutationMatrix nomut_paths):
+                        ReadDataVisitor(bam_references, idx_ref, samples, p, ali, qual_cut, mapping_cut),
+                            m_ostream(out_stream), m_prob_cut(prob_cut),
+                            m_mut_paths(mut_paths), m_nomut_paths(nomut_paths) {
 
-        ReadDataVisitor(bam_references, idx_ref, samples, p, ali, qual_cut, mapping_cut),
-                        m_ostream(out_stream), m_prob_cut(prob_cut),
-                        m_mut_paths(mut_paths), m_nomut_paths(nomut_paths)
-                        {
-                            qual_cut_char = (char) (qual_cut + 33);
-                            rg_tag.push_back(ZERO_CHAR);
-                            rg_tag += "RGZ";
-                        }
+            qual_cut_char = (char) (qual_cut + 33);
+            rg_tag.push_back(ZERO_CHAR);
+            rg_tag += "RGZ";
+            sf = SequencingFactory(p);
+        }
 
         ~VariantVisitor(void) { }
+
     public:
          void Visit(const LocalBamToolsUtils::PileupPosition& pileupData) {
             if (GatherReadData(pileupData) ){
 //            if (GatherReadDataNew(pileupData) ){
                 double prob = TetMAProbability(m_params, site_data, m_mut_paths, m_nomut_paths);
+                double prob2 = TetMAProbabilityNew(m_params, sf, site_data, m_mut_paths, m_nomut_paths);
+                if(prob != prob2){
+                    cout << "!!! " << prob <<"\t"<< prob2 << endl;
+                }
                 *m_ostream << m_bam_references[pileupData.RefId].RefName << '\t'
                                     << pileupData.Position << '\t'
                                     << current_base << '\t'
@@ -67,6 +73,7 @@ class VariantVisitor : public ReadDataVisitor{
                 }
             }
         }
+
     private:
         MutationMatrix m_mut_paths;
         MutationMatrix m_nomut_paths;

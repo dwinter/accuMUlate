@@ -1,6 +1,6 @@
 
 
-SET(SOURCE_FILES CACHE INTERNAL "Global")
+#SET(SOURCE_FILES CACHE INTERNAL "Global")
 #message("A: ${SOURCE_FILES}")
 
 #file(GLOB helloworld_SRC
@@ -9,13 +9,11 @@ SET(SOURCE_FILES CACHE INTERNAL "Global")
 #)
 #add_executable(helloworld ${helloworld_SRC})
 
-#SET(SOURCE_FILES ${SOURCE_FILES}
-#    ${CMAKE_CURRENT_SOURCE_DIR}/constant.h
-#    ${CMAKE_CURRENT_SOURCE_DIR}/lookup.cc
-#    ${CMAKE_CURRENT_SOURCE_DIR}/setup_utils.cpp
-#
-#    CACHE INTERNAL "Global"
-#    )
+SET(SOURCE_FILES ${SOURCE_FILES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/lookup.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/lookup.h
+    CACHE INTERNAL "Global"
+)
 
 #subdirs(${CMAKE_CURRENT_SOURCE_DIR})
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -32,10 +30,10 @@ endif()
 
 
 #ADD_SUBDIRECTORY(algorithm)
-#ADD_SUBDIRECTORY(distributions)
+ADD_SUBDIRECTORY(distributions)
 #ADD_SUBDIRECTORY(evolution_models)
 ADD_SUBDIRECTORY(io_data)
-#ADD_SUBDIRECTORY(mutations)
+ADD_SUBDIRECTORY(mutations)
 
 
 #SET(LOCAL_LIBS LibEvolutionModels LibDistributions LibIoData LibMutations)

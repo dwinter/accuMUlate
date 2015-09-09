@@ -8,6 +8,7 @@
 
 #include "model.h"
 #include <unordered_map>
+#include <src/mutations/sequencing_factory.h>
 
 using namespace std;
 using namespace BamTools;
@@ -42,21 +43,29 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
                         int qual_cut,
                         int mapping_cut);
 
-        char qual_cut_char;
-        std::string rg_tag;
     virtual ~ReadDataVisitor() { }
 
     public:
         bool GatherReadData(const LocalBamToolsUtils::PileupPosition& pileupData) ;
         bool GatherReadDataNew(const LocalBamToolsUtils::PileupPosition& pileupData) ;
-    public:
+        int GetSampleIndex(const string &tag_data);
+
+    protected:
+        SequencingFactory sf;
+        char qual_cut_char;
+        std::string rg_tag;
+
+
         char current_base;
         string tag_id;
         uint64_t chr_index;
         ModelInput site_data;
         const ModelParams& m_params;
         const RefVector& m_bam_references;
+
+        [[deprecated]]
         MutationMatrix m_mutation_paths;
+        [[deprecated]]
         MutationMatrix m_non_mutation_paths;
 
     private:
@@ -70,7 +79,7 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
 
 
 
-    int GetSampleIndex(const string &tag_data);
+
 };
         
  
