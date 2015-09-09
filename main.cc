@@ -53,8 +53,15 @@ class VariantVisitor : public ReadDataVisitor{
          void Visit(const LocalBamToolsUtils::PileupPosition& pileupData) {
             if (GatherReadData(pileupData) ){
 //            if (GatherReadDataNew(pileupData) ){
-                double prob = TetMAProbability(m_params, site_data, m_mut_paths, m_nomut_paths);
-                double prob2 = TetMAProbabilityNew(m_params, sf, site_data, m_mut_paths, m_nomut_paths);
+                double prob = TetMAProbability(m_params, sf, site_data, m_mut_paths, m_nomut_paths);
+                double prob2 = TetMAProbability(m_params, site_data, m_mut_paths, m_nomut_paths);
+                if(prob != prob2){
+                    cout << "!!! " << prob <<"\t"<< prob2 << endl;
+                }
+                for (int i = 0; i < 3; ++i) {
+                    prob += TetMAProbability(m_params, sf, site_data, m_mut_paths, m_nomut_paths);
+                    prob2 += TetMAProbability(m_params, site_data, m_mut_paths, m_nomut_paths);
+                }
                 if(prob != prob2){
                     cout << "!!! " << prob <<"\t"<< prob2 << endl;
                 }
@@ -62,15 +69,16 @@ class VariantVisitor : public ReadDataVisitor{
                                     << pileupData.Position << '\t'
                                     << current_base << '\t'
                                     << prob << '\t' << endl;
-                if(prob >= m_prob_cut){
-                    double prob_one = TetMAProbOneMutation(m_params, site_data, m_mut_paths, m_nomut_paths);
-                         *m_ostream << "Z" << m_bam_references[pileupData.RefId].RefName << '\t'
-                                    << pileupData.Position << '\t'
-                                    << current_base << '\t'
-                                    << prob << '\t'
-                                    << prob_one << '\t'
-                                    << endl;
-                }
+//                if(prob >= m_prob_cut){
+//                    double prob_one = TetMAProbOneMutation(m_params, site_data, m_mut_paths, m_nomut_paths);
+//                         *m_ostream << "Z" << m_bam_references[pileupData.RefId].RefName << '\t'
+//                                    << pileupData.Position << '\t'
+//                                    << current_base << '\t'
+//                                    << prob << '\t'
+//                                    << prob_one << '\t'
+//                                    << endl;
+//                }
+
             }
         }
 

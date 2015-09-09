@@ -21,16 +21,15 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
 MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut);
 
 //NEW
-double TetMAProbabilityNew(const ModelParams &params, SequencingFactory &sf, const ModelInput site_data,
-                           const MutationMatrix m, const MutationMatrix mn);
+double TetMAProbability(const ModelParams &params, SequencingFactory &sf, const ModelInput &site_data,
+                        const MutationMatrix &m, const MutationMatrix &mn);
 
-double TetMAProbOneMutationNew(const ModelParams &params, SequencingFactory &sf, const ModelInput site_data,
+double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf, const ModelInput site_data,
                             const MutationMatrix m, const MutationMatrix mn);
 
-GenotypeProbs PopulationProbs(const ModelParams &params, SequencingFactory &sf, int ref_allele);
+GenotypeProbs PopulationProbs(SequencingFactory &sf, int ref_allele, int ploidy_ancestor);
 
-GenotypeProbs Sequencing(const ModelParams &params, SequencingFactory &sf,
-                         int ref_allele, ReadData data, int ploidy);
+GenotypeProbs Sequencing(SequencingFactory &sf, ReadData data, int ploidy);
 
 
 #endif

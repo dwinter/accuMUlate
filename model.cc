@@ -58,29 +58,6 @@ DiploidProbs DiploidPopulation(const ModelParams &params, int ref_allele) {
 	return result.exp();
 }
 
-GenotypeProbs PopulationProbs(const ModelParams &params, int ref_allele){
-    if(params.ploidy_ancestor==2){
-        DiploidProbs result = DiploidPopulation(params, ref_allele);
-        return result;
-    }
-    HaploidProbs result;
-    for( int i :{0,1,2,3}) {
-       result[i] = params.nuc_freq[i];
-    }
-    return result;
-}
-
-GenotypeProbs PopulationProbs(const ModelParams &params, SequencingFactory &sf,
-							  int ref_allele) {
-	if(params.ploidy_ancestor==2){
-		DiploidProbs result = sf.getRefDiploidProbs(ref_allele);
-		return result;
-	}
-	HaploidProbs result = sf.getRefHaploidProbs();
-	return result;
-}
-
-
 
 //Create the mutation matrices which represent the probabilites of different
 //histories with or without mutation. 
@@ -216,25 +193,45 @@ HaploidProbs HaploidSequencing(const ModelParams &params, int ref_allele, ReadDa
 	return (result - scale).exp();
 }
 
-GenotypeProbs Sequencing(const ModelParams &params, int ref_allele, ReadData data, int ploidy) {
-    if(ploidy == 2){
-        DiploidProbs result = DiploidSequencing(params, ref_allele, data);
-        return result;
-    }
-    HaploidProbs result = HaploidSequencing(params, ref_allele, data);
-    return result;
+
+GenotypeProbs PopulationProbs(const ModelParams &params, int ref_allele){
+	if(params.ploidy_ancestor==2){
+		DiploidProbs result = DiploidPopulation(params, ref_allele);
+		return result;
+	}
+	HaploidProbs result;
+	for( int i :{0,1,2,3}) {
+		result[i] = params.nuc_freq[i];
+	}
+	return result;
+}
+
+GenotypeProbs PopulationProbs(SequencingFactory &sf, int ref_allele, int ploidy_ancestor) {
+	if(ploidy_ancestor==2){
+		DiploidProbs result = sf.getRefDiploidProbs(ref_allele);
+		return result;
+	}
+	HaploidProbs result = sf.getRefHaploidProbs();
+	return result;
 }
 
 
-GenotypeProbs Sequencing(const ModelParams &params, SequencingFactory &sf,
-						 int ref_allele, ReadData data, int ploidy) {
+GenotypeProbs Sequencing(const ModelParams &params, int ref_allele, ReadData data, int ploidy) {
 	if(ploidy == 2){
-		DiploidProbs result = //DiploidSequencing(params, ref_allele, data);
-		sf.GetDiploidSequencing(ref_allele, data);
+		DiploidProbs result = DiploidSequencing(params, ref_allele, data);
 		return result;
 	}
-	HaploidProbs result = //HaploidSequencing(params, ref_allele, data);
-	sf.GetHaploidSequencing(ref_allele, data);
+	HaploidProbs result = HaploidSequencing(params, ref_allele, data);
+	return result;
+}
+
+
+GenotypeProbs Sequencing(SequencingFactory &sf, ReadData data, int ploidy) {
+	if(ploidy == 2){
+		DiploidProbs result = sf.GetDiploidSequencing(data);
+		return result;
+	}
+	HaploidProbs result = sf.GetHaploidSequencing(data);
 	return result;
 }
 
@@ -259,32 +256,19 @@ double TetMAProbability(const ModelParams &params, const ModelInput site_data, c
 
 
 
-double TetMAProbabilityNew(const ModelParams &params, SequencingFactory &sf, const ModelInput site_data, const MutationMatrix m, const MutationMatrix mn) {
+double TetMAProbability(const ModelParams &params, SequencingFactory &sf,
+						const ModelInput &site_data,
+						const MutationMatrix &m, const MutationMatrix &mn) {
 
 	auto it = site_data.all_reads.begin();
 
-	GenotypeProbs pop_genotypes = PopulationProbs(params, sf, site_data.reference);
-    GenotypeProbs anc_genotypes = Sequencing(params, sf, site_data.reference, *it, params.ploidy_ancestor);
-
-
-//	GenotypeProbs pop_genotypes = PopulationProbs(params, site_data.reference);
-//	GenotypeProbs anc_genotypes = Sequencing(params, site_data.reference, *it, params.ploidy_ancestor);
-
-
-//	auto isEqual = pop_genotypes == pop_genotypesNew;
-//	if (!isEqual.all()){
-//		cout << "P:" << pop_genotypes << "\n" << pop_genotypesNew << "\n====================" << endl;
-//	}
-//	auto isEqual2 = anc_genotypes == anc_genotypesNew;
-//	if (!isEqual2.all()){
-//		cout << "A:" << anc_genotypes << "\n" << anc_genotypesNew << "\n====================" << endl;
-//	}
-
+	GenotypeProbs pop_genotypes = PopulationProbs(sf, site_data.reference, params.ploidy_ancestor);
+    GenotypeProbs anc_genotypes = Sequencing(sf, *it, params.ploidy_ancestor);
 
 	anc_genotypes *= pop_genotypes;
     GenotypeProbs num_genotypes = anc_genotypes;
     for(++it; it != site_data.all_reads.end(); ++it) {
-        GenotypeProbs p = Sequencing(params,  site_data.reference, *it, params.ploidy_descendant);
+        GenotypeProbs p = Sequencing(sf, *it, params.ploidy_descendant);
         anc_genotypes *= (m.matrix()*p.matrix()).array();
         num_genotypes *= (mn.matrix()*p.matrix()).array();
     }

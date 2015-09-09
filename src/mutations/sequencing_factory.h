@@ -62,9 +62,9 @@ public:
     }
 
 
-    DiploidProbs GetDiploidSequencing(int ref_allele, ReadData &data);
+    DiploidProbs GetDiploidSequencing(ReadData &data);
 
-    HaploidProbs GetHaploidSequencing(int ref_allele, ReadData &data);
+    HaploidProbs GetHaploidSequencing(ReadData &data);
 
 private:
 
@@ -74,31 +74,30 @@ private:
     double error_prob;
     double theta;
     std::vector<double> frequency_prior;
-    Array10D ancestor_prior;
+
 
     double haploid_alphas[4][4];
+    double alphas_total_haploid;
+    double alphas_total_diploid;
 
-    std::vector<SiteGenotypesIndex> sgi;
+    [[deprecated]] Array10D ancestor_prior;
 
 private:
     std::array<DiploidProbs, 4> ref_diploid_probs;
     HaploidProbs ref_halpoid_probs;
 
-
     std::vector<HaploidProbs> convert_index_key_to_haploid;
-    std::vector<DiploidProbsIndex10> convert_index_key_to_diploid_10;
-
-    std::vector<double> convert_index_key_to_haploid_scaler;
-    std::vector<double> convert_index_key_to_diploid_10_scaler;
-
-//    std::vector<HaploidProbs> convert_index_key_to_haploid_unnormalised;
-//    std::vector<DiploidProbsIndex10> convert_index_key_to_diploid_10_unnormalised;
-
+    std::vector<DiploidProbs> convert_index_key_to_diploid;
 
     std::unordered_map<uint64_t, uint32_t> map_rd_to_index;
-    std::array<std::unordered_map<uint64_t, uint32_t>, 4> map_ancestor_to_index;
+    std::unordered_map<uint64_t, uint32_t> map_ancestor_to_index;
 
-    std::unordered_map<int, int> map_des_count;
+    [[deprecated]] std::vector<DiploidProbsIndex10> convert_index_key_to_diploid_10;
+    [[deprecated]] std::vector<double> convert_index_key_to_haploid_scaler;
+    [[deprecated]] std::vector<double> convert_index_key_to_diploid_10_scaler;
+    [[deprecated]] std::array<std::unordered_map<uint64_t, uint32_t>, 4> map_ancestor_ref_to_index_;
+    [[deprecated]] std::unordered_map<int, int> map_des_count;
+    [[deprecated]] std::vector<SiteGenotypesIndex> sgi;
 
     //
 //    void CalculateDescendantGenotypes(SiteGenotypes &seq_prob);
@@ -106,7 +105,12 @@ private:
 //
 //    void CalculateDescendantGenotypesIndex(SiteGenotypesIndex &seq_prob);
 //    void CalculateAncestorGenotypeIndex(SiteGenotypesIndex &seq_prob);
+
+    [[deprecated]]
     void CalculateAncestorPrior();
+    [[deprecated]]
+    DiploidProbsIndex10 ConvertDiploid16ToDiploid10(DiploidProbs probs, int reference);
+
 
     DiploidProbs CreateRefDiploidProbs(int ref_allele);
 
@@ -114,12 +118,13 @@ private:
 
     HaploidProbs HaploidSequencing(ReadData const &data);
 
-    DiploidProbsIndex10 ConvertDiploid16ToDiploid10(DiploidProbs probs, int reference);
-
-
-    DiploidProbs CalculateGenotypeProbCache(int ref_allele, ReadData data, int ploidy);
-
 
     int index_descendant;
+    int index_ancestor;
+
+public:
+    int count1 = 0;
+    int count2 = 0;
+
 };
 #endif //_ACCUMULATE_SEQUENCING_FACTORY_H_
