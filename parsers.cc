@@ -49,7 +49,7 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition& p
         return false;
     }
 
-    ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }}); 
+    ReadDataVector bcalls (m_samples.size(), ReadData{0});
     for(auto it = begin(pileupData.PileupAlignments);
              it !=  end(pileupData.PileupAlignments); 
              ++it){
@@ -69,24 +69,24 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition& p
 };
 
 
-bool ReadDataVisitor::GatherReadDataNew(const LocalBamToolsUtils::PileupPosition& pileupData) {
+bool ReadDataVisitor::GatherReadDataV2(const LocalBamToolsUtils::PileupPosition &pileupData) {
 
     //Like it says, collect a sites reads. If the site is good to call
     //from set the site_data object and return `true`.
     uint64_t pos  = pileupData.Position;
 
     m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
-    uint16_t ref_base_idx = base_index2[(int) current_base];
+    uint16_t ref_base_idx = base_index_lookup[(int) current_base];
     if( ref_base_idx > 4 ) { // TODO: This treats all non IUPAC codes as masks. Document this is we keep it
         return false;
     }
-    ReadDataVector bcalls (m_samples.size(), ReadData{{ 0,0,0,0 }});
+    ReadDataVector bcalls (m_samples.size(), ReadData{0});
     for(auto it = begin(pileupData.PileupAlignments);
         it !=  end(pileupData.PileupAlignments); ++it){
 //        if( include_site(*it, m_mapping_cut, m_qual_cut) ){
 
         int32_t pos_in_alignment = it->PositionInAlignment;
-        if (include_site_4(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
+        if (include_site_v2(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
 //            it->Alignment.GetTag("RG", tag_id);
 //            uint32_t sindex = m_samples[tag_id];
 
@@ -94,7 +94,7 @@ bool ReadDataVisitor::GatherReadDataNew(const LocalBamToolsUtils::PileupPosition
 
             if( sindex  != std::numeric_limits<uint32_t>::max()  ){
 //                uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
-                uint16_t bindex = base_index2[(int) it->Alignment.QueryBases[pos_in_alignment]];
+                uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
                 if (bindex < 4 ){
                     bcalls[sindex].reads[bindex] += 1;
                 }
@@ -213,7 +213,7 @@ bool include_site(LocalBamToolsUtils::PileupAlignment pileup, uint16_t map_cut, 
 }
 
 
-bool include_site_4(const BamAlignment & alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut){
+bool include_site_v2(const BamAlignment &alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut){
 //    const BamAlignment *ali = &(pileup.Alignment);
     if(alignment.MapQuality > map_cut){
         char reference = alignment.Qualities[pos];
@@ -228,7 +228,7 @@ bool include_site_4(const BamAlignment & alignment, const int &pos, const uint16
 
 
 
-int base_index2[128] ={
+const int base_index_lookup[128] ={
 //    17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,	// 0-15
 //    17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,	// 16-31
 ////                                          -

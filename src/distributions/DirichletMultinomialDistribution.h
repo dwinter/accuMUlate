@@ -12,9 +12,11 @@
 #include <data_struct.h>
 
 class DirichletMultinomialDistribution {
+
 public:
-	DirichletMultinomialDistribution();
-	virtual ~DirichletMultinomialDistribution();
+    DirichletMultinomialDistribution();
+
+    virtual ~DirichletMultinomialDistribution();
 
 //	double DirichletMultinomialLogProbability(double alphas[4], ReadData data);
 //	void DirichletMultinomialRandom(double alhpas[4], ReadData &data);

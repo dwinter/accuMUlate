@@ -31,12 +31,13 @@ include_directories("./")
 
 SET(SOURCE_FILES CACHE INTERNAL "Global")
 SET(SOURCE_FILES ${SOURCE_FILES}
-        ${CMAKE_CURRENT_SOURCE_DIR}/model.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/boost_input_utils.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/parsers.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/data_struct.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/model.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/parsers.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/variant_visitor.cc
         CACHE INTERNAL "Global"
-)
+        )
 
 ADD_SUBDIRECTORY(src)
 SET(LOCAL_LIBS LibDistributions LibIoData LibMutations)

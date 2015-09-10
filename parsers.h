@@ -37,9 +37,9 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
         static const char ZERO_CHAR = ((char) 0);
         ReadDataVisitor(const RefVector& bam_references,
                         LocalBamToolsUtils::Fasta& idx_ref,
-                        SampleMap& samples, 
-                        const ModelParams& p,  
-                        BamAlignment& ali, 
+                        SampleMap& samples,
+                        const ModelParams& p,
+                        BamAlignment& ali,
                         int qual_cut,
                         int mapping_cut);
 
@@ -47,22 +47,23 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
 
     public:
         bool GatherReadData(const LocalBamToolsUtils::PileupPosition& pileupData) ;
-        bool GatherReadDataNew(const LocalBamToolsUtils::PileupPosition& pileupData) ;
+        bool GatherReadDataV2(const LocalBamToolsUtils::PileupPosition &pileupData) ;
         int GetSampleIndex(const string &tag_data);
 
     protected:
-        SequencingFactory sf;
-        char qual_cut_char;
-        std::string rg_tag;
-
-
-        char current_base;
-        string tag_id;
-        uint64_t chr_index;
-        ModelInput site_data;
         const ModelParams& m_params;
         const RefVector& m_bam_references;
 
+        std::string rg_tag;
+        ModelInput site_data;
+        SequencingFactory sf;
+        char qual_cut_char;
+        char current_base;
+
+
+    //        uint64_t chr_index;
+        [[deprecated]]
+        string tag_id;
         [[deprecated]]
         MutationMatrix m_mutation_paths;
         [[deprecated]]
@@ -85,18 +86,19 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
  
 //ModelInput CollectReadData(BamTools::PileupPosition& pileupData);
 
-
-
 //Helper functions
-
-bool include_site(LocalBamToolsUtils::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut);
-uint16_t base_index(char b);
-string get_sample(string& tag);
+//string get_sample(string& tag);
 //uint32_t find_sample_index(string, SampleNames);
 
+uint16_t base_index(char b);
 
-extern int base_index2[128];
-bool include_site_4(const BamTools::BamAlignment & alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut);
+bool include_site(LocalBamToolsUtils::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut);
+
+//Update version
+bool include_site_v2(const BamTools::BamAlignment &alignment, const int &pos, const uint16_t &map_cut,
+                     const char &qual_cut);
+extern const int base_index_lookup[128];
+
 
 
 #endif

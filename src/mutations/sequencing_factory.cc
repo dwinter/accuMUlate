@@ -37,12 +37,6 @@ SequencingFactory::SequencingFactory(ModelParams const &model_params2) :model_pa
         ref_diploid_probs[i] = CreateRefDiploidProbs(i);
     }
 
-    CalculateAncestorPrior();
-//    cout << ref_diploid_probs << endl;
-
-//    index = 0;
-//    index_ancestor = 0;
-
 }
 
 
@@ -111,29 +105,6 @@ HaploidProbs SequencingFactory::HaploidSequencing(ReadData const &data) {
     double scale = result.maxCoeff();
     return (result - scale).exp();
 }
-
-
-void SequencingFactory::CalculateAncestorPrior() {
-    for (int i = 0; i < 4; ++i) {
-        for (int j = i; j < 4; ++j) {
-            int index10 = LookupTable::index_converter_4_4_to_10[i][j];
-            ancestor_prior[index10] = frequency_prior[i] * frequency_prior[j];
-            if(i != j){
-                ancestor_prior[index10] *= 2; //Count both AC and CA
-            }
-        }
-    }
-}
-
-const std::vector<HaploidProbs> SequencingFactory::RemoveConvertIndexKeyToHaploid() {
-    return std::move(convert_index_key_to_haploid);
-}
-
-const std::vector<DiploidProbsIndex10> SequencingFactory::RemoveConvertIndexKeyToDiploidIndex10() {
-    return std::move(convert_index_key_to_diploid_10);
-}
-
-
 
 
 
