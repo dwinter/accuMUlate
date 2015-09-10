@@ -80,7 +80,8 @@ bool ReadDataVisitor::GatherReadDataV2(const LocalBamToolsUtils::PileupPosition 
     if( ref_base_idx > 4 ) { // TODO: This treats all non IUPAC codes as masks. Document this is we keep it
         return false;
     }
-    ReadDataVector bcalls (m_samples.size(), ReadData{0});
+//    ReadDataVector bcalls (m_samples.size(), ReadData{0});
+    ReadDataVector bcalls (6, ReadData{0});
     for(auto it = begin(pileupData.PileupAlignments);
         it !=  end(pileupData.PileupAlignments); ++it){
 //        if( include_site(*it, m_mapping_cut, m_qual_cut) ){
@@ -98,6 +99,8 @@ bool ReadDataVisitor::GatherReadDataV2(const LocalBamToolsUtils::PileupPosition 
                 if (bindex < 4 ){
                     bcalls[sindex].reads[bindex] += 1;
                 }
+
+
             }
         }
     }

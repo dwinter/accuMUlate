@@ -75,7 +75,7 @@ namespace BoostUtils {
                     if( s == name_map.end()){//samples can have multiple readgroups...
                         name_map[it->Sample] = sindex;
                         sindex += 1;
-//                        keepers.erase(find(keepers.begin(),keepers.end(),it->Sample));
+                        keepers.erase(find(keepers.begin(),keepers.end(),it->Sample));
                         //NOTE: with erase, effectively remove all double+ samples
                         //Fixed version == #sample-name M28 40 44 50 531
                     }

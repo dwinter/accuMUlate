@@ -8,6 +8,7 @@
 #include <map>
 #include <fstream>
 #include <memory>
+#include <iomanip>
 #include "Eigen/Dense"
 
 #include "model.h"
@@ -267,13 +268,27 @@ double TetMAProbability(const ModelParams &params, SequencingFactory &sf,
 	GenotypeProbs pop_genotypes = PopulationProbs(sf, site_data.reference, params.ploidy_ancestor);
     GenotypeProbs anc_genotypes = Sequencing(sf, *it, params.ploidy_ancestor);
 
+	cout << std::setprecision(10) << anc_genotypes.sum() << "\t" << pop_genotypes.sum() << "\n" << endl;
+
 	anc_genotypes *= pop_genotypes;
     GenotypeProbs num_genotypes = anc_genotypes;
+
+//	ReadData data2 = ReadData{0};
+//	auto x = sf.GetHaploidSequencing(data2);
+//	cout << x << endl;
+//	std::cout << "Totoal: " << site_data.all_reads.size() << endl;
+
     for(++it; it != site_data.all_reads.end(); ++it) {
         GenotypeProbs p = Sequencing(sf, *it, params.ploidy_descendant);
+
         anc_genotypes *= (m.matrix()*p.matrix()).array();
         num_genotypes *= (mn.matrix()*p.matrix()).array();
-    }
+		cout << std::setprecision(500) << p[0] << "\t" << p[1] << "\t" << p[2] << "\t" << p[3] << "\t" <<endl;
+		cout << std::setprecision(10) << p << "\t" << anc_genotypes.sum() << "\t" << num_genotypes.sum() << "\n" << endl;
+	}
+	cout <<  num_genotypes.sum()/anc_genotypes.sum() << "\t" << anc_genotypes.sum() << "\t" << num_genotypes.sum() << "\n" << endl;
+	cout << 1.0 - num_genotypes.sum()/anc_genotypes.sum() << endl;
+	std::exit(8);
 
     return 1.0 - num_genotypes.sum()/anc_genotypes.sum();
 }
