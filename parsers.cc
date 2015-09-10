@@ -48,7 +48,7 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition& p
     if( ref_base_idx > 4 ) { // TODO: This treats all non IUPAC codes as masks. Document this is we keep it
         return false;
     }
-
+    //TODO: Let's check this. m_samples.size() or size - number_of_uint32_max
     ReadDataVector bcalls (m_samples.size(), ReadData{0});
     for(auto it = begin(pileupData.PileupAlignments);
              it !=  end(pileupData.PileupAlignments); 
