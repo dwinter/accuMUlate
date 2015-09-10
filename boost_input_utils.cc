@@ -120,8 +120,8 @@ namespace BoostUtils {
                     "' in the specifified BAM file. Check the sample tags match" << endl;
             exit(1);
         }
-        cout << "ZZ" << keepers.size() << endl;
-        if(!keepers.size()==0){
+
+        if(! (keepers.size()==0) ){
             cerr << "Sample(s) note persent in BAM file: ";
             for(auto s: keepers){
                 cerr << s;
