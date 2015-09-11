@@ -54,15 +54,12 @@ struct ModelInput{// Can probably stand to lose this, started out more complex..
 };
 
 typedef Eigen::ArrayXd GenotypeProbs;
-
 typedef Eigen::Array4d HaploidProbs;
 typedef Eigen::Array<double, 16, 1> DiploidProbs;
 
 typedef Eigen::Matrix4d TransitionMatrix;
 
 typedef Eigen::ArrayXXd MutationMatrix; //array of dynamic dimensions
-
-
 
 typedef std::array<double, 10> DiploidProbsIndex10;
 typedef std::array<double, 10> Array10D;

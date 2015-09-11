@@ -37,7 +37,6 @@ using namespace std;
 
 
 
-
 //Create the mutation matrices which represent the probabilites of different
 //histories with or without mutation. 
 TransitionMatrix F81(const ModelParams &params) {
@@ -110,6 +109,76 @@ MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut){
     return result;
 }
 
+
+
+//Version 2
+GenotypeProbs PopulationProbs(SequencingFactory &sf, int ref_allele, int ploidy_ancestor) {
+	if(ploidy_ancestor==2){
+		DiploidProbs result = sf.getRefDiploidProbs(ref_allele);
+		return result;
+	}
+	HaploidProbs result = sf.getRefHaploidProbs();
+	return result;
+}
+
+GenotypeProbs Sequencing(SequencingFactory &sf, ReadData data, int ploidy) {
+	if(ploidy == 2){
+		DiploidProbs result = sf.GetDiploidSequencing(data);
+		return result;
+	}
+	HaploidProbs result = sf.GetHaploidSequencing(data);
+	return result;
+}
+
+double TetMAProbability(const ModelParams &params, SequencingFactory &sf,
+						const ModelInput &site_data,
+						const MutationMatrix &m, const MutationMatrix &mn) {
+
+	auto it = site_data.all_reads.begin();
+	GenotypeProbs pop_genotypes = PopulationProbs(sf, site_data.reference, params.ploidy_ancestor);
+	GenotypeProbs anc_genotypes = Sequencing(sf, *it, params.ploidy_ancestor);
+
+	anc_genotypes *= pop_genotypes;
+	GenotypeProbs num_genotypes = anc_genotypes;
+
+	for(++it; it != site_data.all_reads.end(); ++it) {
+		GenotypeProbs p = Sequencing(sf, *it, params.ploidy_descendant);
+
+		anc_genotypes *= (m.matrix()*p.matrix()).array();
+		num_genotypes *= (mn.matrix()*p.matrix()).array();
+	}
+
+	return 1.0 - num_genotypes.sum()/anc_genotypes.sum();
+}
+
+double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf,
+							const ModelInput &site_data,
+							const MutationMatrix &m, const MutationMatrix &mn) {
+
+	auto it = site_data.all_reads.begin();
+
+	GenotypeProbs pop_genotypes = PopulationProbs(sf, site_data.reference, params.ploidy_ancestor);
+	GenotypeProbs anc_genotypes = Sequencing(sf, *it, params.ploidy_ancestor);
+	anc_genotypes *= pop_genotypes;
+	GenotypeProbs denom = anc_genotypes;   //product of p(Ri|A)
+	GenotypeProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
+	GenotypeProbs mut_genotypes = anc_genotypes;      //Sum of p(Ri&Mutation|A=x)
+	mut_genotypes.setZero();
+
+	for(++it; it != site_data.all_reads.end(); ++it) {
+		GenotypeProbs p = Sequencing(sf, *it, params.ploidy_descendant);
+		GenotypeProbs dgen =  (mn.matrix()*p.matrix()).array();
+		GenotypeProbs agen = (m.matrix()*p.matrix()).array();
+		nomut_genotypes *= dgen;
+		mut_genotypes += (agen/dgen - 1); //(agen+dgen)/agen
+		denom *= agen;
+	}
+	double result = (nomut_genotypes * mut_genotypes).sum() / denom.sum();
+	return(result);
+}
+
+
+//Deprecated methods after this
 //Version 1
 DiploidProbs DiploidPopulation(const ModelParams &params, int ref_allele) {
 	ReadData d;
@@ -239,85 +308,6 @@ double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_dat
 }
 
 
-
-//Version 2
-GenotypeProbs PopulationProbs(SequencingFactory &sf, int ref_allele, int ploidy_ancestor) {
-	if(ploidy_ancestor==2){
-		DiploidProbs result = sf.getRefDiploidProbs(ref_allele);
-		return result;
-	}
-	HaploidProbs result = sf.getRefHaploidProbs();
-	return result;
-}
-
-GenotypeProbs Sequencing(SequencingFactory &sf, ReadData data, int ploidy) {
-	if(ploidy == 2){
-		DiploidProbs result = sf.GetDiploidSequencing(data);
-		return result;
-	}
-	HaploidProbs result = sf.GetHaploidSequencing(data);
-	return result;
-}
-
-double TetMAProbability(const ModelParams &params, SequencingFactory &sf,
-						const ModelInput &site_data,
-						const MutationMatrix &m, const MutationMatrix &mn) {
-
-	auto it = site_data.all_reads.begin();
-
-	GenotypeProbs pop_genotypes = PopulationProbs(sf, site_data.reference, params.ploidy_ancestor);
-    GenotypeProbs anc_genotypes = Sequencing(sf, *it, params.ploidy_ancestor);
-
-//	cout << std::setprecision(10) << anc_genotypes.sum() << "\t" << pop_genotypes.sum() << "\n" << endl;
-
-	anc_genotypes *= pop_genotypes;
-    GenotypeProbs num_genotypes = anc_genotypes;
-
-//	ReadData data2 = ReadData{0};
-//	auto x = sf.GetHaploidSequencing(data2);
-//	cout << x << endl;
-//	std::cout << "Totoal: " << site_data.all_reads.size() << endl;
-
-    for(++it; it != site_data.all_reads.end(); ++it) {
-        GenotypeProbs p = Sequencing(sf, *it, params.ploidy_descendant);
-
-        anc_genotypes *= (m.matrix()*p.matrix()).array();
-        num_genotypes *= (mn.matrix()*p.matrix()).array();
-//		cout << std::setprecision(500) << p[0] << "\t" << p[1] << "\t" << p[2] << "\t" << p[3] << "\t" <<endl;
-//		cout << std::setprecision(10) << p << "\t" << anc_genotypes.sum() << "\t" << num_genotypes.sum() << "\n" << endl;
-	}
-//	cout <<  num_genotypes.sum()/anc_genotypes.sum() << "\t" << anc_genotypes.sum() << "\t" << num_genotypes.sum() << "\n" << endl;
-//	cout << 1.0 - num_genotypes.sum()/anc_genotypes.sum() << endl;
-//	std::exit(8);
-
-    return 1.0 - num_genotypes.sum()/anc_genotypes.sum();
-}
-
-double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf,
-							const ModelInput &site_data,
-							const MutationMatrix &m, const MutationMatrix &mn) {
-
-	auto it = site_data.all_reads.begin();
-
-	GenotypeProbs pop_genotypes = PopulationProbs(sf, site_data.reference, params.ploidy_ancestor);
-	GenotypeProbs anc_genotypes = Sequencing(sf, *it, params.ploidy_ancestor);
-	anc_genotypes *= pop_genotypes;
-	GenotypeProbs denom = anc_genotypes;   //product of p(Ri|A)
-	GenotypeProbs nomut_genotypes = anc_genotypes; //Product of p(Ri & noMutatoin|A)
-	GenotypeProbs mut_genotypes = anc_genotypes;      //Sum of p(Ri&Mutation|A=x)
-	mut_genotypes.setZero();
-
-	for(++it; it != site_data.all_reads.end(); ++it) {
-		GenotypeProbs p = Sequencing(sf, *it, params.ploidy_descendant);
-		GenotypeProbs dgen =  (mn.matrix()*p.matrix()).array();
-		GenotypeProbs agen = (m.matrix()*p.matrix()).array();
-		nomut_genotypes *= dgen;
-		mut_genotypes += (agen/dgen - 1); //(agen+dgen)/agen
-		denom *= agen;
-	}
-	double result = (nomut_genotypes * mut_genotypes).sum() / denom.sum();
-	return(result);
-}
 
 //int main(){
 //      ModelParams p = { 

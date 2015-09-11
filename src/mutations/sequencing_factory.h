@@ -5,10 +5,6 @@
 #ifndef _SEQUENCING_FACTORY_H_
 #define _SEQUENCING_FACTORY_H_
 
-//#include "model.h"
-#include "../lookup.h" //HACK: FIXME: do it properly later
-#include "site_genotypes.h"
-#include "site_genotype_index.h"
 #include "data_struct.h"
 #include <unordered_map>
 #include "src/distributions/DirichletMultinomialDistribution.h"
@@ -18,10 +14,8 @@ class SequencingFactory {
 
 public:
 
-//    SequencingFactory() = default;
     SequencingFactory(ModelParams const &model_params);
 
-public:
     const DiploidProbs &getRefDiploidProbs(int ref) const {
         return ref_diploid_probs[ref];
     }
@@ -38,11 +32,11 @@ public:
 private:
 
     ModelParams model_params;
+    std::vector<double> frequency_prior;
     double phi_haploid;
     double phi_diploid;
     double error_prob;
     double theta;
-    std::vector<double> frequency_prior;
 
 
     int index_descendant;

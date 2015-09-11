@@ -14,6 +14,8 @@ set(CMAKE_CXX_FLAGS_RELEASE  "-std=c++11 -O3")
 set(CMAKE_CXX_FLAGS_RelWithDebInfo "-std=c++11 -O3 -Wall -Wextra -pedantic -Wno-deprecated -Wno-deprecated-declarations -Wno-deprecated")
 set(CMAKE_CXX_FLAGS_DEBUG  "-std=c++11 -g  -O0 -Wvla -Wall  -Wextra -pedantic ")
 
+
+
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ~/lib ~/include ${CMAKE_INSTALL_PREFIX} ~)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Modules/")
 find_package( Boost COMPONENTS program_options REQUIRED )

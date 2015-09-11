@@ -88,17 +88,13 @@ namespace BoostUtils {
                     "' in the specifified BAM file. Check the sample tags match" << endl;
             exit(1);
         }
-//        cout << name_map.size() << "\t" << keepers.size() << "\t" << sindex << endl;
-//        for (auto item : name_map) {
-//            cout << item.first << "\t" << item.second << endl;
-//        }
         if( (keepers.size()+1) != sindex ){
             cerr << "Sample(s) note persent in BAM file: ";
             for(auto s: keepers){
                 cerr << s << " ";
             }
             cerr << endl;
-//            exit(1);
+            exit(1);
         }
         // And now.. go back over the read groups to map RG->sample index
         SampleMap samples;
@@ -108,40 +104,6 @@ namespace BoostUtils {
 //                cout << it->ID << " " << name_map[it->Sample] << endl;
             }
         }
-
-
-//
-//
-//
-////EM version
-//        SampleMap sample_map_temp;
-//        int total_sample_count = 0;
-//        SamReadGroupDictionary dictionary = header.ReadGroups;
-//        size_t tag_count = dictionary.Size();
-//
-//        for (auto it = dictionary.Begin(); it != dictionary.End(); it++) {
-//            if (it->HasSample()) {
-//                auto s = sample_map_temp.find(it->Sample);
-//                if (s == sample_map_temp.end()) { // not in there yet
-//                    sample_map_temp[it->Sample] = total_sample_count;
-//                    total_sample_count++;
-//                }
-//            }
-//        }
-//
-////        m_samples = sample_map_temp;
-//
-//        SampleMap map_tag_sample = std::unordered_map<std::string, uint32_t>(tag_count);
-//        for (auto dict = dictionary.Begin(); dict != dictionary.End(); dict++) {
-//            map_tag_sample.emplace(dict->ID, sample_map_temp[dict->Sample]);
-////        map_tag_sample_two_stage.emplace(dict->ID, dict->Sample);
-//        }
-//        std::cout << "================= V2 =============" << std::endl;
-//        for (auto sample : map_tag_sample) {
-//            std::cout << sample.first << "\t" << sample.second << std::endl;
-//        }
-//
-//
 
         return samples;
 

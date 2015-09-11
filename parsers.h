@@ -46,12 +46,12 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
     virtual ~ReadDataVisitor() { }
 
     public:
+        bool GatherReadDataV2(const LocalBamToolsUtils::PileupPosition &pileupData) ;
+        uint32_t GetSampleIndex(const string &tag_data);
 
         [[deprecated]]
         bool GatherReadData(const LocalBamToolsUtils::PileupPosition& pileupData) ;
 
-        bool GatherReadDataV2(const LocalBamToolsUtils::PileupPosition &pileupData) ;
-        uint32_t GetSampleIndex(const string &tag_data);
 
     protected:
         const ModelParams& m_params;
@@ -62,7 +62,6 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
         SequencingFactory sf;
         char qual_cut_char;
         char current_base;
-
         uint32_t total_sample_count;
 
     //        uint64_t chr_index;
@@ -77,32 +76,31 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
         //set by arguments
         LocalBamToolsUtils::Fasta& m_idx_ref;
         SampleMap& m_samples;
-        BamAlignment& m_ali;
         int m_qual_cut;
         int m_mapping_cut;
         //refered to by fnxs
 
-
-
+        [[deprecated]]
+        BamAlignment& m_ali;
 
 };
         
  
-//ModelInput CollectReadData(BamTools::PileupPosition& pileupData);
 
 //Helper functions
-//string get_sample(string& tag);
-//uint32_t find_sample_index(string, SampleNames);
-[[deprecated]]
-uint16_t base_index(char b);
-[[deprecated]]
-bool include_site(LocalBamToolsUtils::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut);
-
 //Update version
 bool include_site_v2(const BamTools::BamAlignment &alignment, const int &pos, const uint16_t &map_cut,
                      const char &qual_cut);
 extern const int base_index_lookup[128];
 
+//ModelInput CollectReadData(BamTools::PileupPosition& pileupData);
+//string get_sample(string& tag);
+//uint32_t find_sample_index(string, SampleNames);
+[[deprecated]]
+uint16_t base_index(char b);
+
+[[deprecated]]
+bool include_site(LocalBamToolsUtils::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut);
 
 
 #endif
