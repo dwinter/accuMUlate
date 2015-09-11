@@ -46,9 +46,12 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
     virtual ~ReadDataVisitor() { }
 
     public:
+
+        [[deprecated]]
         bool GatherReadData(const LocalBamToolsUtils::PileupPosition& pileupData) ;
+
         bool GatherReadDataV2(const LocalBamToolsUtils::PileupPosition &pileupData) ;
-        int GetSampleIndex(const string &tag_data);
+        uint32_t GetSampleIndex(const string &tag_data);
 
     protected:
         const ModelParams& m_params;
@@ -60,6 +63,7 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
         char qual_cut_char;
         char current_base;
 
+        uint32_t total_sample_count;
 
     //        uint64_t chr_index;
         [[deprecated]]
@@ -89,9 +93,9 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor{
 //Helper functions
 //string get_sample(string& tag);
 //uint32_t find_sample_index(string, SampleNames);
-
+[[deprecated]]
 uint16_t base_index(char b);
-
+[[deprecated]]
 bool include_site(LocalBamToolsUtils::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut);
 
 //Update version

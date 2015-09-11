@@ -49,12 +49,9 @@ namespace BoostUtils {
         //we warn the user we are skipping some of the data. 
         SampleMap name_map;
         vector<string> keepers =  vm["sample-name"].as< vector<string> >();
-        for (auto key : keepers) {
-            cout << "sample-name: " << key << endl;
-        }
         string anc_tag = vm["ancestor"].as<string>();
-        cout << "A: " << anc_tag << endl;
-        uint16_t sindex = 1;
+
+        uint16_t sindex = 1; //ancestor has sindex==0
         bool ancestor_in_BAM = false;
         for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
             if(it->HasSample()){
@@ -75,7 +72,7 @@ namespace BoostUtils {
                     if( s == name_map.end()){//samples can have multiple readgroups...
                         name_map[it->Sample] = sindex;
                         sindex += 1;
-                        keepers.erase(find(keepers.begin(),keepers.end(),it->Sample));
+//                        keepers.erase(find(keepers.begin(),keepers.end(),it->Sample));
                         //NOTE: with erase, effectively remove all double+ samples
                         //Fixed version == #sample-name M28 40 44 50 531
                     }
@@ -83,69 +80,6 @@ namespace BoostUtils {
 
             }
         }
-//Original:
-//        12	0	12
-//        TtM531	4294967295
-//        TtM51	10
-//        TtM25	3
-//        TtM47	8
-//        TtM28	4294967295
-//        TtM19	1
-//        TtM0	0
-//        TtM29	5
-//        TtM40	4294967295
-//        TtM20	2
-//        TtM44	4294967295
-//        TtM50	4294967295
-//        M0_CGATGT_L001 0
-//        M0_CGATGT_L005 0
-//        M19_AACGTGAT_L007 1
-//        M20_AAACATCG_L007 2
-//        M25_GTGTTCTA_L007 3
-//        M28_TGACCA_L001 4294967295
-//        M28_TGACCA_L005 4294967295
-//        M29_CAGATCTG_L007 5
-//        M40_ACAGTG_L001 4294967295
-//        M40_ACAGTG_L005 4294967295
-//        M44_GCCAAT_L001 4294967295
-//        M44_GCCAAT_L005 4294967295
-//        M47_ATTGAGGA_L007 8
-//        M50_CAGATC_L001 4294967295
-//        M50_CAGATC_L005 4294967295
-//        M51_GGAGAACA_L007 10
-//        M531_CTTGTA_L001 4294967295
-//        M531_CTTGTA_L005 4294967295
-// update version without erase
-//        TtM531	4294967295
-//        TtM51	6
-//        TtM25	3
-//        TtM47	5
-//        TtM28	4294967295
-//        TtM19	1
-//        TtM0	0
-//        TtM29	4
-//        TtM40	4294967295
-//        TtM20	2
-//        TtM44	4294967295
-//        TtM50	4294967295
-//        M0_CGATGT_L001 0
-//        M0_CGATGT_L005 0
-//        M19_AACGTGAT_L007 1
-//        M20_AAACATCG_L007 2
-//        M25_GTGTTCTA_L007 3
-//        M28_TGACCA_L001 4294967295
-//        M28_TGACCA_L005 4294967295
-//        M29_CAGATCTG_L007 4
-//        M40_ACAGTG_L001 4294967295
-//        M40_ACAGTG_L005 4294967295
-//        M44_GCCAAT_L001 4294967295
-//        M44_GCCAAT_L005 4294967295
-//        M47_ATTGAGGA_L007 5
-//        M50_CAGATC_L001 4294967295
-//        M50_CAGATC_L005 4294967295
-//        M51_GGAGAACA_L007 6
-//        M531_CTTGTA_L001 4294967295
-//        M531_CTTGTA_L005 4294967295
 
         //Once we've built the index map we can check if we now about every
         //sample in the BAM file and if we have set the ancesoe
@@ -154,10 +88,10 @@ namespace BoostUtils {
                     "' in the specifified BAM file. Check the sample tags match" << endl;
             exit(1);
         }
-        cout << name_map.size() << "\t" << keepers.size() << "\t" << sindex << endl;
-        for (auto item : name_map) {
-            cout << item.first << "\t" << item.second << endl;
-        }
+//        cout << name_map.size() << "\t" << keepers.size() << "\t" << sindex << endl;
+//        for (auto item : name_map) {
+//            cout << item.first << "\t" << item.second << endl;
+//        }
         if( (keepers.size()+1) != sindex ){
             cerr << "Sample(s) note persent in BAM file: ";
             for(auto s: keepers){
@@ -171,7 +105,7 @@ namespace BoostUtils {
         for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
             if(it->HasSample()){
                 samples[it->ID] = name_map[it->Sample];
-                cout << it->ID << " " << name_map[it->Sample] << endl;
+//                cout << it->ID << " " << name_map[it->Sample] << endl;
             }
         }
 

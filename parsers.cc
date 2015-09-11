@@ -35,7 +35,18 @@ ReadDataVisitor::ReadDataVisitor(
                 m_params(p),
                 m_ali(ali), 
                 m_qual_cut(qual_cut),  
-                m_mapping_cut(mapping_cut), sf(p) {}
+                m_mapping_cut(mapping_cut), sf(p) {
+
+    int max = 0;
+    for (auto item : m_samples) {
+        if (item.second != numeric_limits<uint32_t>::max() && item.second > max){
+            max = item.second;
+        }
+    }
+    total_sample_count = max + 1; //Plus ref sindex==0;
+
+
+}
 //        ~ReadDataVisitor(void) { }
 //    public:
 
@@ -49,11 +60,10 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition& p
         return false;
     }
     //TODO: Let's check this. m_samples.size() or size - number_of_uint32_max
-    ReadDataVector bcalls (m_samples.size(), ReadData{0});
-    for(auto it = begin(pileupData.PileupAlignments);
-             it !=  end(pileupData.PileupAlignments); 
-             ++it){
-        if( include_site(*it, m_mapping_cut, m_qual_cut) ){
+    ReadDataVector bcalls(m_samples.size(), ReadData{0});
+    for (auto it = begin(pileupData.PileupAlignments);
+         it != end(pileupData.PileupAlignments); ++it) {
+        if (include_site(*it, m_mapping_cut, m_qual_cut)) {
             it->Alignment.GetTag("RG", tag_id);
             uint32_t sindex = m_samples[tag_id]; 
             if( sindex  != std::numeric_limits<uint32_t>::max()  ){
@@ -80,27 +90,22 @@ bool ReadDataVisitor::GatherReadDataV2(const LocalBamToolsUtils::PileupPosition 
     if( ref_base_idx > 4 ) { // TODO: This treats all non IUPAC codes as masks. Document this is we keep it
         return false;
     }
-//    ReadDataVector bcalls (m_samples.size(), ReadData{0});
-    ReadDataVector bcalls (6, ReadData{0});
+
+    ReadDataVector bcalls (total_sample_count, ReadData{0});
     for(auto it = begin(pileupData.PileupAlignments);
         it !=  end(pileupData.PileupAlignments); ++it){
 //        if( include_site(*it, m_mapping_cut, m_qual_cut) ){
 
         int32_t pos_in_alignment = it->PositionInAlignment;
         if (include_site_v2(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
-//            it->Alignment.GetTag("RG", tag_id);
-//            uint32_t sindex = m_samples[tag_id];
 
-            int sindex = GetSampleIndex(it->Alignment.TagData);
-
+            uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
             if( sindex  != std::numeric_limits<uint32_t>::max()  ){
-//                uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
+
                 uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
                 if (bindex < 4 ){
                     bcalls[sindex].reads[bindex] += 1;
                 }
-
-
             }
         }
     }
@@ -109,7 +114,7 @@ bool ReadDataVisitor::GatherReadDataV2(const LocalBamToolsUtils::PileupPosition 
 };
 
 
-int ReadDataVisitor::GetSampleIndex(std::string const &tag_data) {
+uint32_t ReadDataVisitor::GetSampleIndex(const std::string &tag_data) {
     size_t start_index = tag_data.find(rg_tag);
     if (start_index != std::string::npos) {
         start_index += 4;
@@ -120,25 +125,8 @@ int ReadDataVisitor::GetSampleIndex(std::string const &tag_data) {
     }
     size_t end_index = tag_data.find(ZERO_CHAR, start_index);
     std::string tag_id_2 = tag_data.substr(start_index, (end_index - start_index));
-//
-//
-////            string tag_id;
-////            it->Alignment.GetTag("RG", tag_id);
-////            string sm = m_header.ReadGroups[tag_id].Sample;
-////            if(tag_id != tag_id_2){
-////                cout << tag_id << "\t" << tag_id_2 <<  "\t" << start_index << "\t" << end_index << "\n" << tag_data << endl;
-////                exit(-1);
-////            }
-////            if(sm != sm2){
-////                cout << sm << "\t" << sm2 << endl;
-////                exit(-2);
-////            }
-//
-////            string sm2 = map_tag_sample_two_stage[tag_id_2]; //TODO:catch exception
-////            uint32_t sindex = m_samples[sm2]; //TODO check samples existed!
-//
-    int sindex = m_samples[tag_id_2];
-    return sindex;
+
+    return m_samples[tag_id_2];
 }
 
 
