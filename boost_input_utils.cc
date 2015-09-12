@@ -7,7 +7,6 @@
  */
 
 
-#include "utils/bamtools_fasta.h"
 #include "parsers.h"
 #include "boost_input_utils.h"
 
@@ -30,8 +29,6 @@ void validate(boost::any& v, const vector<string>& values, nfreqs* target_type, 
 
 namespace BoostUtils {
     using namespace std;
-    
-
     namespace po = boost::program_options;
 
     static bool file_exists(const std::string &name) {
@@ -53,15 +50,17 @@ namespace BoostUtils {
         SampleMap name_map;
         vector<string> keepers =  vm["sample-name"].as< vector<string> >();
         string anc_tag = vm["ancestor"].as<string>();
-        uint16_t sindex = 1;
+
+        uint16_t sindex = 1; //ancestor has sindex==0
         bool ancestor_in_BAM = false;
         for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
             if(it->HasSample()){
+
                 if (find(keepers.begin(), keepers.end(), it->Sample) == keepers.end()){
                     if(it->Sample == anc_tag ){
                           name_map[it->Sample] = 0;
                           ancestor_in_BAM = true;
-                    } 
+                    }
                     else {
                         name_map[it->Sample] = numeric_limits<uint32_t>::max()  ;
                         cerr << "Warning: excluding data from '" << it->Sample <<
@@ -70,14 +69,18 @@ namespace BoostUtils {
                 }
                 else {
                     auto s  = name_map.find(it->Sample);
-                    if( s == name_map.end()){//samples can have multiple readgroups... 
+                    if( s == name_map.end()){//samples can have multiple readgroups...
                         name_map[it->Sample] = sindex;
                         sindex += 1;
-                        keepers.erase(find(keepers.begin(),keepers.end(),it->Sample));
+//                        keepers.erase(find(keepers.begin(),keepers.end(),it->Sample));
+                        //NOTE: with erase, effectively remove all double+ samples
+                        //Fixed version == #sample-name M28 40 44 50 531
                     }
                 }
+
             }
         }
+
         //Once we've built the index map we can check if we now about every
         //sample in the BAM file and if we have set the ancesoe
         if(!ancestor_in_BAM){
@@ -85,21 +88,23 @@ namespace BoostUtils {
                     "' in the specifified BAM file. Check the sample tags match" << endl;
             exit(1);
         }
-        if(!keepers.size()==0){
+        if( (keepers.size()+1) != sindex ){
             cerr << "Sample(s) note persent in BAM file: ";
             for(auto s: keepers){
-                cerr << s;
+                cerr << s << " ";
             }
             cerr << endl;
-            exit(1); 
+            exit(1);
         }
         // And now.. go back over the read groups to map RG->sample index
         SampleMap samples;
         for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
             if(it->HasSample()){
                 samples[it->ID] = name_map[it->Sample];
+//                cout << it->ID << " " << name_map[it->Sample] << endl;
             }
         }
+
         return samples;
 
     }
@@ -108,22 +113,25 @@ namespace BoostUtils {
     
     void check_args(boost::program_options::variables_map &vm){
         // Is the experimental design one of the ones we can handle?
-        if (vm["ploidy-ancestor"].as<int>() > 2 or vm["ploidy-ancestor"].as<int>() < 1){
+        int ploidy_ancestor = vm["ploidy-ancestor"].as<int>();
+        int polidy_descendant = vm["ploidy-descendant"].as<int>();
+
+        if (ploidy_ancestor > 2 or ploidy_ancestor < 1){
             throw po::invalid_option_value("accuMUlate can't only deal with haploid or diploid ancestral samples"); 
         }
-        if (vm["ploidy-descendant"].as<int>() > 2 or vm["ploidy-descendant"].as<int>() < 1){
+        if (polidy_descendant > 2 or polidy_descendant < 1){
             throw po::invalid_option_value("accuMUlate can't only deal with haploid or descendant samples");        
         }
-        if (vm["ploidy-ancestor"].as<int>() == 1 and vm["ploidy-descendant"].as<int>() == 2){
+        if (ploidy_ancestor == 1 and polidy_descendant == 2){
             throw po::invalid_option_value("accuMUlate has no model for a haploid->diploid MA experiemt");
         }
         //Do we have the right over-dispersion params set
-        if (vm["ploidy-ancestor"].as<int>() == 1 or vm["ploidy-descendant"].as<int>() == 1){
+        if (ploidy_ancestor == 1 or polidy_descendant == 1){
             if(not vm.count("phi-haploid")){
                 throw po::invalid_option_value("Must specify phi-haploid (overdispersion for haploid sequencing)");
             }
         }
-        if (vm["ploidy-ancestor"].as<int>() == 2 or vm["ploidy-descendant"].as<int>() == 2){
+        if (ploidy_ancestor == 2 or polidy_descendant == 2){
             if(not vm.count("phi-diploid")){
                 throw po::invalid_option_value("Must specify phi-diploid (overdispersion for diploid sequencing)");
             }
@@ -177,7 +185,7 @@ namespace BoostUtils {
     // Set up everything that has to be refered to by reference
     void ExtractInputVariables(boost::program_options::variables_map &vm,
             BamTools::BamReader &experiment, BamTools::RefVector &references,
-            BamTools::SamHeader &header, BamTools::Fasta &reference_genome){
+            BamTools::SamHeader &header, LocalBamToolsUtils::Fasta &reference_genome){
 
 
         string ref_file = vm["reference"].as<string>();
