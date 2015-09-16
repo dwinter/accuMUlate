@@ -50,7 +50,7 @@ ReadDataVisitor::ReadDataVisitor(
 //        ~ReadDataVisitor(void) { }
 //    public:
 
-bool ReadDataVisitor::GatherReadDataV2(const LocalBamToolsUtils::PileupPosition &pileupData) {
+bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &pileupData) {
 
     //Like it says, collect a sites reads. If the site is good to call
     //from set the site_data object and return `true`.
@@ -67,7 +67,7 @@ bool ReadDataVisitor::GatherReadDataV2(const LocalBamToolsUtils::PileupPosition 
         it !=  end(pileupData.PileupAlignments); ++it){
 
         int32_t pos_in_alignment = it->PositionInAlignment;
-        if (include_site_v2(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
+        if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
 
             uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
             if( sindex  != std::numeric_limits<uint32_t>::max()  ){
@@ -98,36 +98,6 @@ uint32_t ReadDataVisitor::GetSampleIndex(const std::string &tag_data) {
 
     return m_samples[tag_id_2];
 }
-
-
-bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition& pileupData) {
-    //Like it says, collect a sites reads. If the site is good to call
-    //from set the site_data object and return `true`.
-    uint64_t pos  = pileupData.Position;
-    m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
-    uint16_t ref_base_idx = base_index(current_base);
-    if( ref_base_idx > 4 ) { // TODO: This treats all non IUPAC codes as masks. Document this is we keep it
-        return false;
-    }
-    //TODO: Let's check this. m_samples.size() or size - number_of_uint32_max
-    ReadDataVector bcalls(m_samples.size(), ReadData{0});
-    for (auto it = begin(pileupData.PileupAlignments);
-         it != end(pileupData.PileupAlignments); ++it) {
-        if (include_site(*it, m_mapping_cut, m_qual_cut)) {
-            it->Alignment.GetTag("RG", tag_id);
-            uint32_t sindex = m_samples[tag_id];
-            if( sindex  != std::numeric_limits<uint32_t>::max()  ){
-                uint16_t bindex  = base_index(it->Alignment.QueryBases[it->PositionInAlignment]);
-                if (bindex < 4 ){
-                    bcalls[sindex].reads[bindex] += 1;
-                }
-            }
-        }
-    }
-    site_data =  {ref_base_idx, bcalls};
-    return true;
-};
-
 
 
 
@@ -193,19 +163,8 @@ uint16_t base_index(char b){
 //    return(-1); //TODO refactor this to  update sample in place
 //}
 
-bool include_site(LocalBamToolsUtils::PileupAlignment pileup, uint16_t map_cut, uint16_t qual_cut){
-    const BamAlignment *ali = &pileup.Alignment;
-    if(ali->MapQuality > map_cut){
-        uint16_t bqual = static_cast<short>(ali->Qualities[pileup.PositionInAlignment]) - 33;
-        if(bqual > qual_cut){
-            return(not (ali->IsDuplicate()) && not(ali->IsFailedQC()) && ali->IsPrimaryAlignment());
-        }
-    }
-    return false;
-}
 
-
-bool include_site_v2(const BamAlignment &alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut){
+bool include_site(const BamAlignment &alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut){
 //    const BamAlignment *ali = &(pileup.Alignment);
     if(alignment.MapQuality > map_cut){
         char reference = alignment.Qualities[pos];
