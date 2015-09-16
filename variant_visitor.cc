@@ -23,8 +23,7 @@ VariantVisitor::VariantVisitor(const RefVector &bam_references, LocalBamToolsUti
 
 
 void VariantVisitor::Visit(const LocalBamToolsUtils::PileupPosition& pileupData) {
-//  if (GatherReadData(pileupData) ){
-    if (GatherReadDataV2(pileupData) ){
+    if (GatherReadData(pileupData) ){
 
         double prob = TetMAProbability(m_params, sf, site_data, m_mut_paths, m_nomut_paths);
 

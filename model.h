@@ -11,7 +11,6 @@ TransitionMatrix F81(const ModelParams &params);
 
 MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut);
 
-/*Version 2*/
 GenotypeProbs PopulationProbs(SequencingFactory &sf, int ref_allele, int ploidy_ancestor);
 
 GenotypeProbs Sequencing(SequencingFactory &sf, ReadData data, int ploidy);
@@ -24,28 +23,5 @@ double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf, co
 
 
 
-/*Version 1*/
-[[deprecated]]
-DiploidProbs DiploidPopulation(const ModelParams &params, int ref_allele);
-
-[[deprecated]]
-DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data);
-
-[[deprecated]]
-HaploidProbs HaploidSequencing(const ModelParams &params, int ref_allele, ReadData data);
-
-[[deprecated]]
-GenotypeProbs PopulationProbs(const ModelParams &params, int ref_allele);
-
-[[deprecated]]
-GenotypeProbs Sequencing(const ModelParams &params, int ref_allele, ReadData data, int ploidy);
-
-[[deprecated]]
-double TetMAProbability(const ModelParams &params, const ModelInput site_data, const MutationMatrix m,
-                        const MutationMatrix mn);
-
-[[deprecated]]
-double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data, const MutationMatrix m,
-                            const MutationMatrix mn);
 
 #endif

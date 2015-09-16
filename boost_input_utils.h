@@ -31,8 +31,6 @@ struct nfreqs{
     vector<double> freqs;
 };
 
-//Is this deprecated?
-[[deprecated]]
 void validate(boost::any& v, const vector<string>& values, nfreqs target_type, int);
 
 namespace BoostUtils {
@@ -48,9 +46,6 @@ namespace BoostUtils {
 
     ModelParams CreateModelParams(boost::program_options::variables_map variables_map);
     SampleMap ParseSamples(boost::program_options::variables_map &vm, BamTools::SamHeader &header);
-    
-    [[deprecated]]
-    void CheckArgs(boost::program_options::variables_map vm);
 
 
 }
