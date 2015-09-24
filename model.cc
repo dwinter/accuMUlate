@@ -157,40 +157,44 @@ double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf,
 }
 
 
-//int main(){
-//      ModelParams p = { 
-//        0.0001, 
-//        {0.38, 0.12, 0.12, 0.38}, 
-//        1e-2,
-//        0.01,
-//        0.01,
-//        0.05, 
-//        1,1
-//};
-//   MutationMatrix mt = MutationAccumulation(p, true);
-//   MutationMatrix m = MutationAccumulation(p, false);
-//   cerr << m << endl << endl;
-//   cout << m -mt << endl;
-//   return 0;
-////}
-//// Uncommon and compile with this:
-//// clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
-//
+// Uncommon and compile with this:
+// clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
+// clang++  -std=c++11 -I/usr/include/eigen3 -I`pwd`  model.cc  src/mutations/sequencing_factory.cc src/distributions/DirichletMultinomialDistribution.cpp
 // to play around with / debug results.
 //int main(){
-//    ModelParams p = { 
-//        0.0001, 
-//        {0.38, 0.12, 0.12, 0.38}, 
-//        1e-8,
-//        0.01,
-//        0.01,
-//        0.05,
-//        2,2
-//    };
-//   MutationMatrix mt = MutationAccumulation(p, true);
-//   MutationMatrix m = MutationAccumulation(p, false);
-//   MutationMatrix mn = m - mt;
-//    ModelInput two_vars = { 2, 
+//	ReadData r1 (1000000); //explicit
+//	ReadData r2 {2000000}; //initializer_list key
+//	uint16_t temp_r[4] = {0, 3, 2, 1}; // array_var
+//	ReadData r3 {temp_r};
+//
+//	ReadData r4 ({100, 3, 2, 1} ); // initializer_list reads
+//	ReadData r5 {{200, 3, 2, 1} }; // initializer_list reads
+//	ReadData r6 {{1000000, 0, 0, 0} }; // overflow
+//
+//	cout << r1.key << "\t" <<
+//			r2.key << "\t" <<
+//			r3.key << "\t" <<
+//			r4.key << "\t" <<
+//			r5.key << endl;
+//
+//	ModelParams p = {
+//			0.0001,
+//			{0.38, 0.12, 0.12, 0.38},
+//			1e-8,
+//			0.01,
+//			0.01,
+//			0.05,
+//			2, 2
+//	};
+//
+//	SequencingFactory sf(p);
+//	MutationMatrix mt = MutationAccumulation(p, true);
+//	MutationMatrix m = MutationAccumulation(p, false);
+//	MutationMatrix mn = m - mt;
+//	cerr << m << endl << endl;
+//	cout << m - mt << endl;
+//
+//    ModelInput two_vars = { 2,
 //        {
 //        { 0, 30,  0,  0},
 //        { 0, 30,  0,  0},
@@ -204,59 +208,59 @@ double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf,
 //        { 0, 30,  0,  0},
 //        { 0, 30,  0,  0},
 //        { 0, 30,  0,  0},
-//
 //        }
 //    };
 //
-//
-//    ModelInput  one_vars = { 1,
+//    ModelInput one_vars = { 1,
 //        {
 //        { 0, 30,  0,  0},
 //        { 0,  0,  0, 30},
 //        { 0, 30,  0,  0},
 //        { 0, 30,  0,  0},
 //        { 0, 30,  0,  0},
-//        { 0, 30,  0, 0}}
-//    };    
+//        { 0, 30,  0,  0}}
+//    };
 //
-//   ModelInput no_vars = {1,
-//      {{0,   0,  0, 5},       
-//       {3,   0,  0, 4},       
-//       {8,   0,  0, 0},
-//       {3,   0,  0, 3},     
-//       {0,  0,  0, 2},       
-//       {2,  0,  0, 3},
-//       {0,  0,  0, 0},  
-//       {0,  0,  0, 5},       
-//       {0,  0,  0, 4},
-//       {1,  0,  0, 3},
-//       {0,  0,  0, 28},
-//       {0 ,  0,  0, 3}}
-//   };
-//    
+//	ModelInput no_vars = { 1,
+//		{
+//		{0,  0,  0, 5},
+//		{3,  0,  0, 4},
+//		{8,  0,  0, 0},
+//		{3,  0,  0, 3},
+//		{0,  0,  0, 2},
+//		{2,  0,  0, 3},
+//		{0,  0,  0, 0},
+//		{0,  0,  0, 5},
+//		{0,  0,  0, 4},
+//		{1,  0,  0, 3},
+//		{0,  0,  0, 28},
+//		{0,  0,  0, 3}}
+//    };
+//
+//	sf = SequencingFactory(p);
 //    cout << "___With the no-variant data___" << endl;
-////    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,no_vars)<< endl;
-////    cout << "P(any|data)= " << TetMAProbability(p,no_vars) << endl;
+//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p, sf, no_vars, m, mn)<< endl;
+//    cout << "P(any|data)= " << TetMAProbability(p, sf, no_vars, m, mn) << endl;
 //
-//    cout << TetMAProbability(p,no_vars,m,mn) << endl;
-//    
-//    cout << "___With the one-variant data___" << endl;  
-////    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,one_vars)<< endl;
-////    cout << "P(any|data)= " << TetMAProbability(p,one_vars) << endl;
-//      cout << TetMAProbability(p,one_vars,m,mn) << endl;
-//    
+//    cout << TetMAProbability(p, sf, no_vars,m,mn) << endl;
+//
+//    cout << "___With the one-variant data___" << endl;
+//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,sf, one_vars, m, mn)<< endl;
+//    cout << "P(any|data)= " << TetMAProbability(p,sf, one_vars, m, mn) << endl;
+//	cout << TetMAProbability(p,sf, one_vars,m,mn) << endl;
+//
 //    cout << "___With the two-variant data___" << endl;
-////    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,two_vars)<< endl;
-//    cout << "P(any|data)= " << TetMAProbability(p,two_vars,m,mn) << endl;   
+//    cout << "P(one|data)= "<<  TetMAProbOneMutation(p, sf, two_vars, m, mn) << endl;
+//    cout << "P(any|data)= " << TetMAProbability(p, sf, two_vars, m, mn) << endl;
 //
-//    
-////    cout << "calculating the same number once: " << TetMAProbOneMutation(p,two_vars) << endl;
-////    cout << "then another time: " << TetMAProbOneMutation(p,two_vars) << endl;
-////    TetMAProbOneMutation(p,no_vars);
-////    cout << "And once more after calling from the the no-vars data: " << TetMAProbOneMutation(p,two_vars) << endl;
+//
+//    cout << "calculating the same number once: " << TetMAProbOneMutation(p, sf, two_vars, m, mn) << endl;
+//    cout << "then another time: " << TetMAProbOneMutation(p, sf, two_vars, m, mn) << endl;
+//    TetMAProbOneMutation(p, sf, no_vars, m, mn);
+//    cout << "And once more after calling from the the no-vars data: " << TetMAProbOneMutation(p, sf, two_vars, m, mn) << endl;
 //    return 0;
 //}
-//
+
 
 
 
