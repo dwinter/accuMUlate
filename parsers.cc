@@ -39,7 +39,7 @@ ReadDataVisitor::ReadDataVisitor(
 
     uint32_t max = 0;
     for (auto item : m_samples) {
-        if (item.second != numeric_limits<uint32_t>::max() && item.second > max){
+        if (item.second != MAX_UINT16 && item.second > max){
             max = item.second;
         }
     }
