@@ -12,27 +12,26 @@
 union ReadData {
     uint64_t key;
     uint16_t reads[4];
-
-    ReadData() {
-    }
-
-    ReadData(uint64_t k) {
-        key = k;
-    }
-
-    ReadData(ReadData &&other) : key(other.key) {
-//        std::cout << "ReadData move constructor" << std::endl;
-    }
-
-    ReadData &operator=(ReadData &&other) {
-//        std::cout << "ReadData move assignment" << std::endl;
-        key = other.key;
-        return *this;
-    }
-
-    ReadData(const ReadData &other) = default;
-
-    ReadData &operator=(const ReadData &other) = default;
+//    ReadData() {  }
+//
+//    ReadData(uint64_t k) {
+//        key = k;
+//    }
+//
+//
+//    ReadData(ReadData &&other) : key(other.key) {
+////        std::cout << "ReadData move constructor" << std::endl;
+//    }
+//
+//    ReadData &operator=(ReadData &&other) {
+////        std::cout << "ReadData move assignment" << std::endl;
+//        key = other.key;
+//        return *this;
+//    }
+//
+//    ReadData(const ReadData &other) = default;
+//
+//    ReadData &operator=(const ReadData &other) = default;
 };
 
 typedef std::vector<ReadData> ReadDataVector;

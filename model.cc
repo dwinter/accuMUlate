@@ -159,13 +159,13 @@ double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf,
 
 
 
-double DescribeMutant(const ModelParams &params, const ModelInput site_data, const MutationMatrix m, const MutationMatrix mn) {
+double DescribeMutant(const ModelParams &params, SequencingFactory &sf, const ModelInput site_data, const MutationMatrix m, const MutationMatrix mn) {
     MutationMatrix mt = m - mn;
     int ndesc = site_data.all_reads.size() - 1 ;
     std::vector<GenotypeProbs, Eigen::aligned_allocator<Eigen::ArrayXd> > lower_mn(ndesc);
     std::vector<GenotypeProbs, Eigen::aligned_allocator<Eigen::ArrayXd> > lower_m(ndesc);
-	GenotypeProbs pop_genotypes = PopulationProbs(params, site_data.reference);	
-    GenotypeProbs anc_genotypes = Sequencing(params, site_data.reference, site_data.all_reads[0], params.ploidy_ancestor);
+	GenotypeProbs pop_genotypes = PopulationProbs(sf, site_data.reference, params.ploidy_ancestor);	
+    GenotypeProbs anc_genotypes = Sequencing(sf, site_data.all_reads[0], params.ploidy_ancestor);
 	anc_genotypes *= pop_genotypes;
     GenotypeProbs denom = anc_genotypes;
     GenotypeProbs no_mut = anc_genotypes;
@@ -173,7 +173,7 @@ double DescribeMutant(const ModelParams &params, const ModelInput site_data, con
     int mutant_line;
     //Calculate P(G|R), store as a matrix
 	for(size_t i = 1 ; i <= ndesc; ++i) {
-        GenotypeProbs p = Sequencing(params, site_data.reference, site_data.all_reads[i], params.ploidy_descendant);
+        GenotypeProbs p = Sequencing(sf, site_data.all_reads[i], params.ploidy_descendant);
         GenotypeProbs agen = (m.matrix() * p.matrix()).array();
         lower_mn[i-1] = (mn.matrix() * p.matrix()).array();
         lower_m[i-1] = agen;
@@ -250,6 +250,7 @@ int main(){
    MutationMatrix mt = MutationAccumulation(p, true);
    MutationMatrix m = MutationAccumulation(p, false);
    MutationMatrix mn = m - mt;
+   ReadData x=   { 0, 30,  0,  0};
    
 //   cerr << "mt" << endl <<  mt << endl << endl;
 //   cerr << "mn" << endl << mn << endl << endl;
