@@ -113,6 +113,7 @@ double TetMAProbability(const ModelParams &params, SequencingFactory &sf,
 						const ModelInput &site_data,
 						const MutationMatrix &m, const MutationMatrix &mn) {
 
+
 	auto it = site_data.all_reads.begin();
 	GenotypeProbs pop_genotypes = PopulationProbs(sf, site_data.reference, params.ploidy_ancestor);
 	GenotypeProbs anc_genotypes = Sequencing(sf, *it, params.ploidy_ancestor);

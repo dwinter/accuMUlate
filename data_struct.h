@@ -12,6 +12,8 @@
 #include <iostream>
 
 const uint16_t MAX_UINT16 = std::numeric_limits<uint16_t>::max();
+const uint32_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
+
 union ReadData {
     uint64_t key;
     uint16_t reads[4];
