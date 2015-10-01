@@ -24,6 +24,7 @@
 #  Bamtools_DEFINITIONS
 
 set(Bamtools_PREFIX "/usr/" "/usr/local/" "~/" "~/lib/" "~/local/lib/" "~/local/" CACHE PATH "Directory Bamtools resides in")
+
 find_path(Bamtools_INCLUDE_DIR api/api_global.h HINTS ${Bamtools_PREFIX}/include PATH_SUFFIXES bamtools)
 find_path(Bamtools_LINK_LIBRARY_DIR libbamtools.a HINTS ${Bamtools_PREFIX}/lib/ PATH_SUFFIXES bamtools)
 
@@ -33,18 +34,18 @@ find_library(Bamtools_LIBRARY_UTILS NAMES libbamtools-utils.a HINTS ${Bamtools_P
 set(Bamtools_LIBRARIES ${Bamtools_LIBRARIES} ${Bamtools_LIBRARY} ${Bamtools_LIBRARY_UTILS} z)
 
 
-message("Debug:
-${Bamtools_PREFIX} 
-${Bamtools_INCLUDE_DIR}
-${Bamtools_LINK_LIBRARY_DIR}
-${Bamtools_LIBRARIES}
-")
-
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set Bamtools_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(Bamtools "Bamtools library (https://github.com/pezmaster31/bamtools) not found. If it is in a non-standard place, you have to set the variable Bamtools_PREFIX, for example by adding -DBamtools_PREFIX=<path> to your cmake call" Bamtools_LIBRARIES Bamtools_INCLUDE_DIR)
+find_package_handle_standard_args(Bamtools "Bamtools library (https://github.com/pezmaster31/bamtools) not found. If it is in a non-standard place, you have to set the variable Bamtools_PREFIX, for example by adding -DBamtools_PREFIX=<path> to your cmake call.
+Bamtools NOT FOUND - debug:
+PREFIX:${Bamtools_PREFIX}
+INCLUDE_DIR:${Bamtools_INCLUDE_DIR}
+LINK_LIBRARY_DIR:${Bamtools_LINK_LIBRARY_DIR}
+LIBRARIES:${Bamtools_LIBRARIES}"
+Bamtools_LIBRARIES Bamtools_INCLUDE_DIR)
+
 
 IF (BAMTOOLS_FOUND)
 	set(Bamtools_FOUND TRUE)
