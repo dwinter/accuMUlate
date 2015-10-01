@@ -1,7 +1,7 @@
 #ifndef model_H
 #define model_H
 
-#include <src/mutations/sequencing_factory.h>
+#include "src/mutations/sequencing_factory.h"
 #include "Eigen/Dense"
 #include "data_struct.h"
 
