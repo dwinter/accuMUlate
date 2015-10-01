@@ -39,7 +39,7 @@ ReadDataVisitor::ReadDataVisitor(
 
     uint32_t max = 0;
     for (auto item : m_samples) {
-        if (item.second != MAX_UINT16 && item.second > max){
+        if (item.second != MAX_UINT32 && item.second > max){
             max = item.second;
         }
     }
@@ -70,7 +70,7 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &p
         if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
 
             uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
-            if( sindex  != std::numeric_limits<uint32_t>::max()  ){
+            if( sindex  != MAX_UINT32  ){
 
                 uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
                 if (bindex < 4 ){
@@ -79,7 +79,9 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &p
             }
         }
     }
+
     site_data =  {ref_base_idx, bcalls};
+//Can we use reset like funciton to speed up bcalls/site_data?
     return true;
 };
 

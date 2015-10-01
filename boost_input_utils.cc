@@ -62,7 +62,7 @@ namespace BoostUtils {
                           ancestor_in_BAM = true;
                     }
                     else {
-                        name_map[it->Sample] = numeric_limits<uint32_t>::max()  ;
+                        name_map[it->Sample] = MAX_UINT32  ;
                         cerr << "Warning: excluding data from '" << it->Sample <<
                              "' which is included in the BAM file but not the list of included samples" << endl;
                     }
