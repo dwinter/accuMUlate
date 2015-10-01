@@ -76,6 +76,8 @@ struct ModelParams{
 struct ModelInput{// Can probably stand to lose this, started out more complex..
     uint16_t reference;
     ReadDataVector all_reads;
+
+
 };
 
 typedef Eigen::ArrayXd GenotypeProbs;

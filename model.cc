@@ -161,6 +161,7 @@ double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf,
 // clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
 // clang++  -std=c++11 -I/usr/include/eigen3 -I`pwd`  model.cc  src/mutations/sequencing_factory.cc src/distributions/DirichletMultinomialDistribution.cpp
 // to play around with / debug results.
+
 //int main(){
 //	ReadData r1 (1000000); //explicit
 //	ReadData r2 {2000000}; //initializer_list key
@@ -200,7 +201,7 @@ double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf,
 //        { 0, 30,  0,  0},
 //        { 0, 30,  0,  0},
 //        { 0, 30,  0,  0},
-//        { 0,  0,  0, 30},
+//        { 0, 0,   0, 30},
 //        { 0, 0,   0, 30},
 //        { 0, 30,  0,  0},
 //        { 0, 30,  0,  0},
@@ -260,10 +261,4 @@ double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf,
 //    cout << "And once more after calling from the the no-vars data: " << TetMAProbOneMutation(p, sf, two_vars, m, mn) << endl;
 //    return 0;
 //}
-
-
-
-
-
-
-
+//
