@@ -1,37 +1,40 @@
 ## DW original version
-#language: cpp
-#compiler: clang
-#install:
-#  - sudo apt-get install libboost-program-options-dev
-#before_script:
-#  - mkdir build
-#  - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz
-#  - mv eigen-eigen-10219c95fe65/Eigen/ Eigen/
-#  - cd third-party/bamtools/build && cmake .. && make
-
-#script:
-#    - cd /home/travis/build/dwinter/accuMUlate/build/
-#    - cmake -DBamtools_PREFIX=../third-party/bamtools/ ..
-#    - make
-
-
-## Update version with cache
+##language: cpp
+##compiler: clang
+##install:
+##  - sudo apt-get install libboost-program-options-dev
+##before_script:
+##  - mkdir build
+##  - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz
+##  - mv eigen-eigen-10219c95fe65/Eigen/ Eigen/
+##  - cd third-party/bamtools/build && cmake .. && make
+#
+##script:
+##    - cd /home/travis/build/dwinter/accuMUlate/build/
+##    - cmake -DBamtools_PREFIX=../third-party/bamtools/ ..
+##    - make
+#
+#
+### Update version with cache
+#
 language: cpp
 sudo: false
 compiler:
   - gcc
   - clang
-# Change this to your needs
+# Change this to your needs 
 addons:
   apt:
     sources:
 #      - deadsnakes
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise-3.5
+      - llvm-toolchain-precise
+      - llvm-toolchain-precise-3.6
     packages:
       - gcc-4.9
       - g++-4.9
-      - clang-3.5
+      - clang-3.6
+      - llvm-3.6   
 env:
   global:
     - USE_CCACHE=1
@@ -90,7 +93,7 @@ before_script:
 script:
   - g++ --version
   - if [ "$CXX" = "g++" ]; then export CXX="/usr/bin/g++-4.9" CC="gcc-4.9"; fi
-  - if [ "$CXX" = "clang++" ]; then export CXX="/usr/bin/clang++-3.5" CC="clang-3.5"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="/usr/bin/clang++-3.6" CC="clang-3.6"; fi
   - $CXX --version  
   - echo $CXX
   - which g++-4.9
@@ -99,7 +102,8 @@ script:
   - ls -l $HOME
   - ls -l $HOME/build
   - ls -l $HOME/builds
-  - mkdir -p build && cd build && cmake -DBamtools_PREFIX=${HOME}/build/bamtools/ .. #-DEIGEN3_INCLUDE_DIR=$HOME/include/ -DBOOST_INCLUDEDIR=$HOME .. && make
+  - mkdir -p build && cd build && cmake -DBOOST_INCLUDEDIR=${HOME}/include .. #-DBamtools_PREFIX=${HOME}/ ..
+#-DBamtools_PREFIX=${HOME}/build/bamtools/ -DBOOST_INCLUDEDIR=$HOME .. #-DEIGEN3_INCLUDE_DIR=$HOME/include/ -DBOOST_INCLUDEDIR=$HOME .. && make
   - make 
 cache:
     directories:
@@ -109,3 +113,5 @@ cache:
 #    - $HOME/build/
 #    - $HOME/build/eigen
 #    - $HOME/build/boost_install
+#
+#

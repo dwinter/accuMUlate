@@ -2,13 +2,7 @@
 // Created by steven on 9/30/15.
 //
 #include <gtest/gtest.h>
-#include <variant_visitor.h>
-#include "parsers.h"
-#include "unittest_utils.h"
-#include "api/BamReader.h"
-
-#include "src/io_data/local_bamtools/bamtools_pileup_engine.h"
-#include "src/io_data/local_bamtools/bamtools_fasta.h"
+#include "variant_visitor.h"
 
 
 class ParserTest : public ::testing::Test {
