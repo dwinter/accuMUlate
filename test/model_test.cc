@@ -388,6 +388,7 @@ data<- c(1,3,5,7)
 }
 
 
+
 TEST_F(ModelTest, testProb){
 
     ModelParams p = {

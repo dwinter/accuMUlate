@@ -33,7 +33,8 @@ ReadDataVisitor::ReadDataVisitor(LocalBamToolsUtils::Fasta &idx_ref,
     }
     total_sample_count = max + 1; //Plus ref sindex==0;
 
-
+    ReadDataVector bcalls (total_sample_count, ReadData{0});
+    site_data =  {0, bcalls};
 }
 
 
@@ -49,24 +50,25 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &p
         return false;
     }
 
-    ReadDataVector bcalls (total_sample_count, ReadData{0});
+    site_data.reference = ref_base_idx;
+    ReadDataVector &bcalls = site_data.all_reads;
+    std::fill(bcalls.begin(), bcalls.end(), ReadData(0));
+
     for (auto it = begin(pileupData.PileupAlignments); it != end(pileupData.PileupAlignments); ++it) {
         int32_t pos_in_alignment = it->PositionInAlignment;
 
         if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
             uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
 
-            if( sindex  != MAX_UINT32  ){
+            if (sindex != MAX_UINT32) {
                 uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
-                if (bindex < 4 ){
+                if (bindex < 4) {
                     bcalls[sindex].reads[bindex] += 1;
                 }
             }
         }
     }
 
-    site_data =  {ref_base_idx, bcalls};
-//Can we use reset like funciton to speed up bcalls/site_data?
     return true;
 };
 
