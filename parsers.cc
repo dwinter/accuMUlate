@@ -3,10 +3,9 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
-#include <limits>       
 
-#include "api/BamReader.h"
-
+#include <api/BamReader.h>
+#include <limits>
 
 #include "model.h"
 #include "parsers.h"
@@ -16,45 +15,34 @@ using namespace std;
 using namespace BamTools;
 
 
-
 //Base visitor, which does two things per site:
 //Set a flag descrbing
-ReadDataVisitor::ReadDataVisitor(
-                        const RefVector& bam_references,
-                        LocalBamToolsUtils::Fasta& idx_ref,
-                        SampleMap& samples, 
-                        const ModelParams& p,  
-                        BamAlignment& ali, 
-                        int qual_cut,
-                        int mapping_cut):
+ReadDataVisitor::ReadDataVisitor(LocalBamToolsUtils::Fasta &idx_ref,
+                                 SampleMap &samples,
+                                 int qual_cut, int mapping_cut) :
+        PileupVisitor(),
+        m_idx_ref(idx_ref), m_samples(samples), m_mapping_cut(mapping_cut) {
 
-            PileupVisitor(),
-                m_bam_references(bam_references),            
-                m_idx_ref(idx_ref),
-                m_samples(samples), 
-                m_params(p),
-                m_ali(ali), 
-                m_qual_cut(qual_cut),  
-                m_mapping_cut(mapping_cut), sf(p) {
+    qual_cut_char = (char) (qual_cut + 33);
 
     uint32_t max = 0;
     for (auto item : m_samples) {
-        if (item.second != MAX_UINT32 && item.second > max){
+        if (item.second != MAX_UINT32 && item.second > max) {
             max = item.second;
         }
     }
     total_sample_count = max + 1; //Plus ref sindex==0;
 
-
+    ReadDataVector bcalls (total_sample_count, ReadData{0});
+    site_data =  {0, bcalls};
 }
-//        ~ReadDataVisitor(void) { }
-//    public:
+
 
 bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &pileupData) {
 
     //Like it says, collect a sites reads. If the site is good to call
     //from set the site_data object and return `true`.
-    uint64_t pos  = pileupData.Position;
+    int pos  = pileupData.Position;
 
     m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
     uint16_t ref_base_idx = base_index_lookup[(int) current_base];
@@ -62,32 +50,31 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &p
         return false;
     }
 
-    ReadDataVector bcalls (total_sample_count, ReadData{0});
-    for(auto it = begin(pileupData.PileupAlignments);
-        it !=  end(pileupData.PileupAlignments); ++it){
+    site_data.reference = ref_base_idx;
+    ReadDataVector &bcalls = site_data.all_reads;
+    std::fill(bcalls.begin(), bcalls.end(), ReadData(0));
 
+    for (auto it = begin(pileupData.PileupAlignments); it != end(pileupData.PileupAlignments); ++it) {
         int32_t pos_in_alignment = it->PositionInAlignment;
+
         if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
-
             uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
-            if( sindex  != MAX_UINT32  ){
 
+            if (sindex != MAX_UINT32) {
                 uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
-                if (bindex < 4 ){
+                if (bindex < 4) {
                     bcalls[sindex].reads[bindex] += 1;
                 }
             }
         }
     }
 
-    site_data =  {ref_base_idx, bcalls};
-//Can we use reset like funciton to speed up bcalls/site_data?
     return true;
 };
 
 
 uint32_t ReadDataVisitor::GetSampleIndex(const std::string &tag_data) {
-    size_t start_index = tag_data.find(rg_tag);
+    size_t start_index = tag_data.find(RG_TAG);
     if (start_index != std::string::npos) {
         start_index += 4;
     }
@@ -102,28 +89,27 @@ uint32_t ReadDataVisitor::GetSampleIndex(const std::string &tag_data) {
 }
 
 
-
-BedFile::BedFile(string bed_file_name){
-     bed_file.open(bed_file_name);
+BedFile::BedFile(string bed_file_name) {
+    bed_file.open(bed_file_name);
 }
 
-int BedFile::get_interval(BedInterval& current_interval){
+int BedFile::get_interval(BedInterval &current_interval) {
     string L;
-    if(getline(bed_file, L)){
+    if (getline(bed_file, L)) {
         stringstream Lstream(L);
         string chrom;
         string start_s;
-        string end_s;        
+        string end_s;
         getline(Lstream, chrom, '\t');
         getline(Lstream, start_s, '\t');
         getline(Lstream, end_s, '\t');
-        current_interval = BedInterval{ chrom, 
-                                         stoul(start_s), 
-                                         stoul(end_s)};
+        current_interval = BedInterval{chrom,
+                                       stoul(start_s),
+                                       stoul(end_s)};
         return 0;
     }
-   else {return 1;}
-    
+    else { return 1; }
+
 }
 
 
@@ -132,29 +118,6 @@ int BedFile::get_interval(BedInterval& current_interval){
 
 //
 //Helper functions for parsing data out of BAMs
-
-uint16_t base_index(char b){
-    switch(b){        
-        case 'A':
-        case 'a':    
-            return 0;
-         case 'T':
-         case 't':
-             return 3;
-         case 'C':
-         case 'c':
-             return 1;
-         case 'G':
-         case 'g':
-             return 2;
-         case '-':
-         case 'N':
-             return -1 ;
-         default: // Unknown base, alert in debug mode?
-             return -1;
-    }
-}
-
 
 //uint32_t find_sample_index(string s, SampleNames sv){
 //    for (size_t i=0; i < sv.size(); i++){
@@ -166,13 +129,13 @@ uint16_t base_index(char b){
 //}
 
 
-bool include_site(const BamAlignment &alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut){
+bool include_site(const BamAlignment &alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut) {
 //    const BamAlignment *ali = &(pileup.Alignment);
-    if(alignment.MapQuality > map_cut){
+    if (alignment.MapQuality > map_cut) {
         char reference = alignment.Qualities[pos];
 
-        if(reference > qual_cut){
-            return(not (alignment.IsDuplicate()) && not(alignment.IsFailedQC()) && alignment.IsPrimaryAlignment());
+        if (reference > qual_cut) {
+            return (not (alignment.IsDuplicate()) && not (alignment.IsFailedQC()) && alignment.IsPrimaryAlignment());
         }
     }
 
@@ -203,13 +166,13 @@ const int base_index_lookup[128] ={
         -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,	// 32-47
 //                                                ?
         -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,	// 48-63
-//	    A  B  C  D  e  f  G  H  i  j  K  l  M  N  o
+//	        A  B  C  D  e  f  G  H  i  j  K  l  M  N  o
         -1, 0,-1, 1,-1,-1,-1, 2,-1,-1,-1,-1,-1,-1,-1,-1,    // 64-79
-//	 p  q  R  S  T  U  V  W  x  Y  z
+//   	 p  q  R  S  T  U  V  W  x  Y  z
         -1,-1,-1,-1, 3,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,	// 80-95
-//	    A  B  C  D  e  f  G  H  i  j  K  l  M  N  o
+//	        A  B  C  D  e  f  G  H  i  j  K  l  M  N  o
         -1, 0,-1, 1,-1,-1,-1, 2,-1,-1,-1,-1,-1,-1,-1,-1,   	// 96-111
-//	 p  q  R  S  T  U  V  W  x  Y  z
+//  	 p  q  R  S  T  U  V  W  x  Y  z
         -1,-1,-1,-1, 3,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1		// 112-127
 };
 

@@ -6,10 +6,11 @@
 #define ACCUMULATE_DATA_STRUCT_H
 
 #include <vector>
-//#include <cstring>
-#include "Eigen/Dense"
-
+#include <unordered_map>
 #include <iostream>
+
+#include <Eigen/Dense>
+
 
 const uint16_t MAX_UINT16 = std::numeric_limits<uint16_t>::max();
 const uint32_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
@@ -81,6 +82,9 @@ struct ModelInput{// Can probably stand to lose this, started out more complex..
 
 
 };
+
+//typedef vector< string > SampleNames;
+typedef std::unordered_map<std::string, uint32_t> SampleMap;
 
 typedef Eigen::ArrayXd GenotypeProbs;
 typedef Eigen::Array4d HaploidProbs;
