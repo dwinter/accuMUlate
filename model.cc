@@ -113,6 +113,7 @@ double TetMAProbability(const ModelParams &params, SequencingFactory &sf,
 						const ModelInput &site_data,
 						const MutationMatrix &m, const MutationMatrix &mn) {
 
+
 	auto it = site_data.all_reads.begin();
 	GenotypeProbs pop_genotypes = PopulationProbs(sf, site_data.reference, params.ploidy_ancestor);
 	GenotypeProbs anc_genotypes = Sequencing(sf, *it, params.ploidy_ancestor);
@@ -155,6 +156,7 @@ double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf,
 	double result = (nomut_genotypes * mut_genotypes).sum() / denom.sum();
 	return(result);
 }
+
 
 
 
@@ -323,9 +325,4 @@ int main(){
 //    cout << "And once more after calling from the the no-vars data: " << TetMAProbOneMutation(p,two_vars) << endl;
     return 0;
 }
-
-
-
-
-
 

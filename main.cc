@@ -10,11 +10,8 @@
 #include "boost/program_options.hpp"
 #include "api/BamReader.h"
 
-
 #include "src/io_data/local_bamtools/bamtools_pileup_engine.h"
 #include "src/io_data/local_bamtools/bamtools_fasta.h"
-//#include "utils/bamtools_pileup_engine.h"
-//#include "utils/bamtools_fasta.h"
 
 #include "boost_input_utils.h"
 #include "variant_visitor.h"
@@ -24,6 +21,7 @@ using namespace BamTools;
 
 
 int main(int argc, char** argv){
+
 
     boost::program_options::variables_map vm;
     BoostUtils::ParseCommandLineInput(argc, argv, vm);

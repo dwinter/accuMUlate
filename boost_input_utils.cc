@@ -7,6 +7,7 @@
  */
 
 
+
 #include "parsers.h"
 #include "boost_input_utils.h"
 
@@ -54,6 +55,7 @@ namespace BoostUtils {
         uint16_t sindex = 1; //ancestor has sindex==0
         bool ancestor_in_BAM = false;
         for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
+
             if(it->HasSample()){
 
                 if (find(keepers.begin(), keepers.end(), it->Sample) == keepers.end()){
@@ -62,7 +64,7 @@ namespace BoostUtils {
                           ancestor_in_BAM = true;
                     }
                     else {
-                        name_map[it->Sample] = numeric_limits<uint32_t>::max()  ;
+                        name_map[it->Sample] = MAX_UINT32  ;
                         cerr << "Warning: excluding data from '" << it->Sample <<
                              "' which is included in the BAM file but not the list of included samples" << endl;
                     }
@@ -71,7 +73,7 @@ namespace BoostUtils {
                     auto s  = name_map.find(it->Sample);
                     if( s == name_map.end()){//samples can have multiple readgroups...
                         name_map[it->Sample] = sindex;
-                        sindex += 1;
+                        sindex ++;
 //                        keepers.erase(find(keepers.begin(),keepers.end(),it->Sample));
                         //NOTE: with erase, effectively remove all double+ samples
                         //Fixed version == #sample-name M28 40 44 50 531
@@ -86,7 +88,7 @@ namespace BoostUtils {
         if(!ancestor_in_BAM){
             cerr << "Error: No data for ancestral sample '" << anc_tag <<
                     "' in the specifified BAM file. Check the sample tags match" << endl;
-            exit(1);
+            exit(5);
         }
         if( (keepers.size()+1) != sindex ){
             cerr << "Sample(s) note persent in BAM file: ";
@@ -94,7 +96,7 @@ namespace BoostUtils {
                 cerr << s << " ";
             }
             cerr << endl;
-            exit(1);
+            exit(6);
         }
         // And now.. go back over the read groups to map RG->sample index
         SampleMap samples;
@@ -163,9 +165,8 @@ namespace BoostUtils {
             ("ploidy-descendant", po::value<int>()->default_value(2), "Ploidy of descendant (1 or 2)")
             ("phi-haploid",     po::value<double>(), "Over-dispersion for haploid sequencing")
             ("phi-diploid",     po::value<double>(), "Over-dispersion for diploid sequencing");
-        po::store(po::parse_command_line(argc, argv, cmd), vm);
-    
 
+        po::store(po::parse_command_line(argc, argv, cmd), vm);
 
         if (vm.count("help")) {
             cout << cmd << endl;
@@ -179,8 +180,7 @@ namespace BoostUtils {
 
         vm.notify();
         check_args(vm);
-
-    }
+   }
 
     // Set up everything that has to be refered to by reference
     void ExtractInputVariables(boost::program_options::variables_map &vm,

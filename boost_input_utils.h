@@ -10,12 +10,11 @@
 #ifndef BOOST_INPUT_UTILS_H_
 #define BOOST_INPUT_UTILS_H_
 
-
-#include <boost/program_options/variables_map.hpp>
-
-#include <boost/program_options.hpp>
+#include <sys/stat.h>
 #include <time.h>
 
+#include <boost/program_options/variables_map.hpp>
+#include <boost/program_options.hpp>
 
 #include "parsers.h"
 #include "api/BamReader.h"
@@ -23,9 +22,8 @@
 #include "src/io_data/local_bamtools/bamtools_fasta.h"
 //#include "utils/bamtools_pileup_engine.h"
 //#include "utils/bamtools_fasta.h"
-
 #include "model.h"
-#include <sys/stat.h>
+
 
 struct nfreqs{
     vector<double> freqs;
