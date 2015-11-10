@@ -66,7 +66,7 @@ int main(int argc, char** argv){
         );
 
     pileup.AddVisitor(v);
-
+                                                  
     std::cerr.setstate(std::ios_base::failbit) ; //Supress bamtool camplain, "Pileup::Run() : Data not sorted correctly!"
 
     std::chrono::time_point<std::chrono::system_clock> start, end;

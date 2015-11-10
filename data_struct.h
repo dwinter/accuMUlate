@@ -83,6 +83,26 @@ struct ModelInput{// Can probably stand to lose this, started out more complex..
 
 };
 
+
+struct GenotypeProperties{
+    std::string bases;
+    uint16_t ways;
+    uint16_t mat_index;
+};
+
+typedef std::vector<GenotypeProperties> GenotypeVector;
+
+struct MutationDescription{
+    uint16_t mutant_line;
+    std::string from_genotype;
+    std::string to_genotype;
+    double line_prob;
+    double genotype_prob;
+    double lik;
+};
+
+
+
 //typedef vector< string > SampleNames;
 typedef std::unordered_map<std::string, uint32_t> SampleMap;
 
@@ -97,6 +117,8 @@ typedef Eigen::ArrayXXd MutationMatrix; //array of dynamic dimensions
 typedef std::array<double, 10> DiploidProbsIndex10;
 typedef std::array<double, 10> Array10D;
 typedef std::array<double, 4> Array4D;
+
+
 
 
 #endif //ACCUMULATE_DATA_STRUCT_H

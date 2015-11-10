@@ -21,6 +21,8 @@ double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf, co
                             const MutationMatrix &m, const MutationMatrix &mn);
 
 
+MutationDescription DescribeMutant(const ModelParams &params, SequencingFactory &sf, const ModelInput site_data, 
+                                   const MutationMatrix m, const MutationMatrix mn);
 
 
 #endif
