@@ -58,6 +58,7 @@ int main(int argc, char** argv){
             reference_genome,
             &result_stream,
             samples,
+            vm["sample-name"].as< vector<string> >(),
             params,
             ali,
             vm["qual"].as<int>(),

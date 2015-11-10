@@ -14,6 +14,7 @@ public:
                    LocalBamToolsUtils::Fasta &idx_ref,
                    ostream *out_stream,
                    SampleMap &samples,
+                   SampleNames descendant_names,
                    const ModelParams &model_param,
                    BamAlignment &ali,
                    int qual_cut, int mapping_cut, double prob_cut);
@@ -31,6 +32,7 @@ private:
     SequencingFactory sf;
     MutationMatrix m_mut_paths;
     MutationMatrix m_nomut_paths;
+    SampleNames descendant_names;
 
 };
 

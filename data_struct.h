@@ -103,7 +103,7 @@ struct MutationDescription{
 
 
 
-//typedef vector< string > SampleNames;
+typedef std::vector< std::string > SampleNames;
 typedef std::unordered_map<std::string, uint32_t> SampleMap;
 
 typedef Eigen::ArrayXd GenotypeProbs;

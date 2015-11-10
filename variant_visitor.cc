@@ -5,8 +5,8 @@
 #include "variant_visitor.h"
 
 VariantVisitor::VariantVisitor(const RefVector &bam_references, LocalBamToolsUtils::Fasta &idx_ref,
-                               ostream *out_stream, SampleMap &samples, const ModelParams &model_param,
-                               BamAlignment &ali,//
+                               ostream *out_stream, SampleMap &samples, SampleNames descendants, 
+                               const ModelParams &model_param, BamAlignment &ali,
                                int qual_cut, int mapping_cut, double prob_cut) :
         ReadDataVisitor(idx_ref, samples,
                         qual_cut, mapping_cut),
@@ -16,6 +16,7 @@ VariantVisitor::VariantVisitor(const RefVector &bam_references, LocalBamToolsUti
     MutationMatrix mt = MutationAccumulation(m_params, true);
     m_mut_paths = MutationAccumulation(m_params, false);
     m_nomut_paths = m_mut_paths - mt;
+    descendant_names = descendants;
 
 }
 
@@ -39,7 +40,7 @@ void VariantVisitor::Visit(const LocalBamToolsUtils::PileupPosition &pileupData)
                 << pileupData.Position + 1 << '\t'
                 << current_base << '\t'
                 << prob << '\t'
-                << details.mutant_line << '\t'
+                << descendant_names[ details.mutant_line ] << '\t'
                 << details.from_genotype << "->" << details.to_genotype << '\t'
                 << details.line_prob << '\t'
                 << details.genotype_prob << '\t'
