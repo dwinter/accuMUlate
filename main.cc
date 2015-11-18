@@ -90,6 +90,7 @@ int main(int argc, char** argv){
         }
     }
     pileup.Flush();
+    delete v;
 
     std::cerr.clear() ; // Add std::cerr back
 
