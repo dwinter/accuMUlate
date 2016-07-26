@@ -254,20 +254,24 @@ MutationDescription DescribeMutant(const ModelParams &params, SequencingFactory 
 //        0.01,
 //        0.01,
 //        0.05, 
-//        1,1
+//        2,1
 //};
 //   MutationMatrix mt = MutationAccumulation(p, true);
 //   MutationMatrix m = MutationAccumulation(p, false);
-//   cerr << m << endl << endl;
 //   MutationMatrix mn = m -mt;
-//   cout << m - mn << endl;
-//   cout << mt << endl;
+//   cerr << "MT" << endl;
+//   cerr << mt << endl << endl;
+//   cerr << "M" << endl;
+//   cerr << m << endl << endl;
+//   cerr << "MN" << endl;
+//   cerr << mn << endl << endl;
 //   return 0;
 //}
 //// Uncommon and compile with this:
-//// clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
-//
+// clang++ -std=c++11 -Ithird-party/bamtools/src/ -Lboost_progam_options model.cc
+
 // to play around with / debug results.
+////
 //int main(){
 //    ModelParams p = { 
 //        0.0001, 
@@ -366,20 +370,20 @@ MutationDescription DescribeMutant(const ModelParams &params, SequencingFactory 
 //    cout << "___With the no-variant data___" << endl;
 //    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,no_vars, m, mn)<< endl;
 //    cout << "P(any|data)= " << TetMAProbability(p,no_vars) << endl;
-
+//
 //    cout << TetMAProbability(p,no_vars,m,mn) << endl;
-    
+//  
 //    cout << "___With the one-variant data___" << endl;  
 //    cout << "P(one|data)= "<<  TetMAProbOneMutation(p,one_vars)<< endl;
 //    cout << "P(any|data)= " << TetMAProbability(p,one_vars) << endl;
 //      cout << TetMAProbability(p,one_vars,m,mn) << endl;
-    
+//  
 //    cout << "___With the one-variant data___" << endl;
 //    cout << TetMAProbability(p,sf, hom_dip_mutant,m,mn) << endl;
 //    cerr << "P(one|data)= "<<  TetMAProbOneMutation(p,sf, hom_dip_mutant, m, mn)<< '\t';
 //    DescribeMutant(p,sf, hom_dip_mutant,m,mn) ; 
-
-    
+//
+//  
 //    cout << "calculating the same number once: " << TetMAProbOneMutation(p,two_vars) << endl;
 //    cout << "then another time: " << TetMAProbOneMutation(p,two_vars) << endl;
 //    TetMAProbOneMutation(p,no_vars);

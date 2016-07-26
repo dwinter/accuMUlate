@@ -53,6 +53,8 @@ SET(LOCAL_LIBS LibDistributions LibIoData LibMutations)
 add_executable(accuMUlate main.cc ${SOURCE_FILES})
 target_link_libraries(accuMUlate ${LIBS} ${LOCAL_LIBS})
 
+#add_executable(accu_indel utils/accMulate_table.cc ${SOURCE_FILES})
+#target_link_libraries(accu_indel ${LIBS} ${LOCAL_LIBS})
 #add_executable(pp utils/post_processor.cc parsers.cc model.cc)
 #target_link_libraries(pp ${LIBS})
 

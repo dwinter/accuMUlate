@@ -21,9 +21,7 @@ class BedFile {
 //        string bed_file_name;
 public:
     BedFile(string bed_file_name);
-
     int get_interval(BedInterval &current_interval);
-
     ifstream bed_file;
 
 };
@@ -34,13 +32,16 @@ class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor {
 public:
     const char ZERO_CHAR = ((char) 0);
     const std::string RG_TAG{{ZERO_CHAR, 'R', 'G', 'Z'}};
-
+    uint64_t region_start = 0;
+    uint64_t region_end = -1;
     ReadDataVisitor(LocalBamToolsUtils::Fasta &idx_ref, SampleMap &samples,
                     int qual_cut, int mapping_cut);
 
     virtual ~ReadDataVisitor() { }
 
     bool GatherReadData(const LocalBamToolsUtils::PileupPosition &pileupData);
+
+    void SetRegion( BedInterval target_region );
 
     uint32_t GetSampleIndex(const string &tag_data);
 

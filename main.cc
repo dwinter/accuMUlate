@@ -79,8 +79,9 @@ int main(int argc, char** argv){
         while(bed.get_interval(region) == 0){
             int ref_id = experiment.GetReferenceID(region.chr);
             experiment.SetRegion(ref_id, region.start, ref_id, region.end);
-            while( experiment.GetNextAlignment(ali) ){
-                pileup.AddAlignment(ali);
+            while( experiment.GetNextAlignment(ali) ){   
+                v->SetRegion(region);
+                pileup.AddAlignment(ali);                
             }
         }
     }

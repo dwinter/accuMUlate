@@ -40,10 +40,16 @@ ReadDataVisitor::ReadDataVisitor(LocalBamToolsUtils::Fasta &idx_ref,
 
 bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &pileupData) {
 
-    //Like it says, collect a sites reads. If the site is good to call
-    //from set the site_data object and return `true`.
     int pos  = pileupData.Position;
-
+    // Pileup produces all alignments that _overlap_ with a region. If we have
+    // set a region for variant calling then we will also get some of the
+    // reads upstream and downstream of that region. So we need to check a given
+    // position is actually in our region-of-interest
+    if( pos < region_start || pos > region_end){   
+        std::cerr << "outside region" << std::endl;
+        return false;
+    }
+    //If we are in the right region, start processing the data
     m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
     uint16_t ref_base_idx = base_index_lookup[(int) current_base];
     if( ref_base_idx > 4 ) { // TODO: This treats all non IUPAC codes as masks. Document this is we keep it
@@ -86,6 +92,11 @@ uint32_t ReadDataVisitor::GetSampleIndex(const std::string &tag_data) {
     std::string tag_id_2 = tag_data.substr(start_index, (end_index - start_index));
 
     return m_samples[tag_id_2];
+}
+
+void ReadDataVisitor::SetRegion(BedInterval target_region){
+    region_start = target_region.start;
+    region_end = target_region.end;    
 }
 
 
@@ -132,8 +143,7 @@ int BedFile::get_interval(BedInterval &current_interval) {
 bool include_site(const BamAlignment &alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut) {
 //    const BamAlignment *ali = &(pileup.Alignment);
     if (alignment.MapQuality > map_cut) {
-        char reference = alignment.Qualities[pos];
-
+        char reference = alignment.Qualities[pos];    
         if (reference > qual_cut) {
             return (not (alignment.IsDuplicate()) && not (alignment.IsFailedQC()) && alignment.IsPrimaryAlignment());
         }
