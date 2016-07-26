@@ -16,7 +16,7 @@ set(CMAKE_CXX_FLAGS_DEBUG  "-std=c++11 -g  -O0 -Wvla -Wall  -Wextra -pedantic ")
 
 
 
-SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ~/lib ~/include ${CMAKE_INSTALL_PREFIX} ~)
+SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ~/local/lib ~/local/include ${CMAKE_INSTALL_PREFIX} ~)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Modules/")
 find_package( Boost COMPONENTS program_options REQUIRED )
 find_package( Bamtools REQUIRED )
