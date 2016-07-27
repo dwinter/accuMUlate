@@ -79,8 +79,8 @@ int main(int argc, char** argv){
         while(bed.get_interval(region) == 0){
             int ref_id = experiment.GetReferenceID(region.chr);
             experiment.SetRegion(ref_id, region.start, ref_id, region.end);
+            v->SetRegion(region);
             while( experiment.GetNextAlignment(ali) ){   
-                v->SetRegion(region);
                 pileup.AddAlignment(ali);                
             }
         }
@@ -100,7 +100,7 @@ int main(int argc, char** argv){
     std::time_t start_time = std::chrono::system_clock::to_time_t(start);
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
 
-    std::cout << "Started at "<< std::ctime(&start_time) << "EM finished at " << std::ctime(&end_time)  << "\nElapsed time: " << elapsed_seconds.count() << "s\n";
+    std::cerr << "Started at "<< std::ctime(&start_time) << "EM finished at " << std::ctime(&end_time)  << "\nElapsed time: " << elapsed_seconds.count() << "s\n";
 
     return 0;
 }
