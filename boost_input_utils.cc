@@ -194,6 +194,10 @@ namespace BoostUtils {
         if (index_path == "") {
             index_path = bam_path + ".bai";
         }
+        if (!file_exists(bam_path )) {
+           std::cerr << "ERROR: BAM file '" << bam_path << "' does not exist" << std::endl;
+           exit(2);
+        }
         experiment.Open(bam_path);
         experiment.OpenIndex(index_path);
         references = experiment.GetReferenceData();
@@ -201,7 +205,11 @@ namespace BoostUtils {
 
         experiment.OpenIndex(index_path);
 
-
+       
+        if (!file_exists(ref_file )) {
+           std::cerr << "ERROR: reference file '" << ref_file << "' does not exist" << std::endl;
+           exit(2);
+        }
         if (!file_exists(ref_file + ".fai")) {
             reference_genome.Open(ref_file);
             reference_genome.CreateIndex(ref_file + ".fai");
