@@ -109,9 +109,9 @@ GenotypeVector diploid_genotypes = {
 
 GenotypeVector haploid_genotypes = { 
     {"A", 1, 0}, 
-    {"A", 1, 1}, 
-    {"C", 1, 3}, 
+    {"C", 1, 1}, 
     {"G", 1, 2}, 
+    {"T", 1, 3}, 
 };
 
 
@@ -246,7 +246,7 @@ MutationDescription DescribeMutant(const ModelParams &params, SequencingFactory 
         double p_one_mutation=  mut.sum() /denom.sum();
         if(p_one_mutation > max_mu){
             max_mu = p_one_mutation;
-            mutant_line = i;
+            mutant_line = i; // Get back to sample-name index
         }
     }
     //For that line, what is the most likely genotype change.

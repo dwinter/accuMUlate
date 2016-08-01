@@ -83,7 +83,7 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
     SiteStatsData raw_data = {};
     for (auto it = begin(pileupData.PileupAlignments); it != end(pileupData.PileupAlignments); ++it) {
         int32_t pos_in_alignment = it->PositionInAlignment;
-        if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
+        if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {            
             uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
             uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
             if (sindex != MAX_UINT32) {
@@ -95,13 +95,16 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
                     if (paired){
                         raw_data.Insert_mutant.push_back(it->Alignment.InsertSize);
                     }                
-                    if (sindex == mutant_index){
-                        if (rev){
+                    if (sindex == mutant_index + 1){//Mutant index is among _descendants_
+                        if (rev){                   // GetSampleIndex includes the ancestor as sample zero
                             raw_data.MM_R += 1;                            
                         }
                         else {
                             raw_data.MM_F += 1; 
                         }
+                    }
+                    else{
+                        raw_data.AM += 1;
                     }
                 }
                 else{
@@ -110,13 +113,16 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
                     if (paired){
                         raw_data.Insert_anc.push_back(it->Alignment.InsertSize);
                     }                
-                    if (sindex == mutant_index){                                           
+                    if (sindex == mutant_index + 1){                                           
                         if (rev){
                             raw_data.MO_R += 1;
                         }
                         else{
                             raw_data.MO_F += 1;
                         }
+                    }
+                    else{
+                        raw_data.AA += 1;
                     }
                 }
                     
@@ -137,7 +143,6 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
     res.NM_F = raw_data.MM_F;
     res.NM_R = raw_data.MM_R;
     res.NM_WT = raw_data.AM;
-    
     return(res);
 
 }
