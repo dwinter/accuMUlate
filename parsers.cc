@@ -75,6 +75,13 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &p
 
 SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::PileupPosition &pileupData, int mutant_index, int mallele_index){
 
+    SiteStatsSummary res = {};
+    if(mallele_index == -1){
+        // It is possible to get "mutations" that make no sense (A->A) or are
+        // not easy to handle (GT->CA), skip these cases and document this
+        // behaviour.
+        return res;
+    }
     int pos  = pileupData.Position;
     m_idx_ref.GetBase(pileupData.RefId, pos, current_base);
     uint16_t ref_base_idx = base_index_lookup[(int) current_base];
@@ -131,7 +138,6 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
     }
 
     //Do the stats
-    SiteStatsSummary res = {};
     int N_minor_mutant = raw_data.MO_R + raw_data.MO_F;
     int unpaired_anc = (N_minor_mutant + raw_data.AA) - raw_data.Paired_anc;
     int unpaired_mutant = (raw_data.MM_F + raw_data.MM_R + raw_data.AM) - raw_data.Paired_mutant;
