@@ -115,6 +115,33 @@ GenotypeVector haploid_genotypes = {
 };
 
 
+//Find mutant allele from genotype->genotype transmissions. Ignore apparent
+//double mutations (-1).
+static int diploid_mutant_matrix[16][16] = {
+    // Starred columns are already covered by an earlier row, present here
+    // to keep 'mat-index" from GenotypeProperties object
+    // 0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
+    //AA  AC  AG  AT  CA* CC  CG  CT  GA* GC* GG  GT  TA* TC* TG* TT 
+    {-1,  1,  2,  3, -1, -1, -1, -1, -1, -1, -1, -1, -1 ,1, -1, -1}, //AA.
+    { 0, -1,  2,  3, -1, -1, -1, -1, -1, -1, -1, -1, -1 ,1, -1, -1}, //AC.      
+    { 0,  1, -1,  3, -1, -1, -1, -1, -1, -1, -1, -1, -1 ,1, -1, -1}, //AG.
+    { 0,  1,  2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 ,1, -1, -1}, //AT.
+    { 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 ,1, -1, -1}, //CA*
+    {-1,  0, -1, -1, -1, -1,  2,  3, -1, -1, -1, -1, -1 ,1, -1, -1}, //CC.
+    {-1,  0,  0, -1, -1,  1, -1,  3, -1, -1, -1, -1, -1 ,1, -1, -1}, //CG.
+    {-1,  0, -1,  0, -1,  1,  2, -1, -1, -1, -1, -1, -1 ,1, -1,  3}, //CT.
+    {-1, -1, -1,  3, -1, -1,  2, -1, -1, -1,  2,  3, -1 ,1, -1, -1}, //GA*
+    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 ,1, -1, -1}, //GC*
+    {-1, -1,  0, -1, -1, -1,  1, -1, -1, -1, -1,  3, -1 ,1, -1, -1}, //GG
+    {-1, -1,  0,  0, -1, -1,  3,  2, -1, -1,  2, -1, -1 ,1, -1,  3}, //GT
+    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 ,1, -1, -1}, //TA*
+    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 ,1, -1, -1}, //TC*
+    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 ,1, -1, -1}, //TG*
+    {-1, -1, -1,  0, -1, -1, -1,  1, -1, -1, -1,  2, -1 ,1, -1, -1}, //TT
+};
+
+
+
 
 
 GenotypeProbs PopulationProbs(SequencingFactory &sf, int ref_allele, int ploidy_ancestor) {
@@ -227,6 +254,7 @@ MutationDescription DescribeMutant(const ModelParams &params, SequencingFactory 
     string from, to;
     double mu = 0;
     double line_denom = 0;
+    uint16_t mutant_allele = 0;
     for( GenotypeProperties A : from_genotypes) {
         for( GenotypeProperties D : to_genotypes) {
             double res = anc_genotypes[ A.mat_index ] * A.ways * mutant_sequencing[ D.mat_index ] * D.ways;
@@ -235,10 +263,17 @@ MutationDescription DescribeMutant(const ModelParams &params, SequencingFactory 
                 from = A.bases;
                 to = D.bases;
                 mu = res;
+                if(params.ploidy_descendant == 1){
+                    mutant_allele = D.mat_index;
+                }
+                else{
+                    mutant_allele = diploid_mutant_matrix[A.mat_index][D.mat_index];
+
+                }
             }
         }
     }
-    MutationDescription final = {mutant_line, from , to, max_mu, mu/line_denom , denom.sum()};
+    MutationDescription final = {mutant_line, mutant_allele, from, to, max_mu, mu/line_denom , denom.sum()};
     return final;
      
 }

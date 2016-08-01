@@ -79,8 +79,6 @@ struct ModelParams{
 struct ModelInput{// Can probably stand to lose this, started out more complex..
     uint16_t reference;
     ReadDataVector all_reads;
-
-
 };
 
 
@@ -94,6 +92,7 @@ typedef std::vector<GenotypeProperties> GenotypeVector;
 
 struct MutationDescription{
     uint16_t mutant_line;
+    uint16_t mutant_allele_index;
     std::string from_genotype;
     std::string to_genotype;
     double line_prob;

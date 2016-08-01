@@ -45,7 +45,7 @@ SET(SOURCE_FILES ${SOURCE_FILES}
         )
 
 ADD_SUBDIRECTORY(src)
-SET(LOCAL_LIBS LibDistributions LibIoData LibMutations)
+SET(LOCAL_LIBS LibDistributions LibIoData LibMutations LibStats)
 #SET(LOCAL_LIBS LibEvolutionModels LibDistributions LibIoData LibMutations)
 
 

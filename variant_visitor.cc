@@ -34,17 +34,27 @@ void VariantVisitor::Visit(const LocalBamToolsUtils::PileupPosition &pileupData)
         if (prob >= m_prob_cut) {
 //            double prob_one = TetMAProbOneMutation(m_params, site_data, m_mut_paths, m_nomut_paths);
             MutationDescription details = DescribeMutant(m_params, sf, site_data, m_mut_paths, m_nomut_paths);
+            SiteStatsSummary stats = CalculateStats(pileupData, details.mutant_line, details.mutant_allele_index);
 
             *m_ostream << m_bam_references[pileupData.RefId].RefName << '\t'
                 << pileupData.Position << '\t'
                 << pileupData.Position + 1 << '\t'
                 << current_base << '\t'
-                << prob << '\t'
                 << descendant_names[ details.mutant_line ] << '\t'
                 << details.from_genotype << "->" << details.to_genotype << '\t'
+                << prob << '\t'
                 << details.line_prob << '\t'
                 << details.genotype_prob << '\t'
                 << details.lik << '\t'
+                << stats.DP << '\t'            
+                << stats.NM_F << '\t'
+                << stats.NM_R << '\t'
+                << stats.N_minor << '\t'
+                << stats.NM_WT << '\t'
+                << stats.MQ_AD << '\t'
+                << stats.Insert_AD << '\t'
+                << stats.FisherStrandBias << '\t'
+                << stats.FisherPairBias << '\t'
                 << endl;
         }
 
