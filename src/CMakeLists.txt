@@ -10,4 +10,4 @@ ADD_SUBDIRECTORY(distributions)
 #ADD_SUBDIRECTORY(evolution_models)
 ADD_SUBDIRECTORY(io_data)
 ADD_SUBDIRECTORY(mutations)
-
+ADD_SUBDIRECTORY(stats)

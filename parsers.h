@@ -5,6 +5,7 @@
 
 #include "src/io_data/local_bamtools/bamtools_pileup_engine.h"
 #include "src/io_data/local_bamtools/bamtools_fasta.h"
+#include "src/stats/stats.h"
 #include "model.h"
 
 
@@ -16,6 +17,36 @@ struct BedInterval {
     uint64_t start;
     uint64_t end;
 };
+
+
+struct SiteStatsData {
+    vector<int32_t> MQ_anc;
+    vector<int32_t> MQ_mutant;
+    vector<int32_t> Insert_anc;
+    vector<int32_t> Insert_mutant;
+    uint32_t Paired_anc;
+    uint32_t Paired_mutant;
+    uint32_t MM_F; // Mutant sample, mutant base
+    uint32_t MM_R; 
+    uint32_t MO_R; // Mutant sample, other base
+    uint32_t MO_F;
+    uint32_t AM;   // Ancestral sample, mutant base
+    uint32_t AA;   // Anc. sample, anc base
+
+};
+
+struct SiteStatsSummary{
+    double MQ_AD;
+    double Insert_AD;
+    double FisherPairBias;
+    double FisherStrandBias;
+    uint32_t DP;
+    uint32_t NM_F;
+    uint32_t NM_R;
+    uint32_t N_minor;
+    double NM_WT;
+};
+
 
 class BedFile {
 //        string bed_file_name;
@@ -40,6 +71,7 @@ public:
     virtual ~ReadDataVisitor() { }
 
     bool GatherReadData(const LocalBamToolsUtils::PileupPosition &pileupData);
+    SiteStatsSummary CalculateStats(const LocalBamToolsUtils::PileupPosition &pileupData, int mutant_index, int mallele_index);
 
     void SetRegion( BedInterval target_region );
 
