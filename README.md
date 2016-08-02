@@ -18,8 +18,8 @@ Needs to be compiled/on path:
 * [eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * [Boost::program_options](http://www.boost.org/doc/libs/1_55_0/doc/html/program_options.html)
 
-Provided in this repo
-* bamtools headers  (for bamtools-utils, not in the normal include headers) 
+~~Provided in this repo~~
+~~* bamtools headers  (for bamtools-utils, not in the normal include headers)~~
 
 ##Compilation
 
@@ -29,8 +29,8 @@ your path you can do this
 ```sh
 cmake .
 make
-./accuMUlate -c test/test_params.ini -b test/test.bam -r test/test.fasta -o test/test.out
-./pp -c test/pp_params.ini -b test/test.bam -i test/test.out 
+./accuMUlate -c example/test_params.ini -b example/test.bam -r example/test.fasta -o example/test.out
+./pp -c example/pp_params.ini -b example/test.bam -i example/test.out 
 
 ```
 
