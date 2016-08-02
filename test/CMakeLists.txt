@@ -31,8 +31,7 @@ SET(TEST_SOURCE_FILES ${TEST_SOURCE_FILES}
          )
 
 
-
-SET(LOCAL_LIBS LibDistributions LibIoData LibMutations)
+SET(LOCAL_LIBS LibDistributions LibIoData LibMutations LibStats)
 
 
 add_executable( UnitTests ${TEST_SOURCE_FILES} ${SOURCE_FILES} )
