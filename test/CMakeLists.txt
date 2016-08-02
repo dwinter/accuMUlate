@@ -27,6 +27,7 @@ SET(TEST_SOURCE_FILES ${TEST_SOURCE_FILES}
     ${CMAKE_CURRENT_SOURCE_DIR}/data_struct_test.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/model_test.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/parser_test.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/stats_test.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/unittest_utils.cc
          )
 

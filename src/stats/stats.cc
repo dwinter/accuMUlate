@@ -408,8 +408,8 @@ double phred(double p){
 }
 
 //int main(){
-//    std::vector<int> a = {1, 12, 12, 15, 15, 12};
-//    std::vector<int> b = {1, 12, 12, 1, 1, 2};
+//    std::vector<int> a = {40, 31, 35, 40, 40, 32, 33};
+//    std::vector<int> b = {21, 31, 33, 34, 34, 40, 42, 20} ;
 //    std::cerr << ad_two_sample_test(a,b) << std::endl;
 //    std::cerr <<  fisher_exact_test(6,12,12,5) << std::endl;
 //    std::cerr <<  fisher_exact_test(32,18,241,20) << std::endl;
