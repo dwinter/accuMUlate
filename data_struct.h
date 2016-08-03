@@ -81,6 +81,11 @@ struct ModelInput{// Can probably stand to lose this, started out more complex..
     ReadDataVector all_reads;
 };
 
+//struct BedInterval{// 0-based half opne
+//    std::string chrom;
+//    uint64_t start;
+//    uint64_t end;
+//};
 
 struct GenotypeProperties{
     std::string bases;
