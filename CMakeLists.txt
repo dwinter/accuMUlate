@@ -79,7 +79,6 @@ IF(GTEST_FOUND)
 
     message("GTEST FOUND! Build UnitTest")
     ADD_SUBDIRECTORY(test)
-    add_test (NAME all_tests WORKING_DIRECTORY test COMMAND UnitTests)
 
 
     #2 Some link error??

@@ -40,7 +40,7 @@ script:
   - ccache -s
   - mkdir -p build && cd build && cmake -DBOOST_INCLUDEDIR=${HOME}/include .. #-DBamtools_PREFIX=${HOME}/ ..
   - make
-  - test/UnitTests 
+  - cd test &&  UnitTests 
 cache:
     directories:
     - $HOME/lib/
