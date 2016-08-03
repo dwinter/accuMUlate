@@ -96,7 +96,7 @@ TEST_F(ParserTest, restrict_to_interval){
     //Do we _only_ call mutations from within a given interval
     //when that interval is specified. Bugs #11 and #28 lead to the progarm
     //calling form surrounding intervals and only the final interval in a file.
-    //Rather than capture ouptur or dig into the visitor, we generate an output
+    //Rather than capture ouptut or dig into the visitor, we generate an output
     //file and and parse that (as BED) to confirm the correct behaviour
 
 
@@ -159,19 +159,23 @@ TEST_F(ParserTest, restrict_to_interval){
     int ref_id = -1;
     while(bed.get_interval(region) == 0){        
         ref_id = experiment.GetReferenceID(region.chr);
-        experiment.SetRegion(ref_id, region.start, ref_id, region.end); 
+        experiment.SetRegion(ref_id, region.start, ref_id, region.end);
+        v->SetRegion(region); 
         while( experiment.GetNextAlignment(ali) ){
                 pileup.AddAlignment(ali);
         }
+        pileup.Flush();
     }
 
     BedFile result ("data/test.out");
     int i = 0;
-    while(bed.get_interval(region) == 0){        
+    while(result.get_interval(region) == 0){        
         i++;        
     }
-
+    //There should be exactly for results in the this file
     ASSERT_EQ(i, 4);
+    //And the last one should include the last "fence post"
+    //If this errors someone has moved from half-closed to full-open intervals
     ASSERT_EQ(region.chr, "double_mutation");
     ASSERT_EQ(region.start, 202);
     ASSERT_EQ(region.end, 203);
