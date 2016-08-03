@@ -83,6 +83,7 @@ int main(int argc, char** argv){
             while( experiment.GetNextAlignment(ali) ){   
                 pileup.AddAlignment(ali);                
             }
+        pileup.Flush();
         }
     }
     else{
