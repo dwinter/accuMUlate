@@ -27,12 +27,12 @@ SET(TEST_SOURCE_FILES ${TEST_SOURCE_FILES}
     ${CMAKE_CURRENT_SOURCE_DIR}/data_struct_test.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/model_test.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/parser_test.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/stats_test.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/unittest_utils.cc
          )
 
 
-
-SET(LOCAL_LIBS LibDistributions LibIoData LibMutations)
+SET(LOCAL_LIBS LibDistributions LibIoData LibMutations LibStats)
 
 
 add_executable( UnitTests ${TEST_SOURCE_FILES} ${SOURCE_FILES} )
@@ -40,6 +40,7 @@ add_executable( UnitTests ${TEST_SOURCE_FILES} ${SOURCE_FILES} )
 # target_link_libraries(UnitTests gtest gtest_main ${LIBS} ${LOCAL_LIBS})
 target_link_libraries(UnitTests ${GTEST_BOTH_LIBRARIES} ${LIBS} ${LOCAL_LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 add_test( UnitTestsALL UnitTests )
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION  ${CMAKE_CURRENT_BINARY_DIR})
 ##
 ## cd build/test
 ## ctest

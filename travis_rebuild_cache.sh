@@ -21,6 +21,28 @@ else
   echo "Done, rebuild BOOST"
 fi
 
+if [ -e "${HOME}/lib/libgtest.a" ]
+then
+    echo "Found Gtest"
+else
+    if [ -e "/usr/src/gtest/src/gtest.cc" ]
+    then
+        echo "Gtest is not present, rebuilding"
+        mkdir -p ./tmp
+        cp -a /usr/src/gtest/ ./tmp
+        mkdir ./tmp/gtest/build
+        cd ./tmp/gtest/build
+        cmake ..
+        make
+        mv libg* ${HOME}/lib
+        cd ${HOME}
+        echo "DONE rebuilding gtest"
+     else
+         echo "Gtest not cahced, or available, skipping"
+  fi
+fi
+
+
 EIGEN3_FILE="$HOME/include/eigen3/Eigen/src/Core/util/Macros.h"
 if grep -Fxq "#define EIGEN_WORLD_VERSION 3" ${EIGEN3_FILE} && 
 grep -Fxq "#define EIGEN_MAJOR_VERSION 2" ${EIGEN3_FILE} && 
