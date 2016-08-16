@@ -174,6 +174,11 @@ namespace BoostUtils {
         }
 
         if (vm.count("config")) {
+            string config_file = vm["config"].as<string>();
+            if( !file_exists(config_file) ){
+                std::cout << "ERROR: config file '" << config_file<< "' does not exist" << std::endl;
+                exit(2);
+            }
             ifstream config_stream(vm["config"].as<string>());
             po::store(po::parse_config_file(config_stream, cmd, false), vm);
         }
