@@ -278,7 +278,7 @@ double gtest(int o11, int o12, int o21, int o22, double e11, double e12, double 
     G += o12 * log(o12/e12);
     G += o21 * log(o21/e21);
     G += o22 * log(o22/e22);
-    return(chi_cdf_1d(2.0 * G));
+    return(1.0 - chi_cdf_1d(2.0 * G));
 }
 
 
@@ -290,10 +290,10 @@ double fisher_exact_test(int a11, int a12, int a21, int a22){
     const int col2 = a12 + a22;
     const int N = row1 + row2;
     if(N > 512){
-        double e11 = (row1 * col1) / N;
-        double e12 = (row1 * col1) / N;
-        double e21 = (row2 * col1) / N;
-        double e22 = (row2 * col2) / N;
+        double e11 = (row1 * col1) / (double)N;
+        double e12 = (row1 * col2) / (double)N;
+        double e21 = (row2 * col1) / (double)N;
+        double e22 = (row2 * col2) / (double)N;
         return(gtest(a11, a12, a21, a22, e11, e12, e21, e22));
     }
     

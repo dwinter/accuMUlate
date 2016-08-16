@@ -18,7 +18,19 @@
 using namespace std;
 using namespace BamTools;
 
-
+struct DenomCriteria{
+    uint32_t DP_min;
+    uint32_t DP_max;
+    uint32_t fwd_mutant_min;
+    uint32_t rev_mutant_min;
+    uint32_t ancestral_in_mutant_max;
+    uint32_t mutant_in_ancestral_max;
+    double MQ_AD_max;
+    double Map_AD_max;
+    double Fisher_std_min;
+    double Fisher_map_min;
+    
+}
 
 
 bool include_sample(const ModelParams &params, const ReadDataVector fwd, const ReadDataVector rev,  const ReadDataVector site_data, int sindex, uint16_t ref_base, double pcut, bool central){

@@ -19,7 +19,7 @@ TEST_F (StatsTest, fisher_few_reads) {
 TEST_F (StatsTest, fisher_many_reads){
     //A gtest because there are too many reads to do the exact one.
     //known p-value is from a simulation, so error margin is lowered.
-    ASSERT_NEAR(fisher_exact_test(32,18,241,20), 9.12e-07, 1e-7);
+    ASSERT_NEAR(fisher_exact_test(20, 200, 19, 301), 0.1679341, 1e-7);
 }
 
 TEST_F(StatsTest, ad_test){
