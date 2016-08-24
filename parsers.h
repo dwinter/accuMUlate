@@ -8,7 +8,6 @@
 #include "src/stats/stats.h"
 #include "model.h"
 
-
 using namespace std;
 using namespace BamTools;
 

@@ -16,7 +16,7 @@ void validate(boost::any& v, const vector<string>& values, nfreqs* target_type, 
     vector<double> pi;
     for(vector<string>::const_iterator it = values.begin(); 
         it != values.end(); ++it){
-        stringstream ss(*it);
+        stringstream ss(*it);        
         copy(istream_iterator<double>(ss), istream_iterator<double>(), back_inserter(pi));
     }
     if(pi.size() != 4){
@@ -185,8 +185,64 @@ namespace BoostUtils {
 
         vm.notify();
         check_args(vm);
-   }
+    }
+    void ParseDenominateCommandline(int argc, char **argv, boost::program_options::variables_map &vm) {
+        uint32_t infinite_int = std::numeric_limits<uint32_t>::max();
+        double   infinite_double = std::numeric_limits<double>::infinity();
+        po::options_description cmd("Command line options (not all options can be set via configuration file)");
+        cmd.add_options()
+            ("help,h", "Print a help message")
+            ("bam,b", po::value<string>()->required(), "Path to BAM file")
+            ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
+            ("reference,r", po::value<string>()->required(),  "Path to reference genome")
+            ("config,c", po::value<string>(),  "Path to config file")
+            ("intervals,i", po::value<string>(), "Path to bed file")
+            ("ancestor,a", po::value<string>(), "Ancestor RG sample ID")
+            ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
+            ("qual,q", po::value<int>()->default_value(13), "Base quality cuttoff")           
+            ("mapping-qual,m", po::value<int>()->default_value(13), "Mapping quality cuttoff")  
+            ("prob,p", po::value<double>()->default_value(0.1), "Prob quality cuttoff")  
+            //Model params
+            ("theta", po::value<double>()->required(), "theta")        
+            ("nfreqs", po::value< nfreqs >()->multitoken(), "Nucleotide frequencies")        
+            ("mu", po::value<double>()->required(), "Experiment-long mutation rate")        
+            ("seq-error", po::value<double>()->required(), "Probability of sequencing error")        
+            ("ploidy-ancestor", po::value<int>()->default_value(2), "Polidy of ancestor (1 or 2)")        
+            ("ploidy-descendant", po::value<int>()->default_value(2), "Ploidy of descendant (1 or 2)")         
+            ("phi-haploid",     po::value<double>(), "Over-dispersion for haploid sequencing")        
+            ("phi-diploid",     po::value<double>(), "Over-dispersion for diploid sequencing")        
+            //statistical criterial, all should have default value of 0 or infinity
+            ("min-depth", po::value<uint32_t>()->default_value(0), "Mimimum sequencing depth for a site to be included")        
+            ("max-depth", po::value<uint32_t>()->default_value(infinite_int), "Maximum sequencing depth for a site to be included")        
+            ("min-mutant-strand", po::value<uint32_t>()->default_value(0), "Minimum number of alleles supporting the mutant on each strand ")   
+            ("max-anc-in-mutant", po::value<uint32_t>()->default_value(infinite_int), "Maximum number of ancestral alleles in mutant sample")   
+            ("max-mutant-in-anc", po::value<uint32_t>()->default_value(infinite_int), "Maximum number of mutant alleles in ancestral samples")
+            ("max-MQ-AD", po::value<double>()->default_value(infinite_double), "Maximum value of the AD test for mapping quality differences")
+            ("max-insert-AD", po::value<double>()->default_value(infinite_double), "Maximum value of the AD test for insert length differences")
+            ("min-strand-pval", po::value<double>()->default_value(0), "Minimum p-value for strand bias")
+            ("min-mapping-pval", po::value<double>()->default_value(0), "Minimum p-value for paired-mapping bias");
+        
+        po::store(po::parse_command_line(argc, argv, cmd), vm);
+        
+        if (vm.count("help")) {                                                                                                               
+            cout << cmd << endl;                                                                                                              
+            exit(-1);                                                                                                                         
+         }                                                                                                                                     
+                                                                                                                                              
+        if (vm.count("config")) {                                                                                                             
+            string config_file = vm["config"].as<string>();                                                                                   
+            if(!file_exists(config_file) ){                                                                                                  
+            std::cout << "ERROR: config file '" << config_file<< "' does not exist" << std::endl;                                         
+            exit(2);                                                                                                                      
+        }                                                                                                                                 
+        ifstream config_stream(config_file);                                                                                
+        po::store(po::parse_config_file(config_stream, cmd, false), vm);                                                                  
+        }                                                                                                                                     
+                                                                                                                                              
+        vm.notify();                                                                                                                          
+        check_args(vm); 
 
+    }
     // Set up everything that has to be refered to by reference
     void ExtractInputVariables(boost::program_options::variables_map &vm,
             BamTools::BamReader &experiment, BamTools::RefVector &references,
