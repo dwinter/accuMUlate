@@ -201,7 +201,7 @@ int main(int argc, char** argv){
     }                                                                                                                                         
     pileup.Flush(); 
     
-    for(size_t i = 0; i < samples.size(); i++){
+    for(size_t i = 1; i < samples.size(); i++){
         for( size_t j = 0; j < 4; j++){
             cout << denoms[i].counts[j] << '\t'; 
         }

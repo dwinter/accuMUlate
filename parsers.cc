@@ -154,6 +154,7 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
     res.NM_F = raw_data.MM_F;
     res.NM_R = raw_data.MM_R;
     res.NM_WT = raw_data.AM;
+    res.N_minor = N_minor_mutant;
     return(res);
 
 }
