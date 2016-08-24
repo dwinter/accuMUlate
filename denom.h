@@ -50,8 +50,6 @@ private:
     RefVector m_bam_ref;
     SamHeader m_header;
     BamAlignment& m_ali;
-    //string tag_id;
-    //uint64_t chr_index;
     DenomCounterVector& m_denoms;
     double m_prob_cut;
     const ModelParams &m_params;

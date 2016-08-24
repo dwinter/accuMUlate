@@ -14,13 +14,13 @@
 void validate(boost::any& v, const vector<string>& values, nfreqs* target_type, int){
     nfreqs result;
     vector<double> pi;
-    for(vector<string>::const_iterator it = values.begin(); 
+    for(vector<string>::const_iterator it = values.begin();
         it != values.end(); ++it){
-        stringstream ss(*it);        
+        stringstream ss(*it);
         copy(istream_iterator<double>(ss), istream_iterator<double>(), back_inserter(pi));
     }
     if(pi.size() != 4){
-        throw boost::program_options::invalid_option_value("Must specify 4 (and only 4) nucleotide frequencies");        
+        throw boost::program_options::invalid_option_value("Must specify 4 (and only 4) nucleotide frequencies");
     }
     if( accumulate(pi.begin(), pi.end(), 0.0) != 1.0){
         throw boost::program_options::invalid_option_value("Nucleotide frequencies don't sum to 1.0");          }
@@ -36,9 +36,9 @@ namespace BoostUtils {
         struct stat buffer;
         return (stat(name.c_str(), &buffer) == 0);
     }
-    
+
     SampleMap ParseSamples(boost::program_options::variables_map &vm, BamTools::SamHeader &header){
-        //OK. We want to store data form each sample in a unique position in 
+        //OK. We want to store data form each sample in a unique position in
         //a ReadDataVector. The caller also assumes that the ancestral sequence
         //is in the 0th poistion of the ReadDataVector.
         //The sample info in the BAM file is all in the ReadGroup headers, and
@@ -47,7 +47,7 @@ namespace BoostUtils {
         //To acheive all this we start parsing through every read group in the
         //BAM. If it's one to include, we add it the index map and remove it
         //from the list of samples to include. If it's not in our include list
-        //we warn the user we are skipping some of the data. 
+        //we warn the user we are skipping some of the data.
         SampleMap name_map;
         vector<string> keepers =  vm["sample-name"].as< vector<string> >();
         string anc_tag = vm["ancestor"].as<string>();
@@ -112,17 +112,17 @@ namespace BoostUtils {
     }
 
 
-    
+
     void check_args(boost::program_options::variables_map &vm){
         // Is the experimental design one of the ones we can handle?
         int ploidy_ancestor = vm["ploidy-ancestor"].as<int>();
         int polidy_descendant = vm["ploidy-descendant"].as<int>();
 
         if (ploidy_ancestor > 2 or ploidy_ancestor < 1){
-            throw po::invalid_option_value("accuMUlate can't only deal with haploid or diploid ancestral samples"); 
+            throw po::invalid_option_value("accuMUlate can't only deal with haploid or diploid ancestral samples");
         }
         if (polidy_descendant > 2 or polidy_descendant < 1){
-            throw po::invalid_option_value("accuMUlate can't only deal with haploid or descendant samples");        
+            throw po::invalid_option_value("accuMUlate can't only deal with haploid or descendant samples");
         }
         if (ploidy_ancestor == 1 and polidy_descendant == 2){
             throw po::invalid_option_value("accuMUlate has no model for a haploid->diploid MA experiemt");
@@ -199,48 +199,48 @@ namespace BoostUtils {
             ("intervals,i", po::value<string>(), "Path to bed file")
             ("ancestor,a", po::value<string>(), "Ancestor RG sample ID")
             ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags")
-            ("qual,q", po::value<int>()->default_value(13), "Base quality cuttoff")           
-            ("mapping-qual,m", po::value<int>()->default_value(13), "Mapping quality cuttoff")  
-            ("prob,p", po::value<double>()->default_value(0.1), "Prob quality cuttoff")  
+            ("qual,q", po::value<int>()->default_value(13), "Base quality cuttoff")
+            ("mapping-qual,m", po::value<int>()->default_value(13), "Mapping quality cuttoff")
+            ("prob,p", po::value<double>()->default_value(0.1), "Prob quality cuttoff")
             //Model params
-            ("theta", po::value<double>()->required(), "theta")        
-            ("nfreqs", po::value< nfreqs >()->multitoken(), "Nucleotide frequencies")        
-            ("mu", po::value<double>()->required(), "Experiment-long mutation rate")        
-            ("seq-error", po::value<double>()->required(), "Probability of sequencing error")        
-            ("ploidy-ancestor", po::value<int>()->default_value(2), "Polidy of ancestor (1 or 2)")        
-            ("ploidy-descendant", po::value<int>()->default_value(2), "Ploidy of descendant (1 or 2)")         
-            ("phi-haploid",     po::value<double>(), "Over-dispersion for haploid sequencing")        
-            ("phi-diploid",     po::value<double>(), "Over-dispersion for diploid sequencing")        
+            ("theta", po::value<double>()->required(), "theta")
+            ("nfreqs", po::value< nfreqs >()->multitoken(), "Nucleotide frequencies")
+            ("mu", po::value<double>()->required(), "Experiment-long mutation rate")
+            ("seq-error", po::value<double>()->required(), "Probability of sequencing error")
+            ("ploidy-ancestor", po::value<int>()->default_value(2), "Polidy of ancestor (1 or 2)")
+            ("ploidy-descendant", po::value<int>()->default_value(2), "Ploidy of descendant (1 or 2)")
+            ("phi-haploid",     po::value<double>(), "Over-dispersion for haploid sequencing")
+            ("phi-diploid",     po::value<double>(), "Over-dispersion for diploid sequencing")
             //statistical criterial, all should have default value of 0 or infinity
-            ("min-depth", po::value<uint32_t>()->default_value(0), "Mimimum sequencing depth for a site to be included")        
-            ("max-depth", po::value<uint32_t>()->default_value(infinite_int), "Maximum sequencing depth for a site to be included")        
-            ("min-mutant-strand", po::value<uint32_t>()->default_value(0), "Minimum number of alleles supporting the mutant on each strand ")   
-            ("max-anc-in-mutant", po::value<uint32_t>()->default_value(infinite_int), "Maximum number of ancestral alleles in mutant sample")   
+            ("min-depth", po::value<uint32_t>()->default_value(0), "Mimimum sequencing depth for a site to be included")
+            ("max-depth", po::value<uint32_t>()->default_value(infinite_int), "Maximum sequencing depth for a site to be included")
+            ("min-mutant-strand", po::value<uint32_t>()->default_value(0), "Minimum number of alleles supporting the mutant on each strand ")
+            ("max-anc-in-mutant", po::value<uint32_t>()->default_value(infinite_int), "Maximum number of ancestral alleles in mutant sample")
             ("max-mutant-in-anc", po::value<uint32_t>()->default_value(infinite_int), "Maximum number of mutant alleles in ancestral samples")
             ("max-MQ-AD", po::value<double>()->default_value(infinite_double), "Maximum value of the AD test for mapping quality differences")
             ("max-insert-AD", po::value<double>()->default_value(infinite_double), "Maximum value of the AD test for insert length differences")
             ("min-strand-pval", po::value<double>()->default_value(0), "Minimum p-value for strand bias")
             ("min-mapping-pval", po::value<double>()->default_value(0), "Minimum p-value for paired-mapping bias");
-        
+
         po::store(po::parse_command_line(argc, argv, cmd), vm);
-        
-        if (vm.count("help")) {                                                                                                               
-            cout << cmd << endl;                                                                                                              
-            exit(-1);                                                                                                                         
-         }                                                                                                                                     
-                                                                                                                                              
-        if (vm.count("config")) {                                                                                                             
-            string config_file = vm["config"].as<string>();                                                                                   
-            if(!file_exists(config_file) ){                                                                                                  
-            std::cout << "ERROR: config file '" << config_file<< "' does not exist" << std::endl;                                         
-            exit(2);                                                                                                                      
-        }                                                                                                                                 
-        ifstream config_stream(config_file);                                                                                
-        po::store(po::parse_config_file(config_stream, cmd, false), vm);                                                                  
-        }                                                                                                                                     
-                                                                                                                                              
-        vm.notify();                                                                                                                          
-        check_args(vm); 
+
+        if (vm.count("help")) {
+            cout << cmd << endl;
+            exit(-1);
+         }
+
+        if (vm.count("config")) {
+            string config_file = vm["config"].as<string>();
+            if(!file_exists(config_file) ){
+            std::cout << "ERROR: config file '" << config_file<< "' does not exist" << std::endl;
+            exit(2);
+        }
+        ifstream config_stream(config_file);
+        po::store(po::parse_config_file(config_stream, cmd, false), vm);
+        }
+
+        vm.notify();
+        check_args(vm);
 
     }
     // Set up everything that has to be refered to by reference
@@ -266,7 +266,7 @@ namespace BoostUtils {
 
         experiment.OpenIndex(index_path);
 
-       
+
         if (!file_exists(ref_file )) {
            std::cerr << "ERROR: reference file '" << ref_file << "' does not exist" << std::endl;
            exit(2);
