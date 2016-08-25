@@ -166,7 +166,7 @@ uint32_t ReadDataVisitor::GetSampleIndex(const std::string &tag_data) {
     }
     else {
         size_t x = tag_data.find("RG");//TODO: Check for (char)0, RG, Z
-        std::cout << "ERRER: " << tag_data << "\t" << x << std::endl;
+        std::cout << "ERROR: " << tag_data << "\t" << x << std::endl;
     }
     size_t end_index = tag_data.find(ZERO_CHAR, start_index);
     std::string tag_id_2 = tag_data.substr(start_index, (end_index - start_index));
@@ -205,19 +205,6 @@ int BedFile::get_interval(BedInterval &current_interval) {
 
 
 
-
-
-//
-//Helper functions for parsing data out of BAMs
-
-//uint32_t find_sample_index(string s, SampleNames sv){
-//    for (size_t i=0; i < sv.size(); i++){
-//        if(s.compare(sv[i])==0){
-//            return i;
-//        }
-//    }
-//    return(-1); //TODO refactor this to  update sample in place
-//}
 
 
 bool include_site(const BamAlignment &alignment, const int &pos, const uint16_t &map_cut, const char &qual_cut) {
@@ -266,26 +253,4 @@ const int base_index_lookup[128] ={
         -1,-1,-1,-1, 3,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1		// 112-127
 };
 
-
-
-//int main(){
-//    return 0;
-//}
-
-
-//int main() {
-//    FastaReference reference_g ("test/test.fai");
-//    int chr_idx;
-//    reference_g.get_ref_id("scf_8254727", chr_idx);
-//    cout << "chr index = " << chr_idx << " (should be 9)" << endl;
-//
-//    BedFile bed ("test/test.bed");
-//    BedInterval current_line;
-//    while(bed.get_interval(current_line) == 0){
-//         cout << current_line.chr << endl;
-//    }
-//    return 0;
-//}
-//
-   
 

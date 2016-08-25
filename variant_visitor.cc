@@ -26,11 +26,6 @@ void VariantVisitor::Visit(const LocalBamToolsUtils::PileupPosition &pileupData)
 
         double prob = TetMAProbability(m_params, sf, site_data, m_mut_paths, m_nomut_paths);
 
-//        *m_ostream << m_bam_references[pileupData.RefId].RefName << '\t'
-//            << pileupData.Position << '\t'
-//            << current_base << '\t'
-//            << prob << '\t' << endl;
-
         if (prob >= m_prob_cut) {
 //            double prob_one = TetMAProbOneMutation(m_params, site_data, m_mut_paths, m_nomut_paths);
             MutationDescription details = DescribeMutant(m_params, sf, site_data, m_mut_paths, m_nomut_paths);

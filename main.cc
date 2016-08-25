@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <sys/stat.h>
-#include <chrono>
 
 
 #include "boost/program_options.hpp"
@@ -68,10 +67,7 @@ int main(int argc, char** argv){
 
     pileup.AddVisitor(v);
                                                   
-    std::cerr.setstate(std::ios_base::failbit) ; //Supress bamtool camplain, "Pileup::Run() : Data not sorted correctly!"
 
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    start = std::chrono::system_clock::now();
 
     if (vm.count("intervals")){
         BedFile bed (vm["intervals"].as<string>());
@@ -93,15 +89,6 @@ int main(int argc, char** argv){
     }
     pileup.Flush();
     delete v;
-
-    std::cerr.clear() ; // Add std::cerr back
-
-    end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end-start;
-    std::time_t start_time = std::chrono::system_clock::to_time_t(start);
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-
-    std::cerr << "Started at "<< std::ctime(&start_time) << "EM finished at " << std::ctime(&end_time)  << "\nElapsed time: " << elapsed_seconds.count() << "s\n";
 
     return 0;
 }
