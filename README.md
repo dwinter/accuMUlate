@@ -91,4 +91,4 @@ pre-print doi:[https://dx.doi.org/10.1101/025536](https://dx.doi.org/10.1101/025
 Your first stop should be the [wiki](https://github.com/dwinter/accuMUlate/wiki), 
 which contains information about the input and output files and more detail
 about using `accMUlate`. If that doesn't help please file issues at this
-repository or [email David Winter]((mailto:david.winter@gmail.com).
+repository or [email David Winter](mailto:david.winter@gmail.com).
