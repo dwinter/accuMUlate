@@ -82,7 +82,7 @@ bool DenomVisitor::MeetsCriteria(SiteStatsSummary stats){
          //each sample meeting the criteria
 void DenomVisitor::Visit(const LocalBamToolsUtils::PileupPosition &pileupData) {
     if (GatherReadData(pileupData)) {
-        for(size_t i  = 1; i < nsamp; i++){
+        for(size_t i  = 1; i < site_data.all_reads.size(); i++){
             for(size_t b = 0; b < 4; b++){
                 ModelInput _site_data = site_data;
                 std::rotate( std::begin(_site_data.all_reads[i].reads), std::begin(_site_data.all_reads[i].reads) + b, std::end(_site_data.all_reads[i].reads) );
@@ -91,7 +91,7 @@ void DenomVisitor::Visit(const LocalBamToolsUtils::PileupPosition &pileupData) {
                     MutationDescription details = DescribeMutant(m_params, sf, site_data, m_mut_paths, m_nomut_paths);
                     SiteStatsSummary stats = CalculateStats(pileupData, details.mutant_line, details.mutant_allele_index);
                     if( MeetsCriteria(stats) ){
-                        m_denoms[i].counts[_site_data.reference] += 1;
+                        m_denoms[i-1].counts[_site_data.reference] += 1;
                         break;
                     }
                 }
@@ -133,7 +133,10 @@ int main(int argc, char** argv){
 
     LocalBamToolsUtils::PileupEngine pileup;
     BamAlignment ali;
-    DenomCounterVector denoms (samples.size(), {0,0,0,0} );
+    SampleNames desc_names = vm["sample-name"].as< SampleNames >();
+
+    
+    DenomCounterVector denoms (desc_names.size(), {0,0,0,0} );
 
 
 
@@ -172,7 +175,7 @@ int main(int argc, char** argv){
     }
     pileup.Flush();
 
-    for(size_t i = 1; i < samples.size(); i++){
+    for(size_t i = 0; i <denoms.size(); i++){
         for( size_t j = 0; j < 4; j++){
             cout << denoms[i].counts[j] << '\t';
         }

@@ -7,7 +7,7 @@
  */
 
 
-
+#include <numeric>
 #include "parsers.h"
 #include "boost_input_utils.h"
 
