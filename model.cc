@@ -255,7 +255,7 @@ MutationDescription DescribeMutant(const ModelParams &params, SequencingFactory 
     uint16_t mutant_allele = 0;
     for( GenotypeProperties A : from_genotypes) {
         for( GenotypeProperties D : to_genotypes) {
-            double res = anc_genotypes[ A.mat_index ] * A.ways * mutant_sequencing[ D.mat_index ] * D.ways;
+            double res = denom[ A.mat_index ] * A.ways * mutant_sequencing[ D.mat_index ] * D.ways;
             line_denom += res;
             if(res > mu){
                 from = A.bases;
