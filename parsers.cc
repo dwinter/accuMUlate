@@ -78,7 +78,7 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &p
 };
 
 
-SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::PileupPosition &pileupData, int mutant_index, int mallele_index){
+SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::PileupPosition &pileupData, int mutant_index, int mallele_index, int rotate_by){
 
     SiteStatsSummary res = {};
     if(mallele_index == -1){
@@ -98,6 +98,12 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
         if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {            
             uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
             uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
+            if ( sindex == mutant_index + 1) {
+                bindex += rotate_by;
+                if(bindex > 3){
+                    bindex -= 3;
+                }
+            }
             if (sindex != MAX_UINT32) {
                 bool rev = it->Alignment.IsReverseStrand();
                 bool paired = raw_data.Paired_anc += it->Alignment.IsMateMapped();

@@ -88,10 +88,13 @@ void DenomVisitor::Visit(const LocalBamToolsUtils::PileupPosition &pileupData) {
                 std::rotate( std::begin(_site_data.all_reads[i].reads), std::begin(_site_data.all_reads[i].reads) + b, std::end(_site_data.all_reads[i].reads) );
                 double p  = TetMAProbability(m_params,sf, _site_data,  m_mut_paths, m_nomut_paths);
                 if( p > m_prob_cut){
-                    MutationDescription details = DescribeMutant(m_params, sf, site_data, m_mut_paths, m_nomut_paths);
+                    MutationDescription details = DescribeMutant(m_params, sf, _site_data, m_mut_paths, m_nomut_paths);
                     if( details.mutant_allele_index < std::numeric_limits<uint16_t>::max() ){ // Can't collect stats for non-mutations in diploids
-                        size_t pseudo_mutant_index = (b > details.mutant_allele_index) ? (details.mutant_allele_index + 4) - b : details.mutant_allele_index -b;
-                        SiteStatsSummary stats = CalculateStats(pileupData, details.mutant_line, details.mutant_allele_index);
+                        size_t pseudo_mutant_index = details.mutant_allele_index + b;                                                          
+                        if(pseudo_mutant_index > 3){                                                                                           
+                            pseudo_mutant_index -= 4;                                                                                          
+                        }
+                        SiteStatsSummary stats = CalculateStats(pileupData, details.mutant_line, details.mutant_allele_index, b);
                         if( MeetsCriteria(stats) ){
                             m_denoms[i-1].counts[_site_data.reference] += 1;
                             break;
@@ -102,7 +105,6 @@ void DenomVisitor::Visit(const LocalBamToolsUtils::PileupPosition &pileupData) {
         }
     }
 }
-
 
 
 

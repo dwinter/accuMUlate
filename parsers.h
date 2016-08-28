@@ -70,7 +70,7 @@ public:
     virtual ~ReadDataVisitor() { }
 
     bool GatherReadData(const LocalBamToolsUtils::PileupPosition &pileupData);
-    SiteStatsSummary CalculateStats(const LocalBamToolsUtils::PileupPosition &pileupData, int mutant_index, int mallele_index);
+    SiteStatsSummary CalculateStats(const LocalBamToolsUtils::PileupPosition &pileupData, int mutant_index, int mallele_index, int rotate_by = 0);
 
     void SetRegion( BedInterval target_region );
 
