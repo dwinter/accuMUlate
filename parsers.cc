@@ -101,7 +101,7 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
             if ( sindex == mutant_index + 1) {
                 bindex += rotate_by;
                 if(bindex > 3){
-                    bindex -= 3;
+                    bindex -= 4;
                 }
             }
             if (sindex != MAX_UINT32) {

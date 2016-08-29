@@ -90,10 +90,7 @@ void DenomVisitor::Visit(const LocalBamToolsUtils::PileupPosition &pileupData) {
                 if( p > m_prob_cut){
                     MutationDescription details = DescribeMutant(m_params, sf, _site_data, m_mut_paths, m_nomut_paths);
                     if( details.mutant_allele_index < std::numeric_limits<uint16_t>::max() ){ // Can't collect stats for non-mutations in diploids
-                        size_t pseudo_mutant_index = details.mutant_allele_index + b;                                                          
-                        if(pseudo_mutant_index > 3){                                                                                           
-                            pseudo_mutant_index -= 4;                                                                                          
-                        }
+                        size_t pseudo_mutant_index = details.mutant_allele_index + b;
                         SiteStatsSummary stats = CalculateStats(pileupData, details.mutant_line, details.mutant_allele_index, b);
                         if( MeetsCriteria(stats) ){
                             m_denoms[i-1].counts[_site_data.reference] += 1;
