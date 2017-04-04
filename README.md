@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/dwinter/accuMUlate.svg?branch=master)](https://travis-ci.org/dwinter/accuMUlate)
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19942.svg)](http://dx.doi.org/10.5281/zenodo.19942)
-#Calling mutations from MA lines
+# Calling mutations from MA lines
 
 `accuMUlate` is a mutation caller designed with Mutation Accumulation (MA)
 experiments in mind. The probablistic approach to mutation calling implemented by 
