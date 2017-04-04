@@ -80,11 +80,8 @@ Warning: excluding data from 'D6' which is included in the BAM file but not the 
 ## How does it work
 
 The `accuMUalte` model is descirbed in. 
+Long et al. "Low base-substitution mutation rate in the germline genome of the ciliate Tetrahymena thermophila." Genome Biology and Evolution (2016): evw223. doi: [https://doi.org/10.1093/gbe/evw223](https://doi.org/10.1093/gbe/evw223)
 
-Winter, Long et al (in review) Low base-substitution mutation rate in the ciliate _Tetrahymena thermophila_
-pre-print doi:[https://dx.doi.org/10.1101/025536](https://dx.doi.org/10.1101/025536)
-
-   
 
 ## Help, Bugs  and Suggestions.
 
