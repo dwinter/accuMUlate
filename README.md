@@ -9,14 +9,14 @@ by NGS sequencing and accomidate diploid, haploid or diploid to haploid
 experimental designs.
 
 
-##Getting started
+## Getting started
 
 The [wiki](https://github.com/dwinter/accuMUlate/wiki) gives a detailed account
 of how to prepare your rate, compile accuMUlate, run the program and understand
 results. If you want to get started even more quickly here's what you need to
 know
 
-##Prerequisites 
+## Prerequisites 
 
 In order to install `accuMUlate` you will need the following libraries
 
@@ -29,7 +29,7 @@ managers for linux distributions and OSX  should let you installed pre-compiled
 version of Eigen, Boost and CMake. The [wiki](https://github.com/dwinter/accuMUlate/wiki) 
 describes how to compile bamtools.
 
-###Compilation
+### Compilation
 
 With prerequsites installed, building the software is easy:
 
@@ -39,7 +39,7 @@ cmake ..
 make
 ```
 
-###Test run
+### Test run
 
 That above commands should make two programs in the `build` directory:
 `accuMUlate` (the mutation called) and `denominate` (a tool for calculating the
