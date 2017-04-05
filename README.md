@@ -44,12 +44,13 @@ make
 That above commands should make two programs in the `build` directory:
 `accuMUlate` (the mutation called) and `denominate` (a tool for calculating the
 number of callable sites in a BAM file). To test the everything has gone well
-you can run these on some test data. First `accuMUlate`, which should produce
-a warning message and detailed information about one possible mutation:
+you can run these on some test data. First `accuMUlate`, running from the
+working directory this  should produce a warning message and detailed 
+information about one possible mutation:
 
 
 ```sh
-./accuMUlate -c test/data/example_params.ini \
+build/accuMUlate -c test/data/example_params.ini \
              -b test/data/test.bam \
              -r test/data/test.fasta \
              -i test/data/test.bed 
@@ -65,7 +66,7 @@ ancestrally "A", "C", "G" and "T" bases for each sample that could be called for
 a mutation is one was present.
 
 ```sh
-./denominate -c test/data/example_params.ini \
+build/denominate -c test/data/example_params.ini \
             -b test/data/test.bam \
             -r test/data/test.fasta \
             -i test/data/test.bed \
