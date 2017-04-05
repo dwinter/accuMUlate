@@ -58,7 +58,9 @@ namespace BoostUtils {
 
             if(it->HasSample()){
 
-                if (find(keepers.begin(), keepers.end(), it->Sample) == keepers.end()){
+                
+                auto samp_in_keepers =  find(keepers.begin(), keepers.end(), it->Sample);
+                if (samp_in_keepers == keepers.end()){
                     if(it->Sample == anc_tag ){
                           name_map[it->Sample] = 0;
                           ancestor_in_BAM = true;
@@ -72,7 +74,8 @@ namespace BoostUtils {
                 else {
                     auto s  = name_map.find(it->Sample);
                     if( s == name_map.end()){//samples can have multiple readgroups...
-                        name_map[it->Sample] = sindex;
+
+                        name_map[it->Sample] = distance(keepers.begin(), samp_in_keepers) + 1;
                         sindex ++;
 //                        keepers.erase(find(keepers.begin(),keepers.end(),it->Sample));
                         //NOTE: with erase, effectively remove all double+ samples
@@ -103,8 +106,8 @@ namespace BoostUtils {
         for(auto it = header.ReadGroups.Begin(); it!= header.ReadGroups.End(); it++){
             if(it->HasSample()){
                 samples[it->ID] = name_map[it->Sample];
-//                cout << it->ID << " " << name_map[it->Sample] << endl;
-            }
+//                cout << it->ID << " " << it->Sample << " " << name_map[it->Sample] << endl;
+           }
         }
 
         return samples;
