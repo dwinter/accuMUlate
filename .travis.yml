@@ -1,16 +1,48 @@
 language: cpp
-compiler: clang
+sudo: false
+compiler:
+  - gcc
+  - clang
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise
+      - llvm-toolchain-precise-3.6
+    packages:
+      - gcc-4.9
+      - g++-4.9
+      - clang-3.6
+      - llvm-3.6   
+      - libgtest-dev 
+env:
+  global:
+    - USE_CCACHE=1
+
+before_install:
+#debug travis errs
+  -  ls -l $HOME
 install:
-  - sudo apt-get install libboost-program-options-dev
+ #nope
 before_script:
-  - mkdir build
-  - curl https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz | tar xz 
-  - mv eigen-eigen-10219c95fe65/Eigen/ Eigen/
-  - cd third-party/bamtools/build && cmake .. && make
-
+    - ./travis_rebuild_cache.sh
+    - ls -l $HOME/build/
+    - ls -l $HOME/include/
+    - ls -l $HOME/lib/
 script:
-    - cd /home/travis/build/dwinter/accuMUlate/build/
-    - cmake -DBamtools_PREFIX=../third-party/bamtools/ ..
-    - make
-
-
+  - g++ --version
+  - if [ "$CXX" = "g++" ]; then export CXX="/usr/bin/g++-4.9" CC="gcc-4.9"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="/usr/bin/clang++-3.6" CC="clang-3.6"; fi
+  - $CXX --version  
+  - echo $CXX
+  - which g++-4.9
+  - ccache -s
+  - mkdir -p build && cd build && cmake -DBOOST_INCLUDEDIR=${HOME}/include .. #-DBamtools_PREFIX=${HOME}/ ..
+  - make
+  - cd test &&  ./UnitTests 
+cache:
+    directories:
+    - $HOME/lib/
+    - $HOME/include/
+    - $HOME/.ccache

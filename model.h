@@ -1,40 +1,28 @@
 #ifndef model_H
 #define model_H
 
-
-#include "Eigen/Dense"
+#include "src/mutations/sequencing_factory.h"
+#include "data_struct.h"
 
 using namespace std;
 
-union ReadData{
-    uint16_t reads[4];
-    uint64_t key;
-};
+TransitionMatrix F81(const ModelParams &params);
 
-typedef vector<ReadData> ReadDataVector;
+MutationMatrix MutationAccumulation(const ModelParams &params, bool and_mut);
 
-struct ModelParams{
-    double theta;               //
-    vector<double> nuc_freq;    //ACGT
-    double mutation_rate;       //
-    double error_prob;          // Sequencing error-rate 
-    double phi_haploid;         // Overdispersion for haploid sequencing
-    double phi_diploid;         // Overdispersion for diploid sequencing
-};
+GenotypeProbs PopulationProbs(SequencingFactory &sf, int ref_allele, int ploidy_ancestor);
 
-struct ModelInput{// Can probably stand to lose this, started out more complex..
-    uint16_t reference;
-    ReadDataVector all_reads;
-};
+GenotypeProbs Sequencing(SequencingFactory &sf, ReadData data, int ploidy);
 
-typedef Eigen::Array4d HaploidProbs;
-typedef Eigen::Array<double, 16, 1> DiploidProbs;
-typedef Eigen::Array<double, 16, 4> MutationMatrix;
+double TetMAProbability(const ModelParams &params, SequencingFactory &sf, const ModelInput &site_data,
+                        const MutationMatrix &m, const MutationMatrix &mn);
+
+double TetMAProbOneMutation(const ModelParams &params, SequencingFactory &sf, const ModelInput &site_data,
+                            const MutationMatrix &m, const MutationMatrix &mn);
 
 
-DiploidProbs DiploidSequencing(const ModelParams &params, int ref_allele, ReadData data); 
-double TetMAProbOneMutation(const ModelParams &params, const ModelInput site_data);
-double TetMAProbability(const ModelParams &params, const ModelInput site_data);
+MutationDescription DescribeMutant(const ModelParams &params, SequencingFactory &sf, const ModelInput site_data, 
+                                   const MutationMatrix m, const MutationMatrix mn);
 
 
 #endif

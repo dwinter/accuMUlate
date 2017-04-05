@@ -1,7 +1,8 @@
 #!/bin/sh
 echo '===running accumulate on test data==='
 echo '(bamtools is going to complain about the not-very-well sorted BAM)'
-build/accuMUlate -c test/test_params.ini -b test/test.bam -r test/test.fasta -o test/test.out 
+build/accuMUlate -c example/test_params.ini -b example/test.bam -r example/test.fasta
+-o example/test.out 
 
 echo '\n===First pass result ==='
 cat test/test.out
