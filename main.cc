@@ -73,13 +73,16 @@ int main(int argc, char** argv){
         BedFile bed (vm["intervals"].as<string>());
         BedInterval region;
         while(bed.get_interval(region) == 0){
+            // new pileup object for each interval
+            LocalBamToolsUtils::PileupEngine pileup;
+            v->SetRegion(region);
+            pileup.AddVisitor(v);
             int ref_id = experiment.GetReferenceID(region.chr);
             experiment.SetRegion(ref_id, region.start, ref_id, region.end);
-            v->SetRegion(region);
             while( experiment.GetNextAlignment(ali) ){   
-                pileup.AddAlignment(ali);                
-            }
-        pileup.Flush();
+                pileup.AddAlignment(ali);
+            } 
+            pileup.Flush();
         }
     }
     else{
@@ -92,5 +95,5 @@ int main(int argc, char** argv){
 
     return 0;
 }
-
+    
 

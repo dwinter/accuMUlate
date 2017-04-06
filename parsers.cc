@@ -45,7 +45,7 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &p
     // set a region for variant calling then we will also get some of the
     // reads upstream and downstream of that region. So we need to check a given
     // position is actually in our region-of-interest
-    if( pos < region_start || pos >= region_end){   
+    if( pos < region_start || pos >= region_end){  
         return false;
     }
     //If we are in the right region, start processing the data
