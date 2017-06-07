@@ -160,6 +160,7 @@ namespace BoostUtils {
             ("out,o", po::value<string>()->default_value(""), "Out file name (default is std out)")
             ("intervals,i", po::value<string>(), "Path to bed file")
             ("config,c", po::value<string>(), "Path to config file")
+            ("header", po::value<string>()->default_value(""), "Alternative header")
             ("theta", po::value<double>()->required(), "theta")
             ("nfreqs", po::value< nfreqs >()->multitoken(), "Nucleotide frequencies")
             ("mu", po::value<double>()->required(), "Experiment-long mutation rate")
@@ -192,7 +193,7 @@ namespace BoostUtils {
     void ParseDenominateCommandline(int argc, char **argv, boost::program_options::variables_map &vm) {
         uint32_t infinite_int = std::numeric_limits<uint32_t>::max();
         double   infinite_double = std::numeric_limits<double>::infinity();
-        po::options_description cmd("Command line options (not all options can be set via configuration file)");
+        po::options_description cmd("Command line options (not: all options can be set via configuration file)");
         cmd.add_options()
             ("help,h", "Print a help message")
             ("bam,b", po::value<string>()->required(), "Path to BAM file")
@@ -255,6 +256,7 @@ namespace BoostUtils {
         string ref_file = vm["reference"].as<string>();
         string bam_path = vm["bam"].as<string>();
         string index_path = vm["bam-index"].as<string>();
+        string header_path = vm["header"].as<string>();
         if (index_path == "") {
             index_path = bam_path + ".bai";
         }
@@ -265,9 +267,16 @@ namespace BoostUtils {
         experiment.Open(bam_path);
         experiment.OpenIndex(index_path);
         references = experiment.GetReferenceData();
-        header = experiment.GetHeader();
+        if (header_path != ""){
+            ifstream h(header_path);
+            stringstream new_header;
+            new_header << h.rdbuf();
+            header = BamTools::SamHeader(new_header.str().c_str());
+        } 
+        else {
+            header = experiment.GetHeader();
+        }
 
-        experiment.OpenIndex(index_path);
 
 
         if (!file_exists(ref_file )) {
