@@ -44,6 +44,8 @@ DenomVisitor::DenomVisitor( const RefVector& bam_references,
 
 
 bool DenomVisitor::MeetsCriteria(SiteStatsSummary stats){
+    std::cout << stats.DP  << ", " << stats.NM_F << " " << stats.NM_R << std::endl;
+    std::cout << "failed on insert (" << stats.Insert_AD << ")" << std::endl;
     if(stats.DP < m_criteria.DP_min){
         return(false);
     }
@@ -51,9 +53,11 @@ bool DenomVisitor::MeetsCriteria(SiteStatsSummary stats){
         return(false);
     }
     if(stats.NM_F < m_criteria.mutant_strand_min){
+        std::cout << "failed on F" << std::endl;
         return(false);
     }
     if(stats.NM_R < m_criteria.mutant_strand_min){
+        std::cout << "failed on R" << std::endl;
         return(false);
     }
     if(stats.N_minor > m_criteria.ancestral_in_mutant_max){
@@ -63,9 +67,10 @@ bool DenomVisitor::MeetsCriteria(SiteStatsSummary stats){
         return(false);
     }
     if(stats.MQ_AD > m_criteria.MQ_AD_max){
+        std::cout << "failed on MQ" << std::endl;
         return(false);
     }
-    if(stats.Insert_AD > m_criteria.Insert_AD_max){
+    if(stats.Insert_AD > m_criteria.Insert_AD_max){       
         return(false);
     }
     if(stats.FisherStrandBias < m_criteria.Fisher_std_min){
@@ -74,6 +79,7 @@ bool DenomVisitor::MeetsCriteria(SiteStatsSummary stats){
     if(stats.FisherPairBias < m_criteria.Fisher_map_min){
         return(false);
     }
+    std::cout << "Fine" << std::endl;
     return true;
 }
 
