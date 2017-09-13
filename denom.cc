@@ -74,7 +74,6 @@ bool DenomVisitor::MeetsCriteria(SiteStatsSummary stats){
     if(stats.FisherPairBias < m_criteria.Fisher_map_min){
         return(false);
     }
-    std::cout << "Fine" << std::endl;
     return true;
 }
 
