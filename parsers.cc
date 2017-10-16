@@ -60,15 +60,17 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &p
     std::fill(bcalls.begin(), bcalls.end(), ReadData(0));
 
     for (auto it = begin(pileupData.PileupAlignments); it != end(pileupData.PileupAlignments); ++it) {
-        int32_t pos_in_alignment = it->PositionInAlignment;
-
-        if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
-            uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
-
-            if (sindex != MAX_UINT32) {
-                uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
-                if (bindex < 4) {
-                    bcalls[sindex].reads[bindex] += 1;
+        
+        if(not it->IsCurrentDeletion ){
+            int32_t pos_in_alignment = it->PositionInAlignment;
+            if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
+                uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
+    
+                if (sindex != MAX_UINT32) {
+                    uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
+                    if (bindex < 4) {
+                        bcalls[sindex].reads[bindex] += 1;
+                    }
                 }
             }
         }
@@ -94,60 +96,61 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
     //Collect the site's data
     SiteStatsData raw_data = {};
     for (auto it = begin(pileupData.PileupAlignments); it != end(pileupData.PileupAlignments); ++it) {
-        int32_t pos_in_alignment = it->PositionInAlignment;
-        if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {            
-            uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
-            uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
-            if ( sindex == mutant_index + 1) {
-                bindex += rotate_by;
-                if(bindex > 3){
-                    bindex -= 4;
-                }
-            }
-            if (sindex != MAX_UINT32) {
-                bool rev = it->Alignment.IsReverseStrand();
-                bool paired = raw_data.Paired_anc += it->Alignment.IsMateMapped();
-                if (mallele_index == bindex){
-                    raw_data.Paired_mutant += paired;
-                    raw_data.MQ_mutant.push_back(it->Alignment.MapQuality);
-                    if (paired){
-                        raw_data.Insert_mutant.push_back(it->Alignment.InsertSize);
-                    }                
-                    if (sindex == mutant_index + 1){//Mutant index is among _descendants_
-                        if (rev){                   // GetSampleIndex includes the ancestor as sample zero
-                            raw_data.MM_R += 1;                            
-                        }
-                        else {
-                            raw_data.MM_F += 1; 
-                        }
-                    }
-                    else{
-                        raw_data.AM += 1;
+        if(not it->IsCurrentDeletion ){
+            int32_t pos_in_alignment = it->PositionInAlignment;
+            if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {            
+                uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
+                uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
+                if ( sindex == mutant_index + 1) {
+                    bindex += rotate_by;
+                    if(bindex > 3){
+                        bindex -= 4;
                     }
                 }
-                else{
-                    raw_data.Paired_anc += paired;
-                    raw_data.MQ_anc.push_back(it->Alignment.MapQuality);
-                    if (paired){
-                        raw_data.Insert_anc.push_back(it->Alignment.InsertSize);
-                    }                
-                    if (sindex == mutant_index + 1){                                           
-                        if (rev){
-                            raw_data.MO_R += 1;
+                if (sindex != MAX_UINT32) {
+                    bool rev = it->Alignment.IsReverseStrand();
+                    bool paired = raw_data.Paired_anc += it->Alignment.IsMateMapped();
+                    if (mallele_index == bindex){
+                        raw_data.Paired_mutant += paired;
+                        raw_data.MQ_mutant.push_back(it->Alignment.MapQuality);
+                        if (paired){
+                            raw_data.Insert_mutant.push_back(it->Alignment.InsertSize);
+                        }                
+                        if (sindex == mutant_index + 1){//Mutant index is among _descendants_
+                            if (rev){                   // GetSampleIndex includes the ancestor as sample zero
+                                raw_data.MM_R += 1;                            
+                            }
+                            else {
+                                raw_data.MM_F += 1; 
+                            }
                         }
                         else{
-                            raw_data.MO_F += 1;
+                            raw_data.AM += 1;
                         }
                     }
                     else{
-                        raw_data.AA += 1;
+                        raw_data.Paired_anc += paired;
+                        raw_data.MQ_anc.push_back(it->Alignment.MapQuality);
+                        if (paired){
+                            raw_data.Insert_anc.push_back(it->Alignment.InsertSize);
+                        }                
+                        if (sindex == mutant_index + 1){                                           
+                            if (rev){
+                                raw_data.MO_R += 1;
+                            }
+                            else{
+                                raw_data.MO_F += 1;
+                            }
+                        }
+                        else{
+                            raw_data.AA += 1;
+                        }
                     }
-                }
-                    
-            }        
+                        
+                }        
+            }
         }
     }
-
     //Do the stats
     int N_minor_mutant = raw_data.MO_R + raw_data.MO_F;
     int unpaired_anc = (N_minor_mutant + raw_data.AA) - raw_data.Paired_anc;
@@ -217,8 +220,9 @@ bool include_site(const BamAlignment &alignment, const int &pos, const uint16_t 
 //    const BamAlignment *ali = &(pileup.Alignment);
     if (alignment.MapQuality > map_cut) {
         char reference = alignment.Qualities[pos];    
-        if (reference > qual_cut) {
-            return (not (alignment.IsDuplicate()) && not (alignment.IsFailedQC()) && alignment.IsPrimaryAlignment());
+        if (reference > qual_cut) {                                                                                    
+                    //Not a supplimentary aligment                    
+            return (alignment.AlignmentFlag & 0x800 !=0  && not (alignment.IsDuplicate()) && not (alignment.IsFailedQC()) && alignment.IsPrimaryAlignment());
         }
     }
 
