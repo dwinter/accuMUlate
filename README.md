@@ -9,6 +9,8 @@ by NGS sequencing, and accommodate diploid, haploid or diploid to haploid
 experimental designs.
 
 
+The preprint is available on bioRxiv [accuMUlate: A mutation caller designed for mutation accumulation experiments](https://www.biorxiv.org/content/early/2017/09/14/182956)
+
 ## Getting started
 
 The [wiki](https://github.com/dwinter/accuMUlate/wiki) gives a detailed account
