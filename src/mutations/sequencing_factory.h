@@ -8,6 +8,7 @@
 #include "data_struct.h"
 #include <unordered_map>
 #include "src/distributions/DirichletMultinomialDistribution.h"
+#include <Eigen/Dense>
 
 class SequencingFactory {
 
