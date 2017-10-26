@@ -25,6 +25,8 @@
 #include "model.h"
 
 
+#define VERSION_STRING "0.0.2"
+
 struct nfreqs{
     std::vector<double> freqs;
 };

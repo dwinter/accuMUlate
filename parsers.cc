@@ -220,9 +220,9 @@ bool include_site(const BamAlignment &alignment, const int &pos, const uint16_t 
 //    const BamAlignment *ali = &(pileup.Alignment);
     if (alignment.MapQuality > map_cut) {
         char reference = alignment.Qualities[pos];    
-        if (reference > qual_cut) {                                                                                    
+        if (reference > qual_cut) {           
                     //Is primary line (not supp. or secondary ali)
-            return (alignment.AlignmentFlag & 0x900 ==0  && not (alignment.IsDuplicate()) && not (alignment.IsFailedQC()) );
+            return ( (alignment.AlignmentFlag & 0x900) == 0  && not (alignment.IsDuplicate()) && not (alignment.IsFailedQC()) );
         }
     }
 
