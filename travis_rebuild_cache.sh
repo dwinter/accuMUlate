@@ -70,9 +70,10 @@ else
   cd $HOME/build/
   git clone git://github.com/pezmaster31/bamtools.git
   cd bamtools && mkdir build && cd build && cmake .. && make
-  cd $HOME/build/bamtools/
-  cp -r lib/ ~
-  cp -r include/ ~
+#  cd $HOME/build/bamtools/
+  cp  src/utils/libbamtools-utils.a ~/
+  cp -r src/api/libbamtools.a ~/
+  cp -r src/api/include/api ~
   echo "DONE rebuild bamtools"
 fi
 
