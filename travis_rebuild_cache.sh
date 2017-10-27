@@ -72,7 +72,7 @@ else
   cd bamtools && mkdir build && cd build && cmake .. && make
 #  cd $HOME/build/bamtools/
   cp  src/utils/libbamtools-utils.a ~/
-  cp  src/include/shared/bamtools_global.h ~/
+  cp -r src/include/shared/ ~/
   cp -r src/api/libbamtools.a ~/
   cp -r src/api/include/api ~
   echo "DONE rebuild bamtools"
