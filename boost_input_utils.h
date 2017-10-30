@@ -15,7 +15,7 @@
 
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options.hpp>
-#include <bamtools/api/BamReader.h>
+#include <api/BamReader.h>
 
 #include "parsers.h"
 #include "src/io_data/local_bamtools/bamtools_pileup_engine.h"

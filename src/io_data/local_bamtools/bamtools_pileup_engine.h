@@ -12,7 +12,7 @@
 
 //#include "utils/utils_global.h"
 
-#include <bamtools/api/BamAlignment.h>
+#include <api/BamAlignment.h>
 #include <vector>
 
 namespace LocalBamToolsUtils {

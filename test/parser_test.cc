@@ -5,7 +5,7 @@
 #include "variant_visitor.h"
 
 #include <boost/program_options.hpp>
-#include <bamtools/api/BamReader.h>
+#include <api/BamReader.h>
 #include <boost_input_utils.h>
 
 #include "src/io_data/local_bamtools/bamtools_pileup_engine.h"

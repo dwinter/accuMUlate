@@ -17,7 +17,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <bamtools/shared/bamtools_global.h>
+#include <shared/bamtools_global.h>
 
 using namespace std;
 using namespace LocalBamToolsUtils;

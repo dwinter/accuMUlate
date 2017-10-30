@@ -5,7 +5,7 @@
 #include <sstream>
 #include <limits>
 
-#include <bamtools/api/BamReader.h>
+#include <api/BamReader.h>
 #include "model.h"
 #include "parsers.h"
 

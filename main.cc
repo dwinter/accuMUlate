@@ -6,8 +6,8 @@
 #include <sys/stat.h>
 
 
-#include "boost/program_options.hpp"
-#include <bamtools/api/BamReader.h>
+#include <boost/program_options.hpp>
+#include <api/BamReader.h>
 
 #include "src/io_data/local_bamtools/bamtools_pileup_engine.h"
 #include "src/io_data/local_bamtools/bamtools_fasta.h"
