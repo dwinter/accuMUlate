@@ -29,10 +29,9 @@ find_path(Bamtools_INCLUDE_DIR api/api_global.h HINTS ${Bamtools_PREFIX}/include
 find_path(Bamtools_LINK_LIBRARY_DIR libbamtools.a HINTS ${Bamtools_PREFIX}/lib/ PATH_SUFFIXES bamtools)
 
 find_library(Bamtools_LIBRARY NAMES libbamtools.a HINTS ${Bamtools_PREFIX}/lib/ PATH_SUFFIXES bamtools)
-find_library(Bamtools_LIBRARY_UTILS NAMES libbamtools-utils.a HINTS ${Bamtools_PREFIX}/lib/ PATH_SUFFIXES bamtools)
+
 
 set(Bamtools_LIBRARIES ${Bamtools_LIBRARIES} ${Bamtools_LIBRARY} ${Bamtools_LIBRARY_UTILS} z)
-
 
 
 include(FindPackageHandleStandardArgs)

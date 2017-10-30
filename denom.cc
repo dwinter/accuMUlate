@@ -65,7 +65,7 @@ bool DenomVisitor::MeetsCriteria(SiteStatsSummary stats){
     if(stats.MQ_AD > m_criteria.MQ_AD_max){
         return(false);
     }
-    if(stats.Insert_AD > m_criteria.Insert_AD_max){
+    if(stats.Insert_AD > m_criteria.Insert_AD_max){       
         return(false);
     }
     if(stats.FisherStrandBias < m_criteria.Fisher_std_min){
