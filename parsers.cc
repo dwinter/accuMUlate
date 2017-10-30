@@ -3,10 +3,9 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
-
-#include <api/BamReader.h>
 #include <limits>
 
+#include <bamtools/api/BamReader.h>
 #include "model.h"
 #include "parsers.h"
 
