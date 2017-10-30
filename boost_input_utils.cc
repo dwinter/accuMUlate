@@ -252,10 +252,9 @@ namespace BoostUtils {
             BamTools::BamReader &experiment, BamTools::RefVector &references,
             BamTools::SamHeader &header, LocalBamToolsUtils::Fasta &reference_genome){
 
-
         string ref_file = vm["reference"].as<string>();
-        string bam_path = vm["bam"].as<string>();
         string index_path = vm["bam-index"].as<string>();
+        string bam_path = vm["bam"].as<string>();
         string header_path = vm["header"].as<string>();
         if (index_path == "") {
             index_path = bam_path + ".bai";

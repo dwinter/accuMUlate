@@ -6,7 +6,7 @@
 
 #include <boost/program_options.hpp>
 #include <api/BamReader.h>
-#include <boost_input_utils.h>
+#include "boost_input_utils.h"
 
 #include "src/io_data/local_bamtools/bamtools_pileup_engine.h"
 #include "src/io_data/local_bamtools/bamtools_fasta.h"
@@ -110,6 +110,7 @@ TEST_F(ParserTest, restrict_to_interval){
         ("help,h", "Print a help message")
         ("bam,b", po::value<string>()->required(), "Path to BAM file")
         ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
+        ("header,h", po::value<string>()->default_value(""), "Path to custom SAM header")
         ("reference,r", po::value<string>()->required(),  "Path to reference genome")
         ("ancestor,a", po::value<string>()->required(), "Ancestor RG sample ID")
         ("sample-name,s", po::value<vector <string> >()->required(), "Sample tags to include")
