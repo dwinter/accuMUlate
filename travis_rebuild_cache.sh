@@ -76,6 +76,8 @@ else
   cd bamtools && mkdir build && cd build
   cmake -DCMAKE_INSTALL_PREFIX=$HOME/local .. &&  make && make install
   echo "DONE rebuild bamtools"
+  ls -l $HOME/local/include/bamtools
+  ls -l $HOME/local/include/bamtools/shared
 fi
 
 #cd $HOME/include
