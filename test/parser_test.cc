@@ -108,6 +108,7 @@ TEST_F(ParserTest, restrict_to_interval){
     po::options_description cmd("Command line options");
     cmd.add_options()
         ("help,h", "Print a help message")
+        ("version,h", "Print a version number")
         ("bam,b", po::value<string>()->required(), "Path to BAM file")
         ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
         ("header,h", po::value<string>()->default_value(""), "Path to custom SAM header")

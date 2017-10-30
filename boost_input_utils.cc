@@ -8,6 +8,7 @@
 
 
 #include <numeric>
+#include "version.h"
 #include "parsers.h"
 #include "boost_input_utils.h"
 
@@ -149,6 +150,7 @@ namespace BoostUtils {
         po::options_description cmd("Command line options");
         cmd.add_options()
             ("help,h", "Print a help message")
+            ("version,v", "Print the version number")
             ("bam,b", po::value<string>()->required(), "Path to BAM file")
             ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
             ("reference,r", po::value<string>()->required(),  "Path to reference genome")
@@ -176,6 +178,11 @@ namespace BoostUtils {
             cout << cmd << endl;
             exit(-1);
         }
+        
+        if (vm.count("version")) {
+            cout <<  "accuMUlate " << VERSION_STRING << endl;
+            exit(-1);
+        }
 
         if (vm.count("config")) {
             string config_file = vm["config"].as<string>();
@@ -196,6 +203,7 @@ namespace BoostUtils {
         po::options_description cmd("Command line options (not: all options can be set via configuration file)");
         cmd.add_options()
             ("help,h", "Print a help message")
+            ("version,v", "Print the version number")
             ("bam,b", po::value<string>()->required(), "Path to BAM file")
             ("bam-index,x", po::value<string>()->default_value(""), "Path to BAM index, (defalult is <bam_path>.bai")
             ("reference,r", po::value<string>()->required(),  "Path to reference genome")
@@ -232,6 +240,11 @@ namespace BoostUtils {
             cout << cmd << endl;
             exit(-1);
          }
+        
+        if (vm.count("version")) {
+            cout <<  "denominate " << VERSION_STRING << endl;
+            exit(-1);
+        }
 
         if (vm.count("config")) {
             string config_file = vm["config"].as<string>();
