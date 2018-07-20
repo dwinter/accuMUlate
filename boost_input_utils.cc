@@ -142,8 +142,7 @@ namespace BoostUtils {
                 throw po::invalid_option_value("Must specify phi-diploid (overdispersion for diploid sequencing)");
             }
         }
-
-    }
+}
 
 
     void ParseCommandLineInput(int argc, char **argv, boost::program_options::variables_map &vm) {
@@ -214,6 +213,7 @@ namespace BoostUtils {
             ("qual,q", po::value<int>()->default_value(13), "Base quality cuttoff")
             ("mapping-qual,m", po::value<int>()->default_value(13), "Mapping quality cuttoff")
             ("prob,p", po::value<double>()->default_value(0.1), "Prob quality cuttoff")
+            ("header", po::value<string>()->default_value(""), "Alternative header")
             //Model params
             ("theta", po::value<double>()->required(), "theta")
             ("nfreqs", po::value< nfreqs >()->multitoken(), "Nucleotide frequencies")

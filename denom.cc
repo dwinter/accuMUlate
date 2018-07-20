@@ -119,8 +119,6 @@ int main(int argc, char** argv){
     ModelParams params = BoostUtils::CreateModelParams(vm);
     BoostUtils::ExtractInputVariables(vm, experiment, references, header, reference_genome);
     SampleMap samples = BoostUtils::ParseSamples(vm, header);
-
-
     DenomCriteria criteria = {
         vm["min-depth"].as<uint32_t>(),
         vm["max-depth"].as<uint32_t>(),
@@ -132,7 +130,6 @@ int main(int argc, char** argv){
         vm["min-strand-pval"].as<double>(),
         vm["min-mapping-pval"].as<double>()
     };
-
     LocalBamToolsUtils::PileupEngine pileup;
     BamAlignment ali;
     SampleNames desc_names = vm["sample-name"].as< SampleNames >();
