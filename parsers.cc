@@ -63,7 +63,7 @@ bool ReadDataVisitor::GatherReadData(const LocalBamToolsUtils::PileupPosition &p
         if(not it->IsCurrentDeletion ){
             int32_t pos_in_alignment = it->PositionInAlignment;
             if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {
-                uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
+                uint32_t sindex = GetSampleIndex(it->Alignment);
     
                 if (sindex != MAX_UINT32) {
                     uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
@@ -98,7 +98,7 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
         if(not it->IsCurrentDeletion ){
             int32_t pos_in_alignment = it->PositionInAlignment;
             if (include_site(it->Alignment, pos_in_alignment, m_mapping_cut, qual_cut_char)) {            
-                uint32_t sindex = GetSampleIndex(it->Alignment.TagData);
+                uint32_t sindex = GetSampleIndex(it->Alignment);
                 uint16_t bindex = base_index_lookup[(int) it->Alignment.QueryBases[pos_in_alignment]];
                 if ( sindex == mutant_index + 1) {
                     bindex += rotate_by;
@@ -167,18 +167,11 @@ SiteStatsSummary ReadDataVisitor::CalculateStats(const LocalBamToolsUtils::Pileu
 
 }
 
-uint32_t ReadDataVisitor::GetSampleIndex(const std::string &tag_data) {
-    size_t start_index = tag_data.find(RG_TAG);
-    if (start_index != std::string::npos) {
-        start_index += 4;
+uint32_t ReadDataVisitor::GetSampleIndex(const BamAlignment &alignment) {
+    std::string tag_id_2;
+    if (! alignment.GetTag("RG", tag_id_2)) {
+        std::cout << "ERROR: Could not find RG tag in tag data\t" << alignment.TagData << std::endl;
     }
-    else {
-        size_t x = tag_data.find("RG");//TODO: Check for (char)0, RG, Z
-        std::cout << "ERROR: " << tag_data << "\t" << x << std::endl;
-    }
-    size_t end_index = tag_data.find(ZERO_CHAR, start_index);
-    std::string tag_id_2 = tag_data.substr(start_index, (end_index - start_index));
-
     return m_samples[tag_id_2];
 }
 

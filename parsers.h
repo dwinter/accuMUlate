@@ -60,8 +60,6 @@ public:
 class ReadDataVisitor : public LocalBamToolsUtils::PileupVisitor {
 
 public:
-    const char ZERO_CHAR = ((char) 0);
-    const std::string RG_TAG{{ZERO_CHAR, 'R', 'G', 'Z'}};
     uint64_t region_start = 0;
     uint64_t region_end = -1;
     ReadDataVisitor(LocalBamToolsUtils::Fasta &idx_ref, SampleMap &samples,
@@ -74,8 +72,7 @@ public:
 
     void SetRegion( BedInterval target_region );
 
-    uint32_t GetSampleIndex(const string &tag_data);
-
+    uint32_t GetSampleIndex(const BamTools::BamAlignment &alignment);
 
 protected:
     ModelInput site_data;
